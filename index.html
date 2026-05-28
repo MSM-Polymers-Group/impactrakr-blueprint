@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Impactrakr · Product Blueprint v0.3.2</title>
+<title>Impactrakr · Product Blueprint v0.3.3</title>
 <meta name="description" content="Plataforma dMRV para validação de créditos de reciclagem de plástico. Cliente: MARE Foundation / MSM Polymers (Malta).">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1061,7 +1061,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
         <span class="search-btn-label" lang="en">Search...</span>
         <kbd>⌘K</kbd>
       </button>
-      <span class="version-pill">v0.3.2 · 28 May 2026</span>
+      <span class="version-pill">v0.3.3 · 28 May 2026</span>
       <div class="lang-toggle" role="group" aria-label="Language">
         <button data-lang="pt" class="active" aria-label="Português">PT</button>
         <button data-lang="en" aria-label="English">EN</button>
@@ -1187,7 +1187,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
 
 <!-- ============ HERO ============ -->
 <section class="hero">
-  <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.3.2</div>
+  <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.3.3</div>
   <h1>
     <span lang="pt">Plataforma dMRV para créditos de reciclagem de plástico</span>
     <span lang="en">dMRV platform for plastic recycling credits</span>
@@ -1233,10 +1233,21 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
   <div class="callout callout-info">
     <span class="callout-icon">◆</span>
     <div>
-      <strong><span lang="pt">Atualizações desta versão (v0.3.1 — 28/mai/2026)</span><span lang="en">Updates in this version (v0.3.1 — May 28, 2026)</span></strong>
+      <strong><span lang="pt">Atualizações desta versão (v0.3.3 — 28/mai/2026)</span><span lang="en">Updates in this version (v0.3.3 — May 28, 2026)</span></strong>
       <p style="margin:6px 0 0; color: inherit;">
-        <span lang="pt"><strong>Arquitetura:</strong> A12 — plataforma é multi-tenant desde o início, preparando integração futura com Recyclass e outros operadores. <strong>Infra concluída em 24–25/mai</strong> com AWS + Pulumi. Sprint 2 em curso (autenticação e participantes). <strong>Recyclass Audit Scheme V1.1 absorvido</strong> — as 6 regras RC-01 a RC-06 agora detalhadas em §5.7. <strong>Atenção R15:</strong> integração futura com órgão público (DIWASS / Recyclass) pode exigir requisitos de segurança adicionais — em análise.</span>
-        <span lang="en"><strong>Architecture:</strong> A12 — platform is multi-tenant from day one, preparing for future integration with Recyclass and other operators. <strong>Infra completed May 24–25</strong> with AWS + Pulumi. Sprint 2 in progress (authentication and participants). <strong>Recyclass Audit Scheme V1.1 absorbed</strong> — the 6 rules RC-01 to RC-06 now detailed in §5.7. <strong>R15 watch:</strong> future integration with public authorities (DIWASS / Recyclass) may require additional security requirements — under analysis.</span>
+        <span lang="pt"><strong>Autenticação multi-tenant (A12) finalizada em 28/mai.</strong> Em 4 dias, Sprint 2 entregou mais de 40 incrementos no repositório oficial — domínio de identidade pronto, AWS Cognito provisionado, contextos de negócio reorganizados em pacotes (identity + participant), pipeline CI/CD modernizado e suíte de testes com testcontainers + e2e. <strong>Em curso agora:</strong> CRUD de Participant + Address (finalização 29/mai). <strong>Próximos:</strong> MassID (30/mai) e Frontend Next.js em paralelo. <strong>Novidade no Blueprint:</strong> §07 ganhou um registro completo dos <strong>31 ADRs</strong> — toda decisão técnica relevante agora aparece como linha auditável.</span>
+        <span lang="en"><strong>Multi-tenant authentication (A12) finalized on May 28.</strong> In 4 days, Sprint 2 shipped 40+ increments to the official repo — identity domain complete, AWS Cognito provisioned, business contexts reorganized into packages (identity + participant), modernized CI/CD pipeline, and test suite with testcontainers + e2e. <strong>In progress now:</strong> Participant + Address CRUD (finalization May 29). <strong>Next:</strong> MassID (May 30) and Next.js frontend in parallel. <strong>New in this Blueprint:</strong> §07 now includes a full registry of the <strong>31 ADRs</strong> — every relevant technical decision now appears as an auditable line.</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="callout callout-info" style="margin-top:12px;">
+    <span class="callout-icon">i</span>
+    <div>
+      <strong><span lang="pt">Versão anterior (v0.3.3 — 25/mai/2026)</span><span lang="en">Earlier version (v0.3.3 — May 25, 2026)</span></strong>
+      <p style="margin:6px 0 0; color: inherit;">
+        <span lang="pt"><strong>A12 — plataforma multi-tenant desde o início</strong>, preparando integração futura com Recyclass e outros operadores. <strong>Infra concluída em 24–25/mai</strong> com AWS + Pulumi. <strong>Recyclass Audit Scheme V1.1 absorvido</strong> — 6 regras RC-01 a RC-06 detalhadas em §5.7. <strong>Atenção R15:</strong> integração futura com órgão público pode exigir requisitos de segurança adicionais.</span>
+        <span lang="en"><strong>A12 — multi-tenant platform from day one</strong>, preparing for future integration with Recyclass and other operators. <strong>Infra completed May 24–25</strong> with AWS + Pulumi. <strong>Recyclass Audit Scheme V1.1 absorbed</strong> — 6 rules RC-01 to RC-06 detailed in §5.7. <strong>R15 watch:</strong> future integration with public authorities may require additional security requirements.</span>
       </p>
     </div>
   </div>
@@ -1791,53 +1802,59 @@ flowchart LR
     <h2><span lang="pt">Arquitetura técnica</span><span lang="en">Technical architecture</span></h2>
   </div>
 
-  <h3>Monorepo</h3>
+  <h3>Monorepo <span class="badge badge-accent badge-mono" style="margin-left:6px;">ATUALIZADO 28/mai</span></h3>
 <pre><code>impactrakr/
 ├── apps/
-│   ├── api/           → NestJS backend (Sprint 1 ~80%)
-│   └── web/           → Next.js frontend (placeholder, Sprint 3+)
+│   ├── api/                → NestJS backend (composição de contextos)
+│   └── web/                → Next.js frontend (início paralelo a partir de 30/mai)
 ├── packages/
-│   ├── shared/        → shared types
-│   └── config/        → tsconfig + eslint
-├── docs/              → IMP-46, blueprint, ADRs
-├── .github/
-│   └── workflows/
-│       └── ci.yml     → lint + typecheck + test + build
-└── prisma/            → schema + migrations</code></pre>
+│   ├── api/
+│   │   ├── identity/       → auth multi-tenant (A12) · concluído 28/mai
+│   │   └── participant/    → CRUD em curso (29/mai)
+│   ├── cli/                → ferramentas de ciclo de vida (ADR-030)
+│   ├── shared/             → tipos compartilhados (Zod-first)
+│   ├── testing/            → fixtures, stubs, testcontainers (ADR-026)
+│   └── config/             → tsconfig + eslint
+├── docs/
+│   ├── adr/                → 31 ADRs (decisões técnicas auditáveis)
+│   └── index.html          → este Blueprint
+├── infra/                  → Pulumi (VPC, RDS, ECS, Cognito, API Gateway)
+└── .github/workflows/      → CI/CD (build em CI, deploy via Pulumi · ADR-031)</code></pre>
 
   <h3>Stack</h3>
   <div class="table-wrap">
     <table class="table-compact">
       <thead><tr><th><span lang="pt">Camada</span><span lang="en">Layer</span></th><th><span lang="pt">Tecnologia</span><span lang="en">Technology</span></th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>Backend</td><td>NestJS + TypeScript</td><td><span class="badge badge-success">5 <span lang="pt">módulos prontos</span><span lang="en">modules ready</span></span></td></tr>
-        <tr><td>Frontend</td><td>Next.js + Tailwind + Recharts</td><td><span class="badge badge-warning">placeholder</span></td></tr>
-        <tr><td><span lang="pt">Banco</span><span lang="en">Database</span></td><td>PostgreSQL (AWS RDS in prod)</td><td><span class="badge badge-success">schema 25 <span lang="pt">modelos</span><span lang="en">models</span></span></td></tr>
-        <tr><td>Auth</td><td>JWT (15min) + opaque refresh (7d, hashed SHA-256)</td><td><span class="badge badge-success">done</span></td></tr>
-        <tr><td>Validation</td><td>class-validator → <strong>Zod</strong></td><td><span class="badge badge-warning"><span lang="pt">em curso</span><span lang="en">in progress</span></span></td></tr>
-        <tr><td>Tests</td><td>Vitest + Playwright (Phase 2)</td><td><span class="badge badge-success">160+ test cases</span></td></tr>
-        <tr><td>Linter</td><td>oxlint + ESLint <span lang="pt">híbrido</span><span lang="en">hybrid</span></td><td><span class="badge badge-success">done</span></td></tr>
-        <tr><td>Secrets</td><td>Doppler (dev/staging/prod)</td><td><span class="badge badge-success">done</span></td></tr>
-        <tr><td>IaC</td><td>Pulumi</td><td><span class="badge badge-warning"><span lang="pt">esqueleto pronto</span><span lang="en">skeleton ready</span></span></td></tr>
-        <tr><td>Deploy</td><td>AWS ECS · GitHub Actions</td><td><span class="badge badge-info">Sprint 4</span></td></tr>
+        <tr><td>Backend</td><td>NestJS + TypeScript (Node 24 LTS · ADR-005)</td><td><span class="badge badge-success">● identity + participant</span></td></tr>
+        <tr><td>Frontend</td><td>Next.js + Tailwind + Recharts</td><td><span class="badge badge-warning">◐ <span lang="pt">início 30/mai</span><span lang="en">starts May 30</span></span></td></tr>
+        <tr><td><span lang="pt">Banco</span><span lang="en">Database</span></td><td>PostgreSQL (AWS RDS · 1 DB por contexto · ADR-018)</td><td><span class="badge badge-success">● <span lang="pt">provisionado</span><span lang="en">provisioned</span></span></td></tr>
+        <tr><td>Auth</td><td><strong>AWS Cognito + multi-tenant</strong> (A12 · ADR-024 · RLS ADR-025)</td><td><span class="badge badge-success">● <span lang="pt">finalizado 28/mai</span><span lang="en">finalized May 28</span></span></td></tr>
+        <tr><td>Validation</td><td><strong>Zod</strong> como fonte única (ADR-001)</td><td><span class="badge badge-success">● <span lang="pt">migração concluída</span><span lang="en">migration complete</span></span></td></tr>
+        <tr><td>Tests</td><td>Vitest + testcontainers (ADR-026) + e2e dev (ADR-027)</td><td><span class="badge badge-success">● 160+ unit · e2e wired</span></td></tr>
+        <tr><td>Linter</td><td>oxlint + ESLint <span lang="pt">híbrido</span><span lang="en">hybrid</span></td><td><span class="badge badge-success">●</span></td></tr>
+        <tr><td>Secrets</td><td>Doppler (dev/staging/prod)</td><td><span class="badge badge-success">●</span></td></tr>
+        <tr><td>IaC</td><td>Pulumi · backend S3 próprio (ADR-006)</td><td><span class="badge badge-success">● VPC · RDS · ECS · Cognito</span></td></tr>
+        <tr><td>Deploy</td><td>AWS ECS on EC2 (ADR-019) · API Gateway HTTP + VPC Link (ADR-020) · CI builds (ADR-031)</td><td><span class="badge badge-success">● dev no ar</span></td></tr>
       </tbody>
     </table>
   </div>
 
-  <h3>9 <span lang="pt">módulos NestJS — status real (auditado em 17/mai)</span><span lang="en">NestJS modules — real status (audited May 17)</span></h3>
+  <h3><span lang="pt">Contextos de negócio (Bounded Contexts) — status real em 28/mai</span><span lang="en">Business contexts (Bounded Contexts) — real status May 28</span></h3>
   <div class="table-wrap">
     <table class="table-compact">
-      <thead><tr><th style="width:160px"><span lang="pt">Módulo</span><span lang="en">Module</span></th><th>Status</th><th><span lang="pt">Notas</span><span lang="en">Notes</span></th></tr></thead>
+      <thead><tr><th style="width:170px"><span lang="pt">Contexto</span><span lang="en">Context</span></th><th>Status</th><th><span lang="pt">Notas</span><span lang="en">Notes</span></th></tr></thead>
       <tbody>
-        <tr><td><code>auth</code></td><td><span class="status-pill"><span class="status-icon status-done">✓</span><span lang="pt">feito</span><span lang="en">done</span></span></td><td>JWT strategy + refresh rotation + replay detection</td></tr>
-        <tr><td><code>feature-flags</code></td><td><span class="status-pill"><span class="status-icon status-done">✓</span><span lang="pt">feito</span><span lang="en">done</span></span></td><td>7 flags</td></tr>
-        <tr><td><code>massid</code></td><td><span class="status-pill"><span class="status-icon status-done">✓</span><span lang="pt">feito</span><span lang="en">done</span></span></td><td>CRUD + <span lang="pt">transição de estado</span><span lang="en">state transition</span> + hash chain</td></tr>
-        <tr><td><code>import</code></td><td><span class="status-pill"><span class="status-icon status-progress">●</span><span lang="pt">em andamento</span><span lang="en">in progress</span></span></td><td>Sync fields IMP-30</td></tr>
-        <tr><td><code>validation</code></td><td><span class="status-pill"><span class="status-icon status-blocked">!</span>0/93</span></td><td><span lang="pt">Schema pronto. Motor a fazer Sprint 2.</span><span lang="en">Schema ready. Engine to build Sprint 2.</span></td></tr>
-        <tr><td><code>document</code></td><td><span class="status-pill"><span class="status-icon status-planned">○</span>Sprint 2</span></td><td>Upload + hash + <span lang="pt">versionamento</span><span lang="en">versioning</span></td></tr>
-        <tr><td><code>carrot</code></td><td><span class="status-pill"><span class="status-icon status-blocked">!</span><span lang="pt">só campos schema</span><span lang="en">schema fields only</span></span></td><td>HTTP client + OAuth + webhook — Sprint 3</td></tr>
-        <tr><td><code>dashboard</code></td><td><span class="status-pill"><span class="status-icon status-blocked">!</span>placeholder</span></td><td><span lang="pt">Agregações + 4 perfis — Sprint 3/4</span><span lang="en">Aggregations + 4 profiles — Sprint 3/4</span></td></tr>
-        <tr><td><code>audit</code></td><td><span class="status-pill"><span class="status-icon status-planned">○</span>Sprint 4</span></td><td>Audit pack export + BV checklist</td></tr>
+        <tr><td><code>identity</code> <span class="badge badge-purple badge-mono" style="margin-left:4px;">A12</span></td><td><span class="status-pill"><span class="status-icon status-done">✓</span><span lang="pt">finalizado</span><span lang="en">finalized</span></span></td><td><span lang="pt">Cognito + multi-tenant + audit log + API keys (28/mai). Detalhes em ADR-024 e ADR-025.</span><span lang="en">Cognito + multi-tenant + audit log + API keys (May 28). Detail in ADR-024 and ADR-025.</span></td></tr>
+        <tr><td><code>participant</code> + <code>address</code></td><td><span class="status-pill"><span class="status-icon status-progress">●</span><span lang="pt">em curso</span><span lang="en">in progress</span></span></td><td><span lang="pt">CRUD começou 28/mai, finalização prevista 29/mai.</span><span lang="en">CRUD started May 28, finalization planned May 29.</span></td></tr>
+        <tr><td><code>massid</code></td><td><span class="status-pill"><span class="status-icon status-planned">○</span><span lang="pt">próximo</span><span lang="en">next</span></span></td><td><span lang="pt">Início 30/mai · CRUD + transições de estado + hash chain.</span><span lang="en">Starts May 30 · CRUD + state transitions + hash chain.</span></td></tr>
+        <tr><td><code>feature-flags</code></td><td><span class="status-pill"><span class="status-icon status-done">✓</span><span lang="pt">feito</span><span lang="en">done</span></span></td><td>7 flags · Sprint 1</td></tr>
+        <tr><td><code>import</code></td><td><span class="status-pill"><span class="status-icon status-progress">●</span><span lang="pt">em andamento</span><span lang="en">in progress</span></span></td><td>Sync fields (IMP-30)</td></tr>
+        <tr><td><code>validation</code></td><td><span class="status-pill"><span class="status-icon status-blocked">!</span>0/99</span></td><td><span lang="pt">Schema pronto. Motor: Sprint 3 (PURE + EU + Recyclass).</span><span lang="en">Schema ready. Engine: Sprint 3 (PURE + EU + Recyclass).</span></td></tr>
+        <tr><td><code>document</code></td><td><span class="status-pill"><span class="status-icon status-planned">○</span>Sprint 3</span></td><td>Upload + hash + <span lang="pt">versionamento</span><span lang="en">versioning</span></td></tr>
+        <tr><td><code>carrot</code></td><td><span class="status-pill"><span class="status-icon status-blocked">!</span><span lang="pt">só campos schema</span><span lang="en">schema fields only</span></span></td><td>HTTP client + OAuth + webhook — Sprint 4</td></tr>
+        <tr><td><code>dashboard</code></td><td><span class="status-pill"><span class="status-icon status-blocked">!</span>placeholder</span></td><td><span lang="pt">Agregações + 4 perfis — Sprint 4/5</span><span lang="en">Aggregations + 4 profiles — Sprint 4/5</span></td></tr>
+        <tr><td><code>audit</code></td><td><span class="status-pill"><span class="status-icon status-planned">○</span>Sprint 5</span></td><td>Audit pack export + BV checklist</td></tr>
       </tbody>
     </table>
   </div>
@@ -1857,6 +1874,51 @@ flowchart LR
 
   <p lang="pt"><strong>Por que não amarrar a EU no core:</strong> a plataforma é posicionada como regionalmente agnóstica. Adicionar um novo país/região no futuro vira plug-and-play, em vez de refactor profundo.</p>
   <p lang="en"><strong>Why not couple EU to the core:</strong> the platform is positioned as regionally agnostic. Adding a new country/region in the future becomes plug-and-play, instead of a deep refactor.</p>
+
+  <h3 style="margin-top:40px;"><span lang="pt">Registro de Decisões Arquiteturais (ADRs)</span><span lang="en">Architecture Decision Records (ADRs)</span> <span class="badge badge-accent badge-mono" style="margin-left:6px;">31 documentos</span></h3>
+  <p lang="pt">Toda escolha técnica relevante é documentada como um <strong>ADR</strong> (Architecture Decision Record): um arquivo curto em <code>docs/adr/</code> com contexto, decisão e consequências. Servem como rastro auditável e como referência para qualquer pessoa (interna ou externa) que precise entender o porquê de cada escolha — desde a stack até decisões sensíveis como autenticação multi-tenant ou padrões de teste.</p>
+  <p lang="en">Every relevant technical choice is documented as an <strong>ADR</strong> (Architecture Decision Record): a short file under <code>docs/adr/</code> with context, decision, and consequences. They serve as an auditable trail and as a reference for anyone (internal or external) who needs to understand the rationale behind each choice — from the stack to sensitive decisions like multi-tenant auth or testing patterns.</p>
+
+  <div class="table-wrap" style="margin-top:14px;">
+    <table class="table-compact">
+      <thead><tr><th style="width:60px">#</th><th><span lang="pt">Tema</span><span lang="en">Topic</span></th><th><span lang="pt">Categoria</span><span lang="en">Category</span></th></tr></thead>
+      <tbody>
+        <tr><td>001</td><td>Zod <span lang="pt">como fonte única de tipos</span><span lang="en">as the single source of truth for shapes</span></td><td><span class="badge badge-info"><span lang="pt">Validação</span><span lang="en">Validation</span></span></td></tr>
+        <tr><td>002</td><td>Dispatcher CLI <span lang="pt">em vez de scripts duplicados</span><span lang="en">over per-package scripts</span></td><td><span class="badge badge-info">DX</span></td></tr>
+        <tr><td>003</td><td>Solution-style tsconfig <span lang="pt">por consumidor</span><span lang="en">per consumer</span></td><td><span class="badge badge-info">DX</span></td></tr>
+        <tr><td>004</td><td><span lang="pt">Dependências centralizadas</span><span lang="en">Centralized dependencies</span></td><td><span class="badge badge-info">DX</span></td></tr>
+        <tr><td>005</td><td>Node 24 LTS + pnpm 11 (<code>engine-strict</code>)</td><td><span class="badge badge-info">Stack</span></td></tr>
+        <tr><td>006</td><td>Pulumi <span lang="pt">com backend S3 próprio</span><span lang="en">with self-managed S3 backend</span></td><td><span class="badge badge-warning">IaC</span></td></tr>
+        <tr><td>007</td><td><span lang="pt">Workspace names espelham o filesystem</span><span lang="en">Workspace names mirror the filesystem</span></td><td><span class="badge badge-info">DX</span></td></tr>
+        <tr><td>008</td><td><span lang="pt">Libs do workspace exportam TS source</span><span lang="en">Workspace libs ship TS source</span></td><td><span class="badge badge-info">DX</span></td></tr>
+        <tr><td>009</td><td><code>apps/api</code> <span lang="pt">como bundle ESM único (esbuild)</span><span lang="en">as a single ESM bundle (esbuild)</span></td><td><span class="badge badge-info">Build</span></td></tr>
+        <tr><td>010</td><td><span lang="pt">Import aliases via tsconfig paths</span><span lang="en">Import aliases via tsconfig paths</span></td><td><span class="badge badge-info">DX</span></td></tr>
+        <tr><td>011</td><td>Tsconfig <code>extends</code> <span lang="pt">com caminhos relativos</span><span lang="en">with relative paths</span></td><td><span class="badge badge-info">DX</span></td></tr>
+        <tr><td>012</td><td>Pulumi <span lang="pt">carrega tsconfig-paths via</span><span lang="en">loads tsconfig-paths via</span> <code>NODE_OPTIONS</code></td><td><span class="badge badge-warning">IaC</span></td></tr>
+        <tr><td>013</td><td><span lang="pt">Orquestração baseada em tasks</span><span lang="en">Task-based orchestration</span></td><td><span class="badge badge-info">DX</span></td></tr>
+        <tr><td>014</td><td>Turbo remote cache <span lang="pt">no Vercel</span><span lang="en">on Vercel</span></td><td><span class="badge badge-info">DX</span></td></tr>
+        <tr><td>015</td><td>Zod stubs <span lang="pt">centralizados em</span><span lang="en">centralized in</span> <code>packages-testing</code></td><td><span class="badge badge-info">Tests</span></td></tr>
+        <tr><td>016</td><td><span lang="pt">Naming curto no Pulumi, contexto em tags</span><span lang="en">Short Pulumi names, context in tags</span></td><td><span class="badge badge-warning">IaC</span></td></tr>
+        <tr><td>017</td><td>VPC <span lang="pt">com NAT instance (NAT Gateway no futuro)</span><span lang="en">with NAT instance (NAT Gateway later)</span></td><td><span class="badge badge-warning">IaC</span></td></tr>
+        <tr><td>018</td><td>RDS <span lang="pt">único + um Postgres DB por contexto</span><span lang="en">shared + one DB per BC</span></td><td><span class="badge badge-warning">IaC</span></td></tr>
+        <tr><td>019</td><td>ECS on EC2 <span lang="pt">com Cloud Map SRV</span><span lang="en">with Cloud Map SRV</span></td><td><span class="badge badge-warning">IaC</span></td></tr>
+        <tr><td>020</td><td>API Gateway HTTP + VPC Link</td><td><span class="badge badge-warning">IaC</span></td></tr>
+        <tr><td>021</td><td>Docker image build/push <span lang="pt">dentro do DAG Pulumi</span><span lang="en">inside the Pulumi DAG</span></td><td><span class="badge badge-warning">IaC</span></td></tr>
+        <tr><td>022</td><td>SWC <span lang="pt">para decorator metadata antes do esbuild</span><span lang="en">for decorator metadata before esbuild</span></td><td><span class="badge badge-info">Build</span></td></tr>
+        <tr><td>023</td><td>API URI versioning · <span lang="pt">sem prefixo</span><span lang="en">no prefix</span> <code>/api</code></td><td><span class="badge badge-info">API</span></td></tr>
+        <tr style="background: var(--accent-bg);"><td>024</td><td><strong><span lang="pt">Autenticação e identidade multi-tenant</span><span lang="en">Multi-tenant auth and identity</span></strong> <span class="badge badge-purple badge-mono" style="margin-left:4px;">A12</span></td><td><span class="badge badge-danger">Auth</span></td></tr>
+        <tr style="background: var(--accent-bg);"><td>025</td><td><strong>RLS enforcement: <code>SET LOCAL</code> + migrator <code>BYPASSRLS</code></strong></td><td><span class="badge badge-danger">Auth</span></td></tr>
+        <tr><td>026</td><td>Testcontainers <span lang="pt">para o ciclo de vida do DB de testes</span><span lang="en">for test DB lifecycle</span></td><td><span class="badge badge-info">Tests</span></td></tr>
+        <tr><td>027</td><td>E2E suite <span lang="pt">contra o dev deployado</span><span lang="en">against deployed dev</span></td><td><span class="badge badge-info">Tests</span></td></tr>
+        <tr><td>028</td><td>Error response envelope + <code>traceId</code></td><td><span class="badge badge-info">API</span></td></tr>
+        <tr><td>029</td><td><span lang="pt">Pacotes por contexto em</span><span lang="en">BC runtime packages in</span> <code>packages/api/&lt;bc&gt;/</code></td><td><span class="badge badge-info">Estrutura</span></td></tr>
+        <tr><td>030</td><td><span lang="pt">CLI de ciclo de vida da identidade em</span><span lang="en">Identity lifecycle CLI in</span> <code>packages/cli/</code></td><td><span class="badge badge-info">DX</span></td></tr>
+        <tr><td>031</td><td><strong>Docker build em CI · Pulumi consome a tag</strong></td><td><span class="badge badge-info">CI/CD</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:10px; font-size: 12px; color: var(--text-secondary);" lang="pt"><strong>Acesso:</strong> os arquivos completos vivem em <code>docs/adr/*.md</code> no repositório principal (privado). Para detalhes técnicos de qualquer ADR específico, consulte o time de engenharia.</p>
+  <p style="margin-top:10px; font-size: 12px; color: var(--text-secondary);" lang="en"><strong>Access:</strong> the full files live in <code>docs/adr/*.md</code> in the main (private) repository. For technical detail on any specific ADR, reach out to the engineering team.</p>
 </section>
 
 <div class="section-divider"></div>
@@ -1875,25 +1937,34 @@ flowchart LR
       <div class="stakeholder-name">Gabriel Lopes <span class="badge badge-accent badge-mono" style="margin-left:6px;">DEV</span></div>
       <div class="stakeholder-role"><span lang="pt">Arquitetura &amp; backend</span><span lang="en">Architecture &amp; backend</span></div>
       <div class="stakeholder-desc">
-        <strong lang="pt">Entregas recentes</strong><strong lang="en">Recent deliveries</strong>
+        <strong lang="pt">Entregue (Sprint 2 · semana de 25 a 28/mai)</strong><strong lang="en">Delivered (Sprint 2 · week of May 25–28)</strong>
         <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 0; margin-top: 6px;">
-          <li lang="pt">Arquitetura modular com CQRS simplificado (TypeScript + Zod)</li>
-          <li lang="en">Modular architecture with simplified CQRS (TypeScript + Zod)</li>
-          <li lang="pt"><strong>Infra AWS + Pulumi concluída (24-25/mai)</strong></li>
-          <li lang="en"><strong>AWS + Pulumi infra completed (May 24-25)</strong></li>
-          <li lang="pt">Container API rodando, DNS .com configurado, RDS provisionado</li>
-          <li lang="en">API container running, .com DNS configured, RDS provisioned</li>
-          <li lang="pt">CI workflow (lint + typecheck + test + build) com Node 22 + Pg 16</li>
-          <li lang="en">CI workflow (lint + typecheck + test + build) with Node 22 + Pg 16</li>
-          <li lang="pt">Pacote shared com tipagem comum + Doppler integrado</li>
-          <li lang="en">Shared package with common typing + Doppler integrated</li>
+          <li lang="pt"><strong>40+ incrementos</strong> entregues na <code>main</code> oficial em 4 dias.</li>
+          <li lang="en"><strong>40+ increments</strong> shipped to the official <code>main</code> in 4 days.</li>
+          <li lang="pt"><strong>Autenticação multi-tenant (A12) — finalizada em 28/mai.</strong> Domínio de identidade pronto: usuários, organizações, API keys, audit log, controle de acesso por papel.</li>
+          <li lang="en"><strong>Multi-tenant authentication (A12) — finalized on May 28.</strong> Identity domain complete: users, organizations, API keys, audit log, role-based access.</li>
+          <li lang="pt"><strong>AWS Cognito</strong> integrado e provisionado (User Pool, app client, papéis IAM); stack <code>prod</code> parametrizada.</li>
+          <li lang="en"><strong>AWS Cognito</strong> integrated and provisioned (User Pool, app client, IAM roles); <code>prod</code> stack parameterized.</li>
+          <li lang="pt"><strong>Reorganização em pacotes:</strong> contextos de "identidade" e "participantes" extraídos para pacotes independentes — preparando para escala.</li>
+          <li lang="en"><strong>Package split:</strong> "identity" and "participants" contexts extracted into independent packages — paving the way for scale.</li>
+          <li lang="pt"><strong>Pipeline CI/CD modernizado:</strong> build de imagens da API movido para CI, Pulumi consome a tag; gateway de API ajustado (rotas <code>/v1/*</code>).</li>
+          <li lang="en"><strong>Modernized CI/CD pipeline:</strong> API image builds moved into CI, Pulumi consumes the tag; API gateway tuned (<code>/v1/*</code> routes).</li>
+          <li lang="pt"><strong>Nova fundação de testes:</strong> testcontainers para integração + suíte e2e contra o dev deployado.</li>
+          <li lang="en"><strong>New test foundation:</strong> testcontainers for integration + e2e suite against deployed dev.</li>
+          <li lang="pt"><strong>Documentação técnica:</strong> 8 ADRs novos (024 a 031) registrando essas escolhas; política UTC-everywhere.</li>
+          <li lang="en"><strong>Technical documentation:</strong> 8 new ADRs (024 through 031) recording these decisions; UTC-everywhere policy.</li>
         </ul>
-        <strong lang="pt" style="margin-top:10px; display:block;">Em andamento (Sprint 2)</strong><strong lang="en" style="margin-top:10px; display:block;">In progress (Sprint 2)</strong>
+        <strong lang="pt" style="margin-top:10px; display:block;">Em curso AGORA</strong><strong lang="en" style="margin-top:10px; display:block;">In progress NOW</strong>
         <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 0; margin-top: 4px;">
-          <li lang="pt">Módulo de autenticação multi-tenant (A12)</li>
-          <li lang="en">Multi-tenant authentication module (A12)</li>
-          <li lang="pt">CRUD de participantes</li>
-          <li lang="en">Participants CRUD</li>
+          <li lang="pt"><strong>Participant + Address</strong> — CRUD completo (começou 28/mai, finalização prevista para 29/mai).</li>
+          <li lang="en"><strong>Participant + Address</strong> — full CRUD (started May 28, finalization planned for May 29).</li>
+        </ul>
+        <strong lang="pt" style="margin-top:10px; display:block;">Próximos (30/mai em diante)</strong><strong lang="en" style="margin-top:10px; display:block;">Next (May 30 onward)</strong>
+        <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 0; margin-top: 4px;">
+          <li lang="pt"><strong>MassID</strong> — CRUD + transições de estado (cadeia de custódia).</li>
+          <li lang="en"><strong>MassID</strong> — CRUD + state transitions (chain of custody).</li>
+          <li lang="pt"><strong>Frontend (Next.js)</strong> em paralelo — telas de login, organização, participantes.</li>
+          <li lang="en"><strong>Frontend (Next.js)</strong> in parallel — login, organization, participants screens.</li>
         </ul>
       </div>
     </div>
@@ -1913,15 +1984,17 @@ flowchart LR
           <li lang="en"><strong>Absorbed Recyclass Audit Scheme V1.1 — 6 rules RC-01..RC-06</strong></li>
           <li lang="pt">ADR-002 Regional Compliance Adapter + naming layer</li>
           <li lang="en">ADR-002 Regional Compliance Adapter + naming layer</li>
-          <li lang="pt">Product Blueprint (este documento) bilíngue PT/EN</li>
-          <li lang="en">Product Blueprint (this document) bilingual PT/EN</li>
+          <li lang="pt"><strong>Revisão interna da PURE concluída — R11 resolvido (metodologia consistente).</strong></li>
+          <li lang="en"><strong>Internal PURE review completed — R11 resolved (methodology is consistent).</strong></li>
+          <li lang="pt">Product Blueprint (este documento) bilíngue PT/EN, agora publicado em GitHub Pages com atualização diária automática.</li>
+          <li lang="en">Product Blueprint (this document) bilingual PT/EN, now published on GitHub Pages with automatic daily update.</li>
         </ul>
         <strong lang="pt" style="margin-top:10px; display:block;">Em andamento</strong><strong lang="en" style="margin-top:10px; display:block;">In progress</strong>
         <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 0; margin-top: 4px;">
           <li lang="pt">Mapeamento de requisitos de segurança (DIWASS/Recyclass) — R15</li>
           <li lang="en">Mapping security requirements (DIWASS/Recyclass) — R15</li>
-          <li lang="pt">Refinamento do 3º pilar de regras (Recyclass) — finalização até 27/mai</li>
-          <li lang="en">Refinement of 3rd rules pillar (Recyclass) — wrap-up by May 27</li>
+          <li lang="pt">Issue do 3º pilar (5–6 regras Recyclass) para o Sprint 3</li>
+          <li lang="en">3rd pillar issue (5–6 Recyclass rules) for Sprint 3</li>
         </ul>
       </div>
     </div>
@@ -2013,6 +2086,14 @@ flowchart LR
         <div class="decision-title"><span lang="pt">Daily de segunda (Rodrigo, Gabriel, Julia)</span><span lang="en">Monday daily (Rodrigo, Gabriel, Julia)</span></div>
         <div class="decision-meta" lang="pt">Infra AWS+Pulumi finalizada · A12 (multi-tenant desde início) · A13 (otimização de custos no MVP, hardening pré-prod) · R15 (segurança das integrações regulatórias em mapeamento) · combinado: protótipo Julia vai para validação com designer Kelvin.</div>
         <div class="decision-meta" lang="en">AWS+Pulumi infra completed · A12 (multi-tenant from day one) · A13 (MVP cost optimization, pre-prod hardening) · R15 (mapping security of regulatory integrations) · agreed: Julia's prototype goes to designer Kelvin for validation.</div>
+      </div>
+    </div>
+    <div class="decision" style="border-color: var(--accent);">
+      <div class="decision-id">28 May</div>
+      <div class="decision-body">
+        <div class="decision-title"><span lang="pt">Marco de Sprint 2 — autenticação multi-tenant entregue</span><span lang="en">Sprint 2 milestone — multi-tenant authentication delivered</span></div>
+        <div class="decision-meta" lang="pt">40+ incrementos entre 25 e 28/mai · A12 implementado · Cognito provisionado em produção · contextos de "identidade" e "participantes" extraídos em pacotes · pipeline CI/CD modernizado · 8 ADRs novos (024–031). Blueprint publicado em GitHub Pages com atualização diária automática.</div>
+        <div class="decision-meta" lang="en">40+ increments between May 25 and 28 · A12 implemented · Cognito provisioned in prod · "identity" and "participants" contexts split into packages · modernized CI/CD pipeline · 8 new ADRs (024–031). Blueprint published on GitHub Pages with automatic daily updates.</div>
       </div>
     </div>
   </div>
@@ -2220,16 +2301,19 @@ flowchart LR
     <div class="eyebrow"><span class="eyebrow-dot"></span>11 · <span lang="pt">Governança</span><span lang="en">Governance</span></div>
     <h2><span lang="pt">Matriz de status</span><span lang="en">Status matrix</span></h2>
   </div>
-  <p class="lede">15 <span lang="pt">componentes</span><span lang="en">components</span> × 4 sprints. ● <span lang="pt">feito</span><span lang="en">done</span> · ◐ <span lang="pt">em andamento</span><span lang="en">in progress</span> · ◯ <span lang="pt">planejado</span><span lang="en">planned</span> · ✕ <span lang="pt">não iniciado</span><span lang="en">not started</span></p>
+  <p class="lede">18 <span lang="pt">componentes</span><span lang="en">components</span> × 4 sprints. ● <span lang="pt">feito</span><span lang="en">done</span> · ◐ <span lang="pt">em andamento</span><span lang="en">in progress</span> · ◯ <span lang="pt">planejado</span><span lang="en">planned</span> · ✕ <span lang="pt">não iniciado</span><span lang="en">not started</span></p>
 
   <div class="table-wrap">
     <table class="table-compact">
       <thead><tr><th><span lang="pt">Componente</span><span lang="en">Component</span></th><th>S1 · 01–15/May</th><th>S2 · 16–30/May · <span lang="pt">hoje</span><span lang="en">now</span></th><th>S3 · 01–15/Jun</th><th>S4 · 16–30/Jun</th></tr></thead>
       <tbody>
         <tr><td><strong>Schema dMRV</strong></td><td><span class="badge badge-success">● 25 <span lang="pt">modelos</span><span lang="en">models</span></span></td><td><span class="badge badge-warning">◐ delta IMP-56 + RC fields</span></td><td>—</td><td>—</td></tr>
-        <tr><td><strong>Infra AWS + Pulumi</strong> <span class="badge badge-warning badge-mono" style="margin-left:6px;">RESET</span></td><td><span class="badge badge-warning">◐ <span lang="pt">reconstruído por Gabriel</span><span lang="en">rebuilt by Gabriel</span></span></td><td><span class="badge badge-success">● <span lang="pt">finalizada 24-25/mai</span><span lang="en">finished May 24-25</span></span></td><td>—</td><td><span class="badge badge-warning">◐ <span lang="pt">refactor RDS (A13)</span><span lang="en">RDS refactor (A13)</span></span></td></tr>
-        <tr><td><strong>Multi-tenant <span class="badge badge-purple badge-mono" style="margin-left:6px;">A12</span></strong></td><td>—</td><td><span class="badge badge-info">◯ <span lang="pt">em curso (auth + Organization)</span><span lang="en">in progress (auth + Organization)</span></span></td><td>—</td><td>—</td></tr>
-        <tr><td><strong>Auth + RBAC</strong></td><td><span class="badge badge-success">● JWT + refresh</span></td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td><strong>Infra AWS + Pulumi</strong> <span class="badge badge-warning badge-mono" style="margin-left:6px;">RESET</span></td><td><span class="badge badge-warning">◐ <span lang="pt">reconstruído por Gabriel</span><span lang="en">rebuilt by Gabriel</span></span></td><td><span class="badge badge-success">● <span lang="pt">finalizada 24-25/mai · Cognito provisionado</span><span lang="en">finished May 24-25 · Cognito provisioned</span></span></td><td>—</td><td><span class="badge badge-warning">◐ <span lang="pt">hardening (A13)</span><span lang="en">hardening (A13)</span></span></td></tr>
+        <tr><td><strong>Multi-tenant <span class="badge badge-purple badge-mono" style="margin-left:6px;">A12</span></strong></td><td>—</td><td><span class="badge badge-success">● <span lang="pt">domínio de identidade entregue (28/mai)</span><span lang="en">identity domain delivered (May 28)</span></span></td><td><span class="badge badge-warning">◐ <span lang="pt">UI de organização</span><span lang="en">organization UI</span></span></td><td>—</td></tr>
+        <tr><td><strong>Auth + RBAC</strong></td><td><span class="badge badge-success">● JWT + refresh</span></td><td><span class="badge badge-success">● <span lang="pt">Cognito + papéis (28/mai)</span><span lang="en">Cognito + roles (May 28)</span></span></td><td><span class="badge badge-info">◯ <span lang="pt">fluxo login UI</span><span lang="en">login UI flow</span></span></td><td>—</td></tr>
+        <tr><td><strong>Pipeline CI/CD</strong> <span class="badge badge-accent badge-mono" style="margin-left:6px;">ADR-031</span></td><td>—</td><td><span class="badge badge-success">● <span lang="pt">build em CI, Pulumi consome tag</span><span lang="en">CI builds, Pulumi consumes tag</span></span></td><td>—</td><td>—</td></tr>
+        <tr><td><strong>Pacotes por contexto</strong> <span class="badge badge-accent badge-mono" style="margin-left:6px;">ADR-029</span></td><td>—</td><td><span class="badge badge-success">● <span lang="pt">identity + participants extraídos</span><span lang="en">identity + participants extracted</span></span></td><td><span class="badge badge-info">◯ <span lang="pt">demais contextos</span><span lang="en">remaining contexts</span></span></td><td>—</td></tr>
+        <tr><td><strong>Suíte de testes</strong> <span class="badge badge-accent badge-mono" style="margin-left:6px;">ADR-026/027</span></td><td><span class="badge badge-success">● 160+ unit</span></td><td><span class="badge badge-success">● <span lang="pt">testcontainers + e2e dev</span><span lang="en">testcontainers + e2e dev</span></span></td><td>—</td><td>—</td></tr>
         <tr><td><strong>Hash chain SHA-256</strong></td><td><span class="badge badge-success">● + tests</span></td><td>—</td><td>—</td><td><span class="badge badge-info">◯ <span lang="pt">job diário</span><span lang="en">daily job</span></span></td></tr>
         <tr><td><strong>Feature Flags</strong></td><td><span class="badge badge-success">● 7 flags</span></td><td>—</td><td>—</td><td>—</td></tr>
         <tr><td><strong>MassID Module</strong></td><td><span class="badge badge-success">● CRUD</span></td><td><span class="badge badge-warning">◐ sync DTOs</span></td><td>—</td><td>—</td></tr>
@@ -2449,12 +2533,12 @@ flowchart LR
 <footer class="footer">
   <div class="footer-grid">
     <div>
-      <strong style="color: var(--text-secondary);">Impactrakr · Product Blueprint <span id="footer-version">v0.3.2</span></strong>
+      <strong style="color: var(--text-secondary);">Impactrakr · Product Blueprint <span id="footer-version">v0.3.3</span></strong>
       <p style="margin: 4px 0 0; font-size: 12.5px;" lang="pt">Última atualização: <span id="footer-last-updated">28 de maio de 2026</span> · <span id="footer-relative-pt">hoje</span>. Owner: Rodrigo Moraes (Finder Consultoria).</p>
       <p style="margin: 4px 0 0; font-size: 12.5px;" lang="en">Last update: <span id="footer-last-updated-en">May 28, 2026</span> · <span id="footer-relative-en">today</span>. Owner: Rodrigo Moraes (Finder Consultoria).</p>
     </div>
     <div style="font-size: 12.5px; text-align: right;">
-      <div class="mono" id="footer-version-pill">v0.3.2 · 2026-05-28</div>
+      <div class="mono" id="footer-version-pill">v0.3.3 · 2026-05-28</div>
       <div class="mono" style="color: var(--accent); margin-top:4px;" id="footer-days-to-golive">— days to go-live</div>
     </div>
   </div>
