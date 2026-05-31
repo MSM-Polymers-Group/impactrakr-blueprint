@@ -1172,6 +1172,12 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
 .vr-pillar-RECYCLASS { background: rgba(20,184,166,0.12); color: #14b8a6; }
 .vr-sev-BLOCK { background: rgba(239,68,68,0.12); color: #ef4444; }
 .vr-sev-FLAG { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.vr-gate { background: var(--bg-elevated, var(--bg-default)); color: var(--text-secondary); border: 1px solid var(--border-default); font-family: var(--font-mono, ui-monospace, monospace); font-size: 9.5px; padding: 2px 7px; }
+.vr-gate-TRC_ISSUANCE { color: #3b82f6; border-color: rgba(59,130,246,0.35); }
+.vr-gate-LEGAL_OPERATION { color: #a78bfa; border-color: rgba(167,139,250,0.35); }
+.vr-gate-RECYCLASS_CERTIFICATION { color: #14b8a6; border-color: rgba(20,184,166,0.35); }
+.vr-gate-HOMOLOGATION_APPROVAL { color: #f59e0b; border-color: rgba(245,158,11,0.35); }
+.vr-gate-REWARD_DISTRIBUTION { color: #10b981; border-color: rgba(16,185,129,0.35); }
 .vr-st-DRAFT { background: rgba(107,114,128,0.18); color: var(--text-tertiary); }
 .vr-st-REVIEWED { background: rgba(59,130,246,0.12); color: #3b82f6; }
 .vr-st-APPROVED { background: rgba(16,185,129,0.12); color: #10b981; }
@@ -3393,11 +3399,25 @@ document.addEventListener('keydown', (e) => {
           '<span class="vr-b vr-cluster">' + r.cluster + '</span>' +
           '<span class="vr-b vr-pillar-' + r.pillar + '">' + r.pillar + '</span>' +
           '<span class="vr-b vr-sev-' + r.severity + '">' + r.severity + '</span>' +
+          (r.gates_what ? '<span class="vr-b vr-gate vr-gate-' + r.gates_what + '" title="' + r.severity + ' bloqueia: ' + vrGateLabel(r.gates_what) + '">→ ' + vrGateShort(r.gates_what) + '</span>' : '') +
           '<span class="vr-b vr-st-' + r.status + '">' + r.status + '</span>' +
         '</div>' +
       '</div>' +
       '<div class="vr-detail">' + (r.status === 'DRAFT' ? vrRenderDraft(r) : vrRenderFull(r)) + '</div>' +
     '</article>';
+  }
+
+  function vrGateShort(g) {
+    return { TRC_ISSUANCE: 'TRC', LEGAL_OPERATION: 'Legal', RECYCLASS_CERTIFICATION: 'RecyClass cert', HOMOLOGATION_APPROVAL: 'Homologation', REWARD_DISTRIBUTION: 'Rewards' }[g] || g;
+  }
+  function vrGateLabel(g) {
+    return {
+      TRC_ISSUANCE: 'emissão do TRC (Tokenized Recycling Credit)',
+      LEGAL_OPERATION: 'operação legal (transport / ingest sob compliance EU)',
+      RECYCLASS_CERTIFICATION: 'certificação RecyClass anual (opcional — só se recycler busca cert)',
+      HOMOLOGATION_APPROVAL: 'aprovação de homologation do participant (onboarding / renewal)',
+      REWARD_DISTRIBUTION: 'distribuição de rewards on-chain (wallet / DPA)'
+    }[g] || g;
   }
 
   function vrRenderDraft(r) {
@@ -3452,11 +3472,12 @@ document.addEventListener('keydown', (e) => {
         '<div class="vr-impl-meta">// fields lidos: ' + (r.fields.reads.length ? r.fields.reads.join(', ') : '—') + ' · escreve: ' + r.fields.writes.join(', ') + ' · severity: ' + r.severity + '</div>' +
       '</div>' +
       '<div class="vr-ds"><h4>Lógica humana</h4><p>' + vrEsc(r.logic_human) + '</p></div>' +
-      '<div class="vr-ds"><h4>Trigger & escopo</h4><div class="vr-kv">' +
+      '<div class="vr-ds"><h4>Trigger &amp; escopo</h4><div class="vr-kv">' +
         '<span class="vr-k">event</span><span class="vr-v"><code>' + r.trigger.event + '</code></span>' +
         '<span class="vr-k">phase</span><span class="vr-v"><code>' + r.trigger.phase + '</code></span>' +
         '<span class="vr-k">applies_to</span><span class="vr-v">' + r.applies_to.participant_types.join(', ') + ' · ' + r.applies_to.regions.join(', ') + '</span>' +
         (r.trigger.conditions.length ? '<span class="vr-k">condições</span><span class="vr-v">' + r.trigger.conditions.map(c => '<code>' + vrEsc(c) + '</code>').join(' ') + '</span>' : '') +
+        (r.gates_what ? '<span class="vr-k">' + r.severity.toLowerCase() + ' bloqueia</span><span class="vr-v"><strong>' + vrGateLabel(r.gates_what) + '</strong></span>' : '') +
       '</div></div>' +
       '<div class="vr-ds"><h4>Schema fields</h4><div class="vr-kv">' +
         '<span class="vr-k">reads</span><span class="vr-v">' + r.fields.reads.map(f => '<code>' + vrEsc(f) + '</code>').join(' ') + '</span>' +

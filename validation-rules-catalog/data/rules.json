@@ -1,6 +1,6 @@
 {
   "$schema": "./rules.schema.json",
-  "catalog_version": "0.4.0",
+  "catalog_version": "0.4.1",
   "catalog_last_updated": "2026-05-29",
   "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr.",
   "sources": [
@@ -183,7 +183,8 @@
       "subdomain": "Project Period",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-02",
@@ -312,7 +313,8 @@
       "subdomain": "Homologation",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "P-03",
@@ -443,7 +445,8 @@
       "subdomain": "KYC/KYB",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "P-04",
@@ -574,7 +577,8 @@
       "subdomain": "Credit Uniqueness",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-05",
@@ -704,7 +708,8 @@
       "subdomain": "Exclusivity",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "P-06",
@@ -831,7 +836,8 @@
       "subdomain": "Document Integrity",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-07",
@@ -957,7 +963,8 @@
       "subdomain": "Units",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-08",
@@ -1075,7 +1082,8 @@
       "subdomain": "Category",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-09",
@@ -1200,7 +1208,8 @@
       "subdomain": "Waste Class",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-10",
@@ -1331,7 +1340,8 @@
       "subdomain": "Waste Stream Class",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-11",
@@ -1457,7 +1467,8 @@
       "subdomain": "Resin Eligibility",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-12",
@@ -1581,7 +1592,8 @@
       "subdomain": "Other Plastic",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-13",
@@ -1720,7 +1732,8 @@
       "subdomain": "Composite Eligibility",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-14",
@@ -1853,7 +1866,8 @@
       "subdomain": "Mixed Plastic Eligibility",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-15",
@@ -1988,7 +2002,8 @@
       "subdomain": "Adjustment Factor",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-16",
@@ -2133,7 +2148,8 @@
       "subdomain": "Adjustment Evidence",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-17",
@@ -2268,7 +2284,8 @@
       "subdomain": "Hazardous Exclusion",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-18",
@@ -2406,7 +2423,8 @@
       "subdomain": "Traceable Recycler",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-19",
@@ -2529,7 +2547,8 @@
       "subdomain": "No Disposal Outcome",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-20",
@@ -2653,7 +2672,8 @@
       "subdomain": "Origin Logic",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-21",
@@ -2769,7 +2789,8 @@
       "subdomain": "Generator Count",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-22",
@@ -2886,7 +2907,8 @@
       "subdomain": "First Participant",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-23",
@@ -3006,7 +3028,8 @@
       "subdomain": "Primary Address",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-24",
@@ -3120,7 +3143,8 @@
       "subdomain": "Recycler Count",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-25",
@@ -3246,7 +3270,8 @@
       "subdomain": "Hauler Logic",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-26",
@@ -3384,7 +3409,8 @@
       "subdomain": "Processor Logic",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-27",
@@ -3509,7 +3535,8 @@
       "subdomain": "Pickup Event",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-28",
@@ -3636,7 +3663,8 @@
       "subdomain": "Drop off Event",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-29",
@@ -3763,7 +3791,8 @@
       "subdomain": "Pickup Geo",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-30",
@@ -3885,7 +3914,8 @@
       "subdomain": "Drop off Address",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-31",
@@ -4012,7 +4042,8 @@
       "subdomain": "Drop off Geo",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-32",
@@ -4131,7 +4162,8 @@
       "subdomain": "Receiver ID",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-33",
@@ -4252,7 +4284,8 @@
       "subdomain": "Vehicle Type",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-34",
@@ -4371,7 +4404,8 @@
       "subdomain": "Vehicle Other Description",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-35",
@@ -4499,7 +4533,8 @@
       "subdomain": "Plate",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-36",
@@ -4622,7 +4657,8 @@
       "subdomain": "Driver",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-37",
@@ -4746,7 +4782,8 @@
       "subdomain": "Business Manifest",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-38",
@@ -4872,7 +4909,8 @@
       "subdomain": "Manifest Attachment",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-39",
@@ -4994,7 +5032,8 @@
       "subdomain": "Manifest Exemption",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-40",
@@ -5121,7 +5160,8 @@
       "subdomain": "Manifest Required Fields",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-41",
@@ -5254,7 +5294,8 @@
       "subdomain": "Manifest Weight Fallback",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-42",
@@ -5390,7 +5431,8 @@
       "subdomain": "Weight Existence",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-43",
@@ -5521,7 +5563,8 @@
       "subdomain": "Capture Method",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-44",
@@ -5651,7 +5694,8 @@
       "subdomain": "Scale Type",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-45",
@@ -5784,7 +5828,8 @@
       "subdomain": "Weigh Fields",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-46",
@@ -5915,7 +5960,8 @@
       "subdomain": "Net Formula",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-47",
@@ -6048,7 +6094,8 @@
       "subdomain": "Adjusted Plastic Weight",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-48",
@@ -6181,7 +6228,8 @@
       "subdomain": "Qualified Measurement",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-49",
@@ -6316,7 +6364,8 @@
       "subdomain": "Recycler Qualification",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "P-50",
@@ -6437,7 +6486,8 @@
       "subdomain": "Process Type",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-51",
@@ -6559,7 +6609,8 @@
       "subdomain": "No Fuel Route",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-52",
@@ -6676,7 +6727,8 @@
       "subdomain": "Recycling Manifest",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-53",
@@ -6798,7 +6850,8 @@
       "subdomain": "Manifest Attachment",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-54",
@@ -6908,7 +6961,8 @@
       "subdomain": "Manifest Exemption",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-55",
@@ -7033,7 +7087,8 @@
       "subdomain": "Manifest Address",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-56",
@@ -7151,7 +7206,8 @@
       "subdomain": "Manifest Fields",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-57",
@@ -7280,7 +7336,8 @@
       "subdomain": "Manifest Value",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-58",
@@ -7396,7 +7453,8 @@
       "subdomain": "Recycling Completion",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-59",
@@ -7517,7 +7575,8 @@
       "subdomain": "Output Type",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-60",
@@ -7648,7 +7707,8 @@
       "subdomain": "Yield Plausibility",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-61",
@@ -7771,7 +7831,8 @@
       "subdomain": "Source Capacity",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-62",
@@ -7898,7 +7959,8 @@
       "subdomain": "Recycler Capacity",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-63",
@@ -8027,7 +8089,8 @@
       "subdomain": "Duplicate Mass",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-64",
@@ -8146,7 +8209,8 @@
       "subdomain": "Route Uniqueness",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-65",
@@ -8275,7 +8339,8 @@
       "subdomain": "FIFO Continuity",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "P-66",
@@ -8404,7 +8469,8 @@
       "subdomain": "External Credit Claim",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "P-67",
@@ -8542,7 +8608,8 @@
       "subdomain": "Bad Actor Propagation",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "PG-01",
@@ -8673,7 +8740,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "PG-02",
@@ -8801,7 +8869,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "PG-03",
@@ -8912,7 +8981,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "PG-04",
@@ -9036,7 +9106,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "REWARD_DISTRIBUTION"
     },
     {
       "id": "PG-05",
@@ -9164,7 +9235,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "PG-06",
@@ -9294,7 +9366,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "PG-07",
@@ -9425,7 +9498,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "PG-08",
@@ -9545,7 +9619,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "PG-09",
@@ -9666,7 +9741,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "PG-10",
@@ -9791,7 +9867,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "PG-11",
@@ -9922,7 +9999,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "PG-12",
@@ -10043,7 +10121,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "PG-13",
@@ -10155,7 +10234,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "PG-14",
@@ -10284,7 +10364,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "PG-15",
@@ -10405,7 +10486,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "PG-16",
@@ -10535,7 +10617,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "HOMOLOGATION_APPROVAL"
     },
     {
       "id": "PG-17",
@@ -10669,7 +10752,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "TRC_ISSUANCE"
     },
     {
       "id": "EU-01",
@@ -10794,7 +10878,8 @@
       "subdomain": "Waste Classification",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-02",
@@ -10927,7 +11012,8 @@
       "subdomain": "Waste Classification",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-03",
@@ -11050,7 +11136,8 @@
       "subdomain": "Hazardous Status",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-04",
@@ -11184,7 +11271,8 @@
       "subdomain": "Carrier Authorization",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-05",
@@ -11312,7 +11400,8 @@
       "subdomain": "Carrier Authorization",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-06",
@@ -11442,7 +11531,8 @@
       "subdomain": "Vehicle Registration",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-07",
@@ -11454,6 +11544,7 @@
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
         "conditions": [
+          "MassID.transferType == 'DOMESTIC'",
           "domestic_transfer = TRUE"
         ]
       },
@@ -11580,7 +11671,8 @@
       "subdomain": "Domestic Transfer",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-08",
@@ -11592,6 +11684,7 @@
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
         "conditions": [
+          "MassID.transferType == 'DOMESTIC'",
           "EU-07 triggered"
         ]
       },
@@ -11710,7 +11803,8 @@
       "subdomain": "Domestic Transfer",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-09",
@@ -11722,6 +11816,7 @@
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
         "conditions": [
+          "MassID.transferType == 'DOMESTIC'",
           "EU-07 triggered"
         ]
       },
@@ -11838,7 +11933,8 @@
       "subdomain": "Domestic Transfer",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-10",
@@ -11850,6 +11946,7 @@
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
         "conditions": [
+          "MassID.crossBorder == TRUE",
           "cross_border = TRUE"
         ]
       },
@@ -11971,7 +12068,8 @@
       "subdomain": "Cross-border",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-11",
@@ -11983,6 +12081,7 @@
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
         "conditions": [
+          "MassID.crossBorder == TRUE",
           "cross_border = TRUE"
         ]
       },
@@ -12098,7 +12197,8 @@
       "subdomain": "Cross-border",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-12",
@@ -12110,6 +12210,7 @@
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
         "conditions": [
+          "MassID.crossBorder == TRUE",
           "cross_border = TRUE"
         ]
       },
@@ -12240,7 +12341,8 @@
       "subdomain": "Cross-border",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-13",
@@ -12370,7 +12472,8 @@
       "subdomain": "Facility Permit",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-14",
@@ -12487,7 +12590,8 @@
       "subdomain": "Facility Permit",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-15",
@@ -12613,7 +12717,8 @@
       "subdomain": "Facility Permit",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-16",
@@ -12750,7 +12855,8 @@
       "subdomain": "Chain of Custody",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-17",
@@ -12889,7 +12995,8 @@
       "subdomain": "Mass Consistency",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-18",
@@ -13002,7 +13109,8 @@
       "subdomain": "Chronology",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-19",
@@ -13129,7 +13237,8 @@
       "subdomain": "Locations",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-20",
@@ -13253,7 +13362,8 @@
       "subdomain": "Digital Equivalence",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-21",
@@ -13383,7 +13493,8 @@
       "subdomain": "Document Integrity",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-22",
@@ -13525,7 +13636,8 @@
       "subdomain": "Audit Trail",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-23",
@@ -13654,7 +13766,8 @@
       "subdomain": "Plausibility",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-24",
@@ -13769,7 +13882,8 @@
       "subdomain": "Plausibility",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-25",
@@ -13881,7 +13995,8 @@
       "subdomain": "Plausibility",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "EU-26",
@@ -14007,7 +14122,8 @@
       "subdomain": "Plausibility",
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "LEGAL_OPERATION"
     },
     {
       "id": "RC-01",
@@ -14018,7 +14134,9 @@
       "trigger": {
         "event": "PARTICIPANT_ONBOARDING",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -14132,7 +14250,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-02",
@@ -14143,7 +14262,9 @@
       "trigger": {
         "event": "MONTHLY_RECONCILIATION",
         "phase": "MONTHLY",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -14267,7 +14388,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-03",
@@ -14278,7 +14400,9 @@
       "trigger": {
         "event": "MONTHLY_RECONCILIATION",
         "phase": "MONTHLY",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -14393,7 +14517,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-04",
@@ -14404,7 +14529,9 @@
       "trigger": {
         "event": "PARTICIPANT_ONBOARDING",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -14520,7 +14647,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-05",
@@ -14531,7 +14659,9 @@
       "trigger": {
         "event": "PARTICIPANT_ONBOARDING",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -14644,7 +14774,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-06",
@@ -14655,7 +14786,9 @@
       "trigger": {
         "event": "PARTICIPANT_ONBOARDING",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -14761,7 +14894,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-07",
@@ -14773,6 +14907,7 @@
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
         "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE",
           "WeightRecord.scaleType contains 'bridge_scale'"
         ]
       },
@@ -14895,7 +15030,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-08",
@@ -14906,7 +15042,9 @@
       "trigger": {
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -15009,7 +15147,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-09",
@@ -15020,7 +15159,9 @@
       "trigger": {
         "event": "MONTHLY_RECONCILIATION",
         "phase": "MONTHLY",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -15130,7 +15271,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-10",
@@ -15141,7 +15283,9 @@
       "trigger": {
         "event": "RECYCLING_OUTCOME_WRITE",
         "phase": "POST_RECYCLING",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -15250,7 +15394,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-11",
@@ -15261,7 +15406,9 @@
       "trigger": {
         "event": "RECYCLING_OUTCOME_WRITE",
         "phase": "POST_RECYCLING",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -15382,7 +15529,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-12",
@@ -15393,7 +15541,9 @@
       "trigger": {
         "event": "MONTHLY_RECONCILIATION",
         "phase": "MONTHLY",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -15503,7 +15653,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-13",
@@ -15514,7 +15665,9 @@
       "trigger": {
         "event": "PARTICIPANT_ONBOARDING",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -15625,7 +15778,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-14",
@@ -15637,6 +15791,7 @@
         "event": "PARTICIPANT_ONBOARDING",
         "phase": "PRE_VALIDATION",
         "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE",
           "Participant.usesWaterInProcess == TRUE"
         ]
       },
@@ -15756,7 +15911,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-15",
@@ -15768,6 +15924,7 @@
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
         "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE",
           "MassID.subcontractorId != null"
         ]
       },
@@ -15887,7 +16044,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-16",
@@ -15898,7 +16056,9 @@
       "trigger": {
         "event": "PARTICIPANT_ONBOARDING",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -16028,7 +16188,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     },
     {
       "id": "RC-17",
@@ -16039,7 +16200,9 @@
       "trigger": {
         "event": "PARTICIPANT_ONBOARDING",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [
+          "Participant.pursuingRecyclassCertification == TRUE"
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -16152,7 +16315,8 @@
       "subdomain": "",
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
-      "audit_findings": []
+      "audit_findings": [],
+      "gates_what": "RECYCLASS_CERTIFICATION"
     }
   ]
 }

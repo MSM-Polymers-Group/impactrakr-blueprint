@@ -44,6 +44,11 @@
       "enum": ["BLOCK", "FLAG"],
       "description": "Mirrors enum RuleSeverity in schema.prisma. BLOCK halts the flow; FLAG flags for manual review."
     },
+    "gates_what": {
+      "type": "string",
+      "enum": ["TRC_ISSUANCE", "RECYCLASS_CERTIFICATION", "LEGAL_OPERATION", "HOMOLOGATION_APPROVAL", "REWARD_DISTRIBUTION"],
+      "description": "When the rule fails (BLOCK), what specifically is blocked? TRC_ISSUANCE = emission of Tokenized Recycling Credit (PURE/PG). LEGAL_OPERATION = transport/ingest in EU legal scope (EU). RECYCLASS_CERTIFICATION = RecyClass annual certification (RC). HOMOLOGATION_APPROVAL = participant onboarding/renewal. REWARD_DISTRIBUTION = on-chain reward split. Critical to clarify scope of BLOCK for non-technical reviewers."
+    },
     "trigger": {
       "type": "object",
       "required": ["event", "phase"],
