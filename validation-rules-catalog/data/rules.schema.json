@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://impactrakr.com/schemas/validation-rules.schema.json",
+  "title": "Impactrakr Validation Rule (L3 spec)",
+  "description": "Specification schema for every validation rule in the Impactrakr Validation Engine. L3 = ready for implementation + BV audit. Each rule must satisfy this contract.",
+  "type": "object",
+  "required": [
+    "id", "title", "pillar", "severity", "trigger", "applies_to",
+    "purpose", "logic_human", "logic_pseudocode",
+    "fields", "evidence", "messages", "behavior",
+    "test_cases", "bv_verification", "references",
+    "status", "owner", "version", "last_reviewed"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(P|PG|EU|RC)-[0-9]{2}$",
+      "description": "Unique rule ID. Format: <PILLAR>-<2 digits>. P=PURE core, PG=PURE Gap, EU=EU adapter, RC=RecyClass gap."
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Short rule title (≤ 100 chars). Verbatim from RULE_REGISTER.Rule Name when possible."
+    },
+    "pillar": {
+      "type": "string",
+      "enum": ["PURE", "PURE_GAP", "EU", "RECYCLASS"],
+      "description": "Which catalog this rule belongs to."
+    },
+    "cluster": {
+      "type": "string",
+      "enum": [
+        "KYC_GOVERNANCE", "WEIGHING", "HOMOLOGATION_PARTICIPANT",
+        "MATERIAL_COMPOSITION", "EVENTS_PICKUP", "TRANSPORT",
+        "RECYCLER_OUTCOME", "QUALITY_ANTIFRAUD",
+        "WASTE_CLASSIFICATION", "CHAIN_OF_CUSTODY", "DOC_INTEGRITY", "CROSS_BORDER",
+        "ADMINISTRATION_LICENSING", "STAFF_ORG", "PROCESS_CAPACITY",
+        "ENVIRONMENTAL", "SUBCONTRACTING"
+      ],
+      "description": "Functional cluster (used for filtering in HTML view)."
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["BLOCK", "FLAG"],
+      "description": "Mirrors enum RuleSeverity in schema.prisma. BLOCK halts the flow; FLAG flags for manual review."
+    },
+    "trigger": {
+      "type": "object",
+      "required": ["event", "phase"],
+      "properties": {
+        "event": {
+          "type": "string",
+          "enum": [
+            "PARTICIPANT_ONBOARDING",
+            "MASSID_INGEST",
+            "MASSID_TRANSITION",
+            "DOCUMENT_UPLOAD",
+            "RECYCLING_OUTCOME_WRITE",
+            "MONTHLY_RECONCILIATION",
+            "PRE_CARROT_SUBMIT",
+            "TRC_RETIREMENT",
+            "INCIDENT_TRIGGERED"
+          ],
+          "description": "When the rule fires."
+        },
+        "phase": {
+          "type": "string",
+          "enum": ["PRE_VALIDATION", "RUNTIME", "POST_RECYCLING", "MONTHLY", "ENFORCEMENT"],
+          "description": "Phase within the event lifecycle."
+        },
+        "conditions": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Pre-conditions for the rule to fire (skip otherwise). Format: 'Model.field == value'. Empty array = always fires for the event."
+        }
+      }
+    },
+    "applies_to": {
+      "type": "object",
+      "required": ["participant_types", "regions"],
+      "properties": {
+        "participant_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["G", "B", "H", "P", "R", "INT", "NGO_BENEF", "BUYER"]
+          },
+          "description": "Participant types impacted. G=Generator, B=Bin Custodian, H=Hauler, P=Processor, R=Recycler, INT=Integrator, NGO_BENEF=NGO Beneficiary, BUYER=Credit Buyer."
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["GLOBAL", "EU", "MALTA", "BR", "LATAM", "ASIA"]
+          },
+          "description": "Where the rule applies. GLOBAL = anywhere; MALTA is a subset of EU."
+        }
+      }
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 80,
+      "description": "1-2 paragraph plain-language statement of what this rule protects and why it exists. Written so a non-engineer (Lino, Julia) understands."
+    },
+    "logic_human": {
+      "type": "string",
+      "minLength": 40,
+      "description": "Plain-English description of the validation logic. Reads as: 'BLOCK if X; PASS otherwise'."
+    },
+    "logic_pseudocode": {
+      "type": "string",
+      "minLength": 80,
+      "description": "TypeScript-like pseudo-code of evaluate(ctx). Gabriel adapts to real stack. Must reference real schema fields."
+    },
+    "fields": {
+      "type": "object",
+      "required": ["reads", "writes"],
+      "properties": {
+        "reads": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Schema fields read. Format: 'Model.field'. E.g. 'Participant.kycStatus'."
+        },
+        "writes": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Schema fields written. Always includes 'ValidationResult'."
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["doc_type", "mandatory"],
+        "properties": {
+          "doc_type": {
+            "type": "string",
+            "description": "DOCUMENT_REGISTER.doc_type (e.g. 'kyc_kyb_record', 'waste_permit')."
+          },
+          "mandatory": {"type": "boolean"},
+          "when": {
+            "type": "string",
+            "description": "Optional condition for when this evidence is required."
+          }
+        }
+      },
+      "description": "Documents that sustain the rule. May be empty for pure-logic rules."
+    },
+    "messages": {
+      "type": "object",
+      "required": ["block_pt", "block_en"],
+      "properties": {
+        "block_pt": {
+          "type": "string",
+          "minLength": 20,
+          "description": "Message shown to user on BLOCK (Portuguese)."
+        },
+        "block_en": {
+          "type": "string",
+          "minLength": 20,
+          "description": "Message shown to user on BLOCK (English)."
+        },
+        "flag_pt": {"type": "string", "description": "Message on FLAG (Portuguese). Only required if severity is FLAG."},
+        "flag_en": {"type": "string", "description": "Message on FLAG (English). Only required if severity is FLAG."}
+      }
+    },
+    "behavior": {
+      "type": "object",
+      "required": ["idempotent", "on_fail", "on_pass", "revalidation"],
+      "properties": {
+        "idempotent": {
+          "type": "boolean",
+          "description": "Re-running with same input produces same result without side effects."
+        },
+        "on_fail": {
+          "type": "string",
+          "description": "What the system does when the rule fails. E.g. 'Write ValidationResult; halt MASSID_INGEST; surface block_pt/en to user; log to AuditLog.'"
+        },
+        "on_pass": {
+          "type": "string",
+          "description": "What happens on pass. Usually 'Write ValidationResult(passed=true); silent to user; continue pipeline.'"
+        },
+        "revalidation": {
+          "type": "string",
+          "description": "When (and if) the rule re-runs. E.g. 'Re-runs on every MASSID update; on dependency change; on operator manual re-trigger.'"
+        },
+        "retry_window": {
+          "type": "string",
+          "description": "Optional. Time window in which the user can fix and re-submit before escalation."
+        },
+        "escalation": {
+          "type": "string",
+          "description": "Optional. What happens after retry_window expires. E.g. 'Escalate to Compliance review queue.'"
+        },
+        "performance": {
+          "type": "string",
+          "description": "Optional. Performance considerations (cache, batch, async)."
+        }
+      }
+    },
+    "test_cases": {
+      "type": "object",
+      "required": ["positive", "negative"],
+      "properties": {
+        "positive": {
+          "type": "object",
+          "required": ["name", "given", "expected"],
+          "properties": {
+            "name": {"type": "string"},
+            "given": {"type": "string", "description": "Plain-language scenario / fixture description."},
+            "expected": {"type": "string", "description": "Expected ValidationResult: passed=true, no message."}
+          }
+        },
+        "negative": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "required": ["name", "given", "expected"],
+            "properties": {
+              "name": {"type": "string"},
+              "given": {"type": "string"},
+              "expected": {"type": "string", "description": "Expected result on failure: passed=false, message, field."}
+            }
+          },
+          "description": "2-5 negative test cases covering distinct failure modes."
+        }
+      }
+    },
+    "edge_cases": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Known edge cases and how the rule handles them. E.g. 'Null kyc_status treated as incomplete.'"
+    },
+    "bv_verification": {
+      "type": "object",
+      "required": ["bv_controls", "procedure", "sample_size", "frequency"],
+      "properties": {
+        "bv_controls": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^BV-[0-9]{2}$"},
+          "description": "Bureau Veritas control IDs (from BV_CHECKLIST sheet) that audit this rule."
+        },
+        "procedure": {
+          "type": "string",
+          "description": "How the BV auditor verifies the rule (review evidence pack, check logs, etc.)."
+        },
+        "sample_size": {
+          "type": "string",
+          "description": "BV sample size. E.g. '100% of rules', 'Sample 30 participants', 'Full scan'."
+        },
+        "frequency": {
+          "type": "string",
+          "enum": ["Initial + annual", "Quarterly", "Monthly", "On demand"],
+          "description": "Audit frequency."
+        }
+      }
+    },
+    "related": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^(P|PG|EU|RC|BV)-[0-9]{2}$"},
+      "description": "Cross-references to other rules or BV controls with overlap or dependency."
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source", "section"],
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "PURE_METHODOLOGY_JUN2025",
+              "PURE_DMRV_GAP_REGISTER_JUN2025",
+              "PURE_DMRV_MASTER_FINAL",
+              "RECYCLASS_AUDIT_SCHEME_V1.1",
+              "WSR_2024_1157",
+              "EN_15343_2007",
+              "EN_15347",
+              "ISO_22095_2020",
+              "DIRECTIVE_2008_98_EC",
+              "REACH_EC_1907_2006",
+              "GDPR_EU_2016_679",
+              "CARROT_WHITEPAPER",
+              "IMP_46_DOCUMENT_MATRIX",
+              "ADR_002_REGIONAL_COMPLIANCE_ADAPTER",
+              "OTHER"
+            ]
+          },
+          "section": {"type": "string", "description": "Section or article reference. E.g. '§5.1.1', 'Article 18'."},
+          "quote": {"type": "string", "description": "Optional verbatim quote (≤ 15 words to respect copyright)."}
+        }
+      },
+      "description": "Normative references that sustain the rule."
+    },
+    "methodology_quote": {
+      "type": "string",
+      "description": "Optional. Verbatim quote (≤ 25 words) from the PURE methodology that is the direct origin of this rule."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "REVIEWED", "APPROVED", "IMPLEMENTED", "DEPRECATED"],
+      "description": "Refinement lifecycle status."
+    },
+    "owner": {
+      "type": "string",
+      "enum": ["Compliance", "Methodology", "Tech", "Ops", "Reporting", "Compliance/Tech", "Compliance/Ops"],
+      "description": "Who owns the rule's content."
+    },
+    "manual_review": {
+      "type": "boolean",
+      "description": "Whether the rule requires human review when triggered (true typically for FLAG severity)."
+    },
+    "source_type": {
+      "type": "string",
+      "enum": ["PURE", "PURE/BOLD", "BOLD/PURE", "BOLD", "EU", "EU/PURE", "RECYCLASS", "PURE_GAP"],
+      "description": "Source attribution (from RULE_REGISTER.Source Type column when applicable)."
+    },
+    "disposition": {
+      "type": "string",
+      "enum": ["Keep", "Modify", "Keep/Modify", "New", "Deprecated"],
+      "description": "Disposition for the rule (from RULE_REGISTER when applicable)."
+    },
+    "odoo_objects": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Odoo objects involved (from RULE_REGISTER when applicable). Informational only."
+    },
+    "dmrv_output": {
+      "type": "string",
+      "description": "dMRV output classification (e.g. 'eligibility_valid', 'material_valid'). From RULE_REGISTER."
+    },
+    "domain": {
+      "type": "string",
+      "description": "RULE_REGISTER.Domain (e.g. 'Eligibility', 'Material'). Used for grouping."
+    },
+    "subdomain": {
+      "type": "string",
+      "description": "RULE_REGISTER.Subdomain (e.g. 'Project Period', 'Homologation')."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semver of this rule spec."
+    },
+    "last_reviewed": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO date of last review by owner."
+    },
+    "audit_findings": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Audit findings IDs from audit-pure-methodology-consistency.md that affect this rule (e.g. ['B-04', 'E-01'])."
+    }
+  }
+}

@@ -1041,6 +1041,174 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
   .content { max-width: 100%; }
   .card, .decision, .risk, .table-wrap { box-shadow: none; break-inside: avoid; }
 }
+
+/* ============ TABS TOP-LEVEL ============ */
+.tab-nav { position: sticky; top: 0; z-index: 100; background: var(--bg-default); border-bottom: 1px solid var(--border-default); padding: 12px 32px; display: flex; gap: 6px; align-items: center; backdrop-filter: blur(8px); }
+.tab-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: transparent; border: 1px solid transparent; color: var(--text-tertiary); border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: -0.01em; transition: all 0.15s; }
+.tab-btn:hover { color: var(--text-primary); background: var(--bg-card); }
+.tab-btn.active { color: var(--text-primary); background: var(--bg-card); border-color: var(--border-default); }
+.tab-btn .tab-icon { font-size: 14px; }
+.tab-btn .tab-count { background: var(--bg-elevated, var(--bg-default)); color: var(--text-tertiary); font-family: var(--font-mono, ui-monospace, monospace); font-size: 10.5px; padding: 1.5px 7px; border-radius: 999px; margin-left: 2px; font-weight: 600; }
+.tab-btn.active.tab-bp { box-shadow: inset 0 -2px 0 var(--accent); }
+.tab-btn.active.tab-cat { box-shadow: inset 0 -2px 0 #3b82f6; }
+.tab-btn.active.tab-cat .tab-count { background: rgba(59,130,246,0.18); color: #3b82f6; }
+.tab-btn.active.tab-cnv { box-shadow: inset 0 -2px 0 #f59e0b; }
+.tab-btn.active.tab-cnv .tab-count { background: rgba(245,158,11,0.18); color: #f59e0b; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; animation: tabFade 0.18s ease; }
+@keyframes tabFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.sidebar.tab-cat-active .sidebar-link:not([href="#rules-catalog"]),
+.sidebar.tab-cnv-active .sidebar-link { opacity: 0.35; pointer-events: none; }
+.sidebar.tab-cat-active .sidebar-section,
+.sidebar.tab-cnv-active .sidebar-section { opacity: 0.35; }
+@media (max-width: 768px) { .tab-nav { padding: 10px 16px; flex-wrap: wrap; } }
+
+/* ============ CONVERGÊNCIA ============ */
+.cv-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 20px 0 22px; }
+.cv-stat { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 8px; padding: 14px 16px; }
+.cv-stat.accent { border-color: #f59e0b; }
+.cv-stat .cv-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin-bottom: 6px; font-weight: 600; }
+.cv-stat .cv-value { font-size: 26px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+.cv-stat .cv-sub { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono, ui-monospace, monospace); }
+.cv-filters { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 8px; align-items: center; margin-bottom: 12px; }
+.cv-filters input[type="search"] { flex: 1; min-width: 200px; padding: 8px 12px; background: var(--bg-elevated, var(--bg-default)); border: 1px solid var(--border-default); border-radius: 6px; color: var(--text-primary); font-size: 13px; font-family: inherit; }
+.cv-fgroup { display: flex; gap: 4px; align-items: center; padding: 4px 8px; background: var(--bg-elevated, var(--bg-default)); border-radius: 6px; }
+.cv-fgroup label { font-size: 10.5px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.cv-fgroup select { background: transparent; border: 0; color: var(--text-primary); padding: 4px 6px; font-size: 12px; font-family: var(--font-mono, ui-monospace, monospace); cursor: pointer; }
+.cv-clear { background: transparent; border: 1px solid var(--border-default); color: var(--text-tertiary); padding: 6px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: var(--font-mono, ui-monospace, monospace); }
+.cv-list { display: flex; flex-direction: column; gap: 8px; }
+.cv-card { background: var(--bg-card); border: 1px solid var(--border-default); border-left-width: 4px; border-radius: 8px; padding: 14px 16px 14px 14px; }
+.cv-card.cv-cat-contradiction { border-left-color: #ef4444; }
+.cv-card.cv-cat-gap { border-left-color: #f59e0b; }
+.cv-card.cv-cat-redundancy { border-left-color: #14b8a6; }
+.cv-card.cv-cat-reverse_gap { border-left-color: #a78bfa; }
+.cv-card-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cv-card-id { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; font-weight: 700; color: var(--text-tertiary); min-width: 50px; }
+.cv-card-title { font-weight: 600; flex: 1; min-width: 220px; color: var(--text-primary); font-size: 13.5px; }
+.cv-card-badges { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+.cv-b { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 600; font-family: var(--font-mono, ui-monospace, monospace); letter-spacing: 0.02em; white-space: nowrap; }
+.cv-sev-HIGH { background: rgba(239,68,68,0.18); color: #ef4444; border: 1px solid rgba(239,68,68,0.35); }
+.cv-sev-MEDIUM { background: rgba(245,158,11,0.18); color: #f59e0b; border: 1px solid rgba(245,158,11,0.35); }
+.cv-sev-LOW { background: rgba(107,114,128,0.18); color: var(--text-tertiary); }
+.cv-cat-badge-contradiction { background: rgba(239,68,68,0.12); color: #ef4444; }
+.cv-cat-badge-gap { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.cv-cat-badge-redundancy { background: rgba(20,184,166,0.12); color: #14b8a6; }
+.cv-cat-badge-reverse_gap { background: rgba(167,139,250,0.12); color: #a78bfa; }
+.cv-rule-ref { background: var(--bg-elevated, var(--bg-default)); color: var(--text-secondary); border: 1px solid var(--border-default); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono, ui-monospace, monospace); font-size: 10.5px; margin-right: 4px; }
+.cv-card-body { margin-top: 10px; display: grid; grid-template-columns: 1fr; gap: 10px; }
+.cv-card-block { padding: 10px 12px; background: var(--bg-elevated, var(--bg-default)); border-radius: 6px; font-size: 12.5px; }
+.cv-card-block .cv-bl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-tertiary); font-weight: 700; margin-bottom: 4px; }
+.cv-card-block p { margin: 0; color: var(--text-primary); line-height: 1.55; }
+.cv-card-block.evidence { font-style: italic; border-left: 2px solid var(--border-default); }
+.cv-section-title { font-size: 17px; font-weight: 700; margin: 28px 0 12px; letter-spacing: -0.01em; }
+.cv-section-title .cv-section-count { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; color: var(--text-tertiary); font-weight: 600; margin-left: 8px; padding: 2px 8px; background: var(--bg-card); border-radius: 999px; }
+.cv-cov-grid { display: grid; gap: 4px; margin-top: 8px; font-size: 12px; }
+.cv-cov-row { display: grid; grid-template-columns: 200px 80px 80px 80px 80px 100px; gap: 8px; padding: 6px 10px; border-radius: 4px; background: var(--bg-card); align-items: center; }
+.cv-cov-row.header { font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.05em; background: transparent; }
+.cv-cov-status { font-family: var(--font-mono, ui-monospace, monospace); font-size: 10.5px; padding: 2px 8px; border-radius: 999px; text-align: center; font-weight: 600; }
+.cv-cov-Total { background: rgba(16,185,129,0.18); color: #10b981; }
+.cv-cov-Parcial { background: rgba(245,158,11,0.18); color: #f59e0b; }
+.cv-cov-Lacuna { background: rgba(239,68,68,0.18); color: #ef4444; }
+.cv-rec { display: flex; gap: 12px; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 8px; margin-bottom: 8px; }
+.cv-rec-num { width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 999px; background: var(--accent); color: white; font-weight: 700; font-size: 13px; font-family: var(--font-mono, ui-monospace, monospace); }
+.cv-rec-body { flex: 1; }
+.cv-rec-action { font-weight: 600; font-size: 13.5px; color: var(--text-primary); margin-bottom: 4px; }
+.cv-rec-meta { font-size: 11.5px; color: var(--text-tertiary); }
+.cv-rec-meta strong { color: var(--text-secondary); }
+@media (max-width: 768px) { .cv-cov-row { grid-template-columns: 1fr; } }
+
+/* ============ VR · VALIDATION RULES CATALOG ============ */
+.vr-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 20px 0 22px; }
+.vr-stat { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 8px; padding: 14px 16px; }
+.vr-stat.accent { border-color: var(--accent); }
+.vr-stat .vr-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin-bottom: 6px; font-weight: 600; }
+.vr-stat .vr-value { font-size: 26px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+.vr-stat .vr-sub { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono, ui-monospace, monospace); }
+.vr-filters { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 8px; align-items: center; margin-bottom: 12px; }
+.vr-filters input[type="search"] { flex: 1; min-width: 200px; padding: 8px 12px; background: var(--bg-elevated, var(--bg-default)); border: 1px solid var(--border-default); border-radius: 6px; color: var(--text-primary); font-size: 13px; font-family: inherit; }
+.vr-filters input[type="search"]:focus { outline: none; border-color: var(--accent); }
+.vr-fgroup { display: flex; gap: 4px; align-items: center; padding: 4px 8px; background: var(--bg-elevated, var(--bg-default)); border-radius: 6px; }
+.vr-fgroup label { font-size: 10.5px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.vr-fgroup select { background: transparent; border: 0; color: var(--text-primary); padding: 4px 6px; font-size: 12px; font-family: var(--font-mono, ui-monospace, monospace); cursor: pointer; }
+.vr-fgroup select:focus { outline: none; }
+.vr-clear { background: transparent; border: 1px solid var(--border-default); color: var(--text-tertiary); padding: 6px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: var(--font-mono, ui-monospace, monospace); }
+.vr-clear:hover { color: var(--text-primary); }
+.vr-results-info { font-size: 12px; color: var(--text-tertiary); margin-bottom: 12px; padding: 0 2px; }
+.vr-results-info .vr-count { color: var(--accent); font-weight: 600; font-family: var(--font-mono, ui-monospace, monospace); }
+.vr-rules { display: flex; flex-direction: column; gap: 7px; }
+.vr-rule { background: var(--bg-card); border: 1px solid var(--border-default); border-left-width: 4px; border-radius: 8px; padding: 13px 16px 13px 14px; cursor: pointer; transition: background 0.12s, border-color 0.12s; position: relative; }
+.vr-rule:hover { background: var(--bg-card-hover, var(--bg-card)); }
+.vr-rule.open { background: var(--bg-card-hover, var(--bg-card)); }
+
+/* Cores distintas por pilar — border-left + tint sutil no header */
+.vr-rule.vr-card-PURE       { border-left-color: #3b82f6; }
+.vr-rule.vr-card-PURE_GAP   { border-left-color: #f59e0b; }
+.vr-rule.vr-card-EU         { border-left-color: #a78bfa; }
+.vr-rule.vr-card-RECYCLASS  { border-left-color: #14b8a6; }
+.vr-rule.vr-card-PURE      .vr-rule-id { color: #3b82f6; }
+.vr-rule.vr-card-PURE_GAP  .vr-rule-id { color: #f59e0b; }
+.vr-rule.vr-card-EU        .vr-rule-id { color: #a78bfa; }
+.vr-rule.vr-card-RECYCLASS .vr-rule-id { color: #14b8a6; }
+/* Badges de pilar com peso maior */
+.vr-pillar-PURE       { background: rgba(59,130,246,0.18); color: #3b82f6; border: 1px solid rgba(59,130,246,0.35); }
+.vr-pillar-PURE_GAP   { background: rgba(245,158,11,0.18); color: #f59e0b; border: 1px solid rgba(245,158,11,0.35); }
+.vr-pillar-EU         { background: rgba(167,139,250,0.18); color: #a78bfa; border: 1px solid rgba(167,139,250,0.35); }
+.vr-pillar-RECYCLASS  { background: rgba(20,184,166,0.20); color: #14b8a6; border: 1px solid rgba(20,184,166,0.40); }
+
+/* Bloco de código de implementação — destaque maior */
+.vr-impl { background: linear-gradient(180deg, rgba(20,184,166,0.04), transparent 60%); border: 1px solid var(--border-default); border-left: 3px solid var(--accent); border-radius: 6px; padding: 14px 16px; margin-bottom: 14px; }
+.vr-impl h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-primary); font-weight: 700; }
+.vr-impl h4::before { content: '⌨'; font-size: 13px; color: var(--accent); }
+.vr-impl pre { background: var(--bg-default); border: 1px solid var(--border-default); padding: 12px 14px; border-radius: 6px; font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; line-height: 1.55; overflow-x: auto; margin: 0; color: var(--text-primary); }
+.vr-impl .vr-impl-meta { font-size: 11px; color: var(--text-tertiary); margin-top: 8px; font-family: var(--font-mono, ui-monospace, monospace); }
+.vr-rule-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.vr-rule-id { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; font-weight: 700; color: var(--accent); min-width: 60px; }
+.vr-rule-title { font-weight: 600; flex: 1; min-width: 240px; color: var(--text-primary); font-size: 13.5px; }
+.vr-rule-badges { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+.vr-b { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 600; font-family: var(--font-mono, ui-monospace, monospace); letter-spacing: 0.02em; white-space: nowrap; }
+.vr-pillar-PURE { background: rgba(59,130,246,0.12); color: #3b82f6; }
+.vr-pillar-PURE_GAP { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.vr-pillar-EU { background: rgba(167,139,250,0.12); color: #a78bfa; }
+.vr-pillar-RECYCLASS { background: rgba(20,184,166,0.12); color: #14b8a6; }
+.vr-sev-BLOCK { background: rgba(239,68,68,0.12); color: #ef4444; }
+.vr-sev-FLAG { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.vr-st-DRAFT { background: rgba(107,114,128,0.18); color: var(--text-tertiary); }
+.vr-st-REVIEWED { background: rgba(59,130,246,0.12); color: #3b82f6; }
+.vr-st-APPROVED { background: rgba(16,185,129,0.12); color: #10b981; }
+.vr-st-IMPLEMENTED { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid #10b981; }
+.vr-st-DEPRECATED { background: rgba(107,114,128,0.18); color: var(--text-tertiary); text-decoration: line-through; }
+.vr-cluster { background: var(--bg-elevated, var(--bg-default)); color: var(--text-secondary); border: 1px solid var(--border-default); }
+.vr-detail { display: none; padding: 16px 4px 4px; border-top: 1px dashed var(--border-subtle, var(--border-default)); margin-top: 12px; }
+.vr-rule.open .vr-detail { display: block; }
+.vr-dgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.vr-dgrid > .vr-full { grid-column: 1 / -1; }
+.vr-ds { background: var(--bg-elevated, var(--bg-default)); border: 1px solid var(--border-subtle, var(--border-default)); border-radius: 6px; padding: 13px 15px; }
+.vr-ds h4 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-tertiary); font-weight: 700; }
+.vr-ds p { margin: 0 0 8px; font-size: 13px; color: var(--text-primary); }
+.vr-ds p:last-child { margin-bottom: 0; }
+.vr-ds ul { margin: 0; padding-left: 20px; }
+.vr-ds li { font-size: 13px; margin-bottom: 4px; }
+.vr-ds code { background: var(--bg-card); padding: 1.5px 6px; border-radius: 4px; font-family: var(--font-mono, ui-monospace, monospace); font-size: 11.5px; color: var(--accent); border: 1px solid var(--border-subtle, var(--border-default)); }
+.vr-ds pre { background: var(--bg-card); border: 1px solid var(--border-default); padding: 12px 14px; border-radius: 6px; font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; line-height: 1.55; overflow-x: auto; margin: 0; color: var(--text-primary); }
+.vr-kv { display: grid; grid-template-columns: 130px 1fr; gap: 6px 14px; font-size: 12.5px; }
+.vr-kv .vr-k { color: var(--text-tertiary); font-family: var(--font-mono, ui-monospace, monospace); font-size: 11px; padding-top: 1px; }
+.vr-kv .vr-v { color: var(--text-primary); }
+.vr-tc { border-left: 3px solid var(--border-default); padding: 8px 12px; margin-bottom: 8px; }
+.vr-tc.pos { border-color: #10b981; }
+.vr-tc.neg { border-color: #ef4444; }
+.vr-tc .vr-tcname { font-weight: 600; font-size: 12.5px; margin-bottom: 4px; }
+.vr-tc .vr-row { font-size: 12px; color: var(--text-secondary); margin-bottom: 2px; }
+.vr-tc .vr-row strong { color: var(--text-primary); font-weight: 600; }
+.vr-msg { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 6px; padding: 10px 12px; margin-top: 6px; font-size: 12.5px; line-height: 1.5; }
+.vr-msg.block { border-left: 3px solid #ef4444; }
+.vr-msg.flag { border-left: 3px solid #f59e0b; }
+.vr-msg .vr-lf { font-family: var(--font-mono, ui-monospace, monospace); font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 4px; }
+.vr-empty { padding: 50px 20px; text-align: center; color: var(--text-tertiary); font-size: 13px; background: var(--bg-card); border: 1px dashed var(--border-default); border-radius: 8px; }
+.vr-ref { font-size: 12px; color: var(--text-secondary); }
+.vr-ref .vr-src { font-family: var(--font-mono, ui-monospace, monospace); color: #a78bfa; font-size: 11px; }
+.vr-ref .vr-quote { font-style: italic; color: var(--text-secondary); margin-top: 2px; padding-left: 8px; border-left: 2px solid var(--border-default); }
+@media (max-width: 768px) { .vr-dgrid { grid-template-columns: 1fr; } }
+
 </style>
 </head>
 <body>
@@ -1061,7 +1229,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
         <span class="search-btn-label" lang="en">Search...</span>
         <kbd>⌘K</kbd>
       </button>
-      <span class="version-pill">v0.3.3 · 28 May 2026</span>
+      <span class="version-pill">v0.3.3 · 30 May 2026</span>
       <div class="lang-toggle" role="group" aria-label="Language">
         <button data-lang="pt" class="active" aria-label="Português">PT</button>
         <button data-lang="en" aria-label="English">EN</button>
@@ -1129,6 +1297,10 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
     <span lang="pt">Arquitetura técnica</span>
     <span lang="en">Technical architecture</span>
   </a>
+  <a href="#rules-catalog" class="sidebar-link"><span class="sidebar-link-num">VR</span>
+    <span lang="pt">Catálogo de Regras (127)</span>
+    <span lang="en">Rules Catalog (127)</span>
+  </a>
 
   <div class="sidebar-section">
     <span lang="pt">Progresso &amp; rituais</span>
@@ -1183,7 +1355,29 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
 
 <!-- ============ MAIN ============ -->
 <main class="main">
+
+<!-- ============ TAB NAV ============ -->
+<nav class="tab-nav" role="tablist" aria-label="Main tabs">
+  <button class="tab-btn tab-bp active" data-tab="blueprint" role="tab" aria-selected="true">
+    <span class="tab-icon">📘</span>
+    <span lang="pt">Blueprint</span><span lang="en">Blueprint</span>
+  </button>
+  <button class="tab-btn tab-cat" data-tab="catalog" role="tab" aria-selected="false">
+    <span class="tab-icon">🛡</span>
+    <span lang="pt">Catálogo de Regras</span><span lang="en">Rules Catalog</span>
+    <span class="tab-count" id="tab-count-catalog">127</span>
+  </button>
+  <button class="tab-btn tab-cnv" data-tab="convergence" role="tab" aria-selected="false">
+    <span class="tab-icon">🔍</span>
+    <span lang="pt">Análise de Convergência</span><span lang="en">Convergence Analysis</span>
+    <span class="tab-count" id="tab-count-convergence">42</span>
+  </button>
+</nav>
+
 <div class="content">
+
+<!-- ============ TAB · BLUEPRINT ============ -->
+<div class="tab-pane active" id="pane-blueprint" role="tabpanel">
 
 <!-- ============ HERO ============ -->
 <section class="hero">
@@ -2529,6 +2723,99 @@ flowchart LR
   </ul>
 </section>
 
+</div><!-- /pane-blueprint -->
+
+<!-- ============ TAB · CATÁLOGO DE REGRAS ============ -->
+<div class="tab-pane" id="pane-catalog" role="tabpanel">
+
+<!-- ============ VR · VALIDATION RULES CATALOG ============ -->
+<section class="section" id="rules-catalog">
+  <div class="section-header">
+    <div class="eyebrow"><span class="eyebrow-dot"></span>VR · <span lang="pt">Produto &amp; técnica</span><span lang="en">Product &amp; engineering</span></div>
+    <h2><span lang="pt">Catálogo de Regras de Validação</span><span lang="en">Validation Rules Catalog</span></h2>
+  </div>
+  <p class="lede">
+    <span lang="pt"><strong>127 regras</strong> que governam toda emissão de TRC: 67 do core PURE oficial + 17 gaps PURE a fechar + 26 EU/legais + 17 RecyClass. Cada regra explicada em L3 (pronta para implementação e auditoria BV) quando marcada como REVIEWED ou superior. Fonte: <code>PURE_dMRV_MASTER_FINAL.xlsx</code> + <code>PURE dMRV Gap Register</code> + metodologia PURE Junho/2025.</span>
+    <span lang="en"><strong>127 rules</strong> that govern every TRC issuance: 67 official PURE core + 17 PURE gaps to close + 26 EU/legal + 17 RecyClass. Each rule explained at L3 (implementation- and BV-ready) when marked REVIEWED or higher. Source: <code>PURE_dMRV_MASTER_FINAL.xlsx</code> + <code>PURE dMRV Gap Register</code> + PURE methodology June/2025.</span>
+  </p>
+
+  <div class="vr-stats" id="vr-stats"></div>
+
+  <div class="vr-filters">
+    <input type="search" id="vr-search" placeholder="🔍 Buscar por ID, título, fields, mensagens, owner…">
+    <div class="vr-fgroup"><label>Pilar</label><select id="vr-filter-pillar"><option value="">todos</option></select></div>
+    <div class="vr-fgroup"><label>Severidade</label><select id="vr-filter-severity"><option value="">todos</option></select></div>
+    <div class="vr-fgroup"><label>Status</label><select id="vr-filter-status"><option value="">todos</option></select></div>
+    <div class="vr-fgroup"><label>Cluster</label><select id="vr-filter-cluster"><option value="">todos</option></select></div>
+    <button class="vr-clear" id="vr-clear-filters">limpar</button>
+  </div>
+
+  <div class="vr-results-info" id="vr-results-info"></div>
+  <div class="vr-rules" id="vr-rules">
+    <div class="vr-empty"><span lang="pt">Carregando regras…</span><span lang="en">Loading rules…</span></div>
+  </div>
+
+  <p style="margin-top:18px; font-size: 12px; color: var(--text-tertiary);" lang="pt">
+    Status workflow: <span class="vr-b vr-st-DRAFT">DRAFT</span> → <span class="vr-b vr-st-REVIEWED">REVIEWED</span> → <span class="vr-b vr-st-APPROVED">APPROVED</span> → <span class="vr-b vr-st-IMPLEMENTED">IMPLEMENTED</span>. Refinamento em ondas — cada onda detalha um cluster funcional para L3.
+  </p>
+  <p style="margin-top:6px; font-size: 12px; color: var(--text-tertiary);" lang="en">
+    Status workflow: <span class="vr-b vr-st-DRAFT">DRAFT</span> → <span class="vr-b vr-st-REVIEWED">REVIEWED</span> → <span class="vr-b vr-st-APPROVED">APPROVED</span> → <span class="vr-b vr-st-IMPLEMENTED">IMPLEMENTED</span>. Refinement happens in waves — each wave details one functional cluster to L3.
+  </p>
+</section>
+
+<div class="section-divider"></div>
+
+</div><!-- /pane-catalog -->
+
+<!-- ============ TAB · ANÁLISE DE CONVERGÊNCIA ============ -->
+<div class="tab-pane" id="pane-convergence" role="tabpanel">
+
+<section class="section" id="convergence">
+  <div class="section-header">
+    <div class="eyebrow"><span class="eyebrow-dot"></span>CV · <span lang="pt">Auditoria metodológica</span><span lang="en">Methodology audit</span></div>
+    <h2><span lang="pt">Análise de Convergência das 127 regras</span><span lang="en">Convergence Analysis of 127 rules</span></h2>
+  </div>
+  <p class="lede">
+    <span lang="pt">Análise cross-pillar identificando <strong>contradições</strong>, <strong>gaps entre pilares</strong>, <strong>redundâncias</strong> e <strong>gaps reversos</strong> (regras EU/Recyclass que a metodologia PURE não cobre). Cada achado tem evidência verbatim, severidade e resolução proposta. Atualizado em <span id="cv-generated-at">2026-05-29</span>.</span>
+    <span lang="en">Cross-pillar analysis identifying <strong>contradictions</strong>, <strong>inter-pillar gaps</strong>, <strong>redundancies</strong>, and <strong>reverse gaps</strong> (EU/Recyclass rules not covered by PURE methodology). Each finding has verbatim evidence, severity and proposed resolution. Last updated <span lang="en">2026-05-29</span>.</span>
+  </p>
+
+  <div class="cv-stats" id="cv-stats"></div>
+
+  <div class="cv-filters">
+    <input type="search" id="cv-search" placeholder="🔍 Buscar por título, regras envolvidas, evidência…">
+    <div class="cv-fgroup"><label>Categoria</label><select id="cv-filter-cat"><option value="">todas</option></select></div>
+    <div class="cv-fgroup"><label>Severidade</label><select id="cv-filter-sev"><option value="">todas</option></select></div>
+    <div class="cv-fgroup"><label>Decisão de</label><select id="cv-filter-dec"><option value="">todos</option></select></div>
+    <button class="cv-clear" id="cv-clear">limpar</button>
+  </div>
+
+  <div class="cv-list" id="cv-list">
+    <div class="vr-empty"><span lang="pt">Carregando análise…</span><span lang="en">Loading analysis…</span></div>
+  </div>
+
+  <h3 class="cv-section-title">
+    <span lang="pt">Recomendações priorizadas</span><span lang="en">Prioritized recommendations</span>
+    <span class="cv-section-count" id="cv-rec-count">…</span>
+  </h3>
+  <div id="cv-recommendations"></div>
+
+  <h3 class="cv-section-title">
+    <span lang="pt">Matriz de cobertura por tema</span><span lang="en">Coverage matrix by theme</span>
+    <span class="cv-section-count" id="cv-cov-count">…</span>
+  </h3>
+  <p style="font-size:12.5px;color:var(--text-tertiary);margin-top:0;" lang="pt">
+    Quais pilares cobrem cada tema funcional. <span style="color:#10b981;font-weight:600;">Total</span> = todos pilares aplicáveis cobrem · <span style="color:#f59e0b;font-weight:600;">Parcial</span> = cobertura incompleta · <span style="color:#ef4444;font-weight:600;">Lacuna</span> = nenhum pilar cobre.
+  </p>
+  <div class="cv-cov-grid" id="cv-coverage"></div>
+
+  <p style="margin-top:24px; font-size:11.5px; color:var(--text-tertiary); font-family:var(--font-mono, monospace);">
+    Fonte completa: <code>docs/validation-rules-catalog/convergence-analysis.md</code> · JSON estruturado: <code>data/convergence.json</code>
+  </p>
+</section>
+
+</div><!-- /pane-convergence -->
+
 <!-- ============ FOOTER ============ -->
 <footer class="footer">
   <div class="footer-grid">
@@ -2538,7 +2825,7 @@ flowchart LR
       <p style="margin: 4px 0 0; font-size: 12.5px;" lang="en">Last update: <span id="footer-last-updated-en">May 28, 2026</span> · <span id="footer-relative-en">today</span>. Owner: Rodrigo Moraes (Finder Consultoria).</p>
     </div>
     <div style="font-size: 12.5px; text-align: right;">
-      <div class="mono" id="footer-version-pill">v0.3.3 · 2026-05-28</div>
+      <div class="mono" id="footer-version-pill">v0.3.3 · 2026-05-30</div>
       <div class="mono" style="color: var(--accent); margin-top:4px;" id="footer-days-to-golive">— days to go-live</div>
     </div>
   </div>
@@ -2630,7 +2917,7 @@ function initMermaid() {
 window.addEventListener('load', () => setTimeout(initMermaid, 100));
 
 // ============ DYNAMIC DATES (status sempre fresco) ============
-const LAST_UPDATE_ISO = '2026-05-28';
+const LAST_UPDATE_ISO = '2026-05-30';
 const GO_LIVE_ISO = '2026-07-30';
 const PROJECT_START_ISO = '2026-05-01';
 
@@ -2815,6 +3102,404 @@ document.addEventListener('keydown', (e) => {
     items[next].scrollIntoView({ block: 'nearest' });
   }
 });
+
+/* ============ TABS TOP-LEVEL ============ */
+(function() {
+  const tabs = document.querySelectorAll('.tab-btn');
+  const panes = document.querySelectorAll('.tab-pane');
+  const sidebar = document.querySelector('.sidebar');
+
+  function activate(name, updateHash = true) {
+    tabs.forEach(b => {
+      const on = b.dataset.tab === name;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    panes.forEach(p => p.classList.toggle('active', p.id === 'pane-' + name));
+    if (sidebar) {
+      sidebar.classList.toggle('tab-cat-active', name === 'catalog');
+      sidebar.classList.toggle('tab-cnv-active', name === 'convergence');
+    }
+    if (updateHash) {
+      const newHash = name === 'blueprint' ? '' : '#tab=' + name;
+      if (newHash !== window.location.hash) history.replaceState(null, '', newHash || window.location.pathname);
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  tabs.forEach(b => b.addEventListener('click', () => activate(b.dataset.tab)));
+
+  // Sidebar links que apontam para seções dentro de cada pane — auto-switch para o pane correto
+  document.querySelectorAll('.sidebar-link').forEach(a => {
+    const href = a.getAttribute('href');
+    if (href === '#rules-catalog') a.addEventListener('click', e => { e.preventDefault(); activate('catalog'); document.getElementById('rules-catalog')?.scrollIntoView({behavior:'smooth'}); });
+  });
+
+  // URL hash parser: #tab=catalog | #tab=convergence | #rules-catalog (legacy)
+  function parseHash() {
+    const h = window.location.hash;
+    if (h.startsWith('#tab=')) {
+      const t = h.slice(5);
+      if (['blueprint','catalog','convergence'].includes(t)) return t;
+    }
+    if (h === '#rules-catalog') return 'catalog';
+    if (h === '#convergence') return 'convergence';
+    return 'blueprint';
+  }
+  activate(parseHash(), false);
+  window.addEventListener('hashchange', () => activate(parseHash(), false));
+})();
+
+/* ============ CONVERGÊNCIA · RENDERER ============ */
+(function() {
+  let CV_DATA = null;
+  let CV_F = { search: '', category: '', severity: '', decision_by: '' };
+  const cvEl = id => document.getElementById(id);
+  const cvEsc = s => s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  fetch('validation-rules-catalog/data/convergence.json')
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(d => { CV_DATA = d; cvRenderAll(); })
+    .catch(err => {
+      cvEl('cv-list').innerHTML = '<div class="vr-empty">Erro ao carregar <code>validation-rules-catalog/data/convergence.json</code>: ' + err.message + '<br><br>Sirva o repositório via HTTP (ex.: <code>python3 -m http.server 8000</code> na pasta <code>docs/</code>).</div>';
+    });
+
+  function cvRenderAll() {
+    cvRenderStats();
+    cvRenderFilters();
+    cvRenderFindings();
+    cvRenderRecommendations();
+    cvRenderCoverage();
+    cvEl('cv-generated-at') && (cvEl('cv-generated-at').textContent = CV_DATA.generated_at || '—');
+    cvEl('tab-count-convergence') && (cvEl('tab-count-convergence').textContent = CV_DATA.summary.total_findings);
+  }
+
+  function cvRenderStats() {
+    const s = CV_DATA.summary;
+    cvEl('cv-stats').innerHTML =
+      '<div class="cv-stat accent"><div class="cv-label">Total de achados</div><div class="cv-value">' + s.total_findings + '</div><div class="cv-sub">cobertura ' + s.coverage_pct + '% inter-pilar</div></div>' +
+      '<div class="cv-stat"><div class="cv-label">Por severidade</div><div class="cv-value">' + (s.by_severity.HIGH || 0) + ' <span style="color:#f59e0b;font-size:18px;">/ ' + (s.by_severity.MEDIUM || 0) + '</span> <span style="color:var(--text-tertiary);font-size:14px;">/ ' + (s.by_severity.LOW || 0) + '</span></div><div class="cv-sub">HIGH · MED · LOW</div></div>' +
+      '<div class="cv-stat"><div class="cv-label">Contradições · Gaps · Redund.</div><div class="cv-value">' + (s.by_category.contradiction || 0) + ' · ' + (s.by_category.gap || 0) + ' · ' + (s.by_category.redundancy || 0) + '</div><div class="cv-sub">categorias principais</div></div>' +
+      '<div class="cv-stat"><div class="cv-label">Gaps reversos UE/RC</div><div class="cv-value" style="color:#a78bfa;">' + (s.by_category.reverse_gap || 0) + '</div><div class="cv-sub">UE/RC sem cobertura PURE</div></div>';
+  }
+
+  function cvRenderFilters() {
+    const cats = new Set();
+    const sevs = new Set();
+    const decs = new Set();
+    CV_DATA.findings.forEach(f => {
+      if (f.category) cats.add(f.category);
+      if (f.severity) sevs.add(f.severity);
+      if (f.decision_by) decs.add(f.decision_by);
+    });
+    const populate = (id, values) => {
+      const sel = cvEl(id);
+      [...values].sort().forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v; opt.textContent = v;
+        sel.appendChild(opt);
+      });
+    };
+    populate('cv-filter-cat', cats);
+    populate('cv-filter-sev', sevs);
+    populate('cv-filter-dec', decs);
+
+    cvEl('cv-search').addEventListener('input', e => { CV_F.search = e.target.value; cvRenderFindings(); });
+    cvEl('cv-filter-cat').addEventListener('change', e => { CV_F.category = e.target.value; cvRenderFindings(); });
+    cvEl('cv-filter-sev').addEventListener('change', e => { CV_F.severity = e.target.value; cvRenderFindings(); });
+    cvEl('cv-filter-dec').addEventListener('change', e => { CV_F.decision_by = e.target.value; cvRenderFindings(); });
+    cvEl('cv-clear').addEventListener('click', () => {
+      CV_F = { search:'', category:'', severity:'', decision_by:'' };
+      cvEl('cv-search').value = '';
+      ['cv-filter-cat','cv-filter-sev','cv-filter-dec'].forEach(id => cvEl(id).value = '');
+      cvRenderFindings();
+    });
+  }
+
+  function cvMatch(f) {
+    if (CV_F.category && f.category !== CV_F.category) return false;
+    if (CV_F.severity && f.severity !== CV_F.severity) return false;
+    if (CV_F.decision_by && f.decision_by !== CV_F.decision_by) return false;
+    if (CV_F.search) {
+      const q = CV_F.search.toLowerCase();
+      const hay = [f.id, f.title, f.description, f.evidence, f.resolution, ...(f.rules_involved || [])].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  }
+
+  function cvRenderFindings() {
+    const filtered = CV_DATA.findings.filter(cvMatch);
+    // ordena por severidade (HIGH > MED > LOW), depois por categoria
+    const sevOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+    const catOrder = { contradiction: 0, gap: 1, reverse_gap: 2, redundancy: 3 };
+    filtered.sort((a,b) => (sevOrder[a.severity] ?? 9) - (sevOrder[b.severity] ?? 9) || (catOrder[a.category] ?? 9) - (catOrder[b.category] ?? 9) || a.id.localeCompare(b.id));
+    const container = cvEl('cv-list');
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="vr-empty">Nenhum achado corresponde aos filtros.</div>';
+      return;
+    }
+    container.innerHTML = filtered.map(f =>
+      '<article class="cv-card cv-cat-' + f.category + '">' +
+        '<div class="cv-card-head">' +
+          '<span class="cv-card-id">' + f.id + '</span>' +
+          '<span class="cv-card-title">' + cvEsc(f.title) + '</span>' +
+          '<div class="cv-card-badges">' +
+            '<span class="cv-b cv-cat-badge-' + f.category + '">' + f.category.replace('_',' ') + '</span>' +
+            '<span class="cv-b cv-sev-' + f.severity + '">' + f.severity + '</span>' +
+            (f.decision_by ? '<span class="cv-b" style="background:var(--bg-elevated, var(--bg-default));color:var(--text-secondary);">' + cvEsc(f.decision_by) + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="cv-card-body">' +
+          (f.rules_involved && f.rules_involved.length ? '<div class="cv-card-block"><div class="cv-bl">Regras envolvidas</div><p>' + f.rules_involved.map(r => '<span class="cv-rule-ref">' + cvEsc(r) + '</span>').join('') + '</p></div>' : '') +
+          (f.description ? '<div class="cv-card-block"><div class="cv-bl">Descrição</div><p>' + cvEsc(f.description) + '</p></div>' : '') +
+          (f.evidence ? '<div class="cv-card-block evidence"><div class="cv-bl">Evidência</div><p>' + cvEsc(f.evidence) + '</p></div>' : '') +
+          (f.resolution ? '<div class="cv-card-block"><div class="cv-bl">Resolução proposta</div><p>' + cvEsc(f.resolution) + '</p></div>' : '') +
+        '</div>' +
+      '</article>'
+    ).join('');
+  }
+
+  function cvRenderRecommendations() {
+    const recs = CV_DATA.recommendations || [];
+    cvEl('cv-rec-count').textContent = recs.length;
+    if (recs.length === 0) { cvEl('cv-recommendations').innerHTML = '<p style="color:var(--text-tertiary);">— sem recomendações —</p>'; return; }
+    cvEl('cv-recommendations').innerHTML = recs.map(r =>
+      '<div class="cv-rec">' +
+        '<div class="cv-rec-num">' + (r.priority || '·') + '</div>' +
+        '<div class="cv-rec-body">' +
+          '<div class="cv-rec-action">' + cvEsc(r.action) + '</div>' +
+          '<div class="cv-rec-meta">' +
+            (r.rationale ? '<strong>Por quê:</strong> ' + cvEsc(r.rationale) : '') +
+            (r.owner ? ' · <strong>Owner:</strong> ' + cvEsc(r.owner) : '') +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    ).join('');
+  }
+
+  function cvRenderCoverage() {
+    const cov = CV_DATA.coverage_matrix || [];
+    cvEl('cv-cov-count').textContent = cov.length;
+    if (cov.length === 0) { cvEl('cv-coverage').innerHTML = '<p style="color:var(--text-tertiary);">— matriz vazia —</p>'; return; }
+    const fmtP = (arr) => (arr && arr.length) ? arr.map(r => '<span class="cv-rule-ref" style="font-size:9.5px;padding:1px 4px;">' + r + '</span>').join('') : '<span style="color:var(--text-tertiary);">—</span>';
+    let html = '<div class="cv-cov-row header"><span>Tema</span><span>PURE</span><span>PG</span><span>EU</span><span>RC</span><span>Status</span></div>';
+    html += cov.map(row =>
+      '<div class="cv-cov-row">' +
+        '<span style="font-size:12px;color:var(--text-primary);">' + cvEsc(row.theme) + '</span>' +
+        '<span>' + fmtP(row.pillars?.PURE) + '</span>' +
+        '<span>' + fmtP(row.pillars?.PG) + '</span>' +
+        '<span>' + fmtP(row.pillars?.EU) + '</span>' +
+        '<span>' + fmtP(row.pillars?.RC) + '</span>' +
+        '<span class="cv-cov-status cv-cov-' + row.status + '">' + row.status + '</span>' +
+      '</div>'
+    ).join('');
+    cvEl('cv-coverage').innerHTML = html;
+  }
+})();
+
+/* ============ VR · VALIDATION RULES CATALOG ============ */
+(function() {
+  let VR_DATA = null;
+  let VR_FILTERS = { search: '', pillar: '', severity: '', status: '', cluster: '' };
+  const vrEl = id => document.getElementById(id);
+  const vrEsc = s => s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  // Determina o idioma atual do Blueprint (já tem toggle existente)
+  function vrLang() {
+    const ptVisible = document.querySelector('[lang="pt"]') && getComputedStyle(document.querySelector('[lang="pt"]')).display !== 'none';
+    return ptVisible ? 'pt' : 'en';
+  }
+
+  fetch('validation-rules-catalog/data/rules.json')
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(d => { VR_DATA = d; vrRenderStats(); vrRenderFilters(); vrRender(); })
+    .catch(err => {
+      vrEl('vr-rules').innerHTML = '<div class="vr-empty">Erro ao carregar <code>validation-rules-catalog/data/rules.json</code>: ' + err.message + '<br><br>Sirva o repositório via HTTP para o fetch funcionar (ex.: <code>python3 -m http.server 8000</code> na pasta <code>docs/</code>).</div>';
+    });
+
+  function vrRenderStats() {
+    const s = VR_DATA.stats;
+    const reviewed = (s.by_status.REVIEWED || 0) + (s.by_status.APPROVED || 0) + (s.by_status.IMPLEMENTED || 0);
+    const pct = ((reviewed / s.total) * 100).toFixed(0);
+    vrEl('vr-stats').innerHTML =
+      '<div class="vr-stat accent"><div class="vr-label">Total de regras</div><div class="vr-value">' + s.total + '</div><div class="vr-sub">' +
+        Object.entries(s.by_pillar).map(([k,v]) => v + ' ' + k).join(' · ') + '</div></div>' +
+      '<div class="vr-stat"><div class="vr-label">L3 refinadas</div><div class="vr-value">' + reviewed + '</div><div class="vr-sub">' + pct + '% do total · padrão fixado</div></div>' +
+      '<div class="vr-stat"><div class="vr-label">BLOCK / FLAG</div><div class="vr-value">' + (s.by_severity.BLOCK || 0) + ' <span style="color:var(--text-tertiary);font-size:14px;">/ ' + (s.by_severity.FLAG || 0) + '</span></div><div class="vr-sub">' + (s.by_severity.BLOCK || 0) + ' trava o fluxo · ' + (s.by_severity.FLAG || 0) + ' review manual</div></div>' +
+      '<div class="vr-stat"><div class="vr-label">Clusters</div><div class="vr-value">' + Object.keys(s.by_cluster).length + '</div><div class="vr-sub">agrupamento funcional</div></div>';
+  }
+
+  function vrRenderFilters() {
+    const populate = (id, values) => {
+      const sel = vrEl(id);
+      values.sort().forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v; opt.textContent = v;
+        sel.appendChild(opt);
+      });
+    };
+    populate('vr-filter-pillar', Object.keys(VR_DATA.stats.by_pillar));
+    populate('vr-filter-severity', Object.keys(VR_DATA.stats.by_severity));
+    populate('vr-filter-status', Object.keys(VR_DATA.stats.by_status));
+    populate('vr-filter-cluster', Object.keys(VR_DATA.stats.by_cluster));
+
+    vrEl('vr-search').addEventListener('input', e => { VR_FILTERS.search = e.target.value; vrRender(); });
+    ['pillar','severity','status','cluster'].forEach(k => {
+      vrEl('vr-filter-' + k).addEventListener('change', e => { VR_FILTERS[k] = e.target.value; vrRender(); });
+    });
+    vrEl('vr-clear-filters').addEventListener('click', () => {
+      VR_FILTERS = { search:'', pillar:'', severity:'', status:'', cluster:'' };
+      vrEl('vr-search').value = '';
+      ['vr-filter-pillar','vr-filter-severity','vr-filter-status','vr-filter-cluster'].forEach(id => vrEl(id).value = '');
+      vrRender();
+    });
+  }
+
+  function vrMatches(rule) {
+    if (VR_FILTERS.pillar && rule.pillar !== VR_FILTERS.pillar) return false;
+    if (VR_FILTERS.severity && rule.severity !== VR_FILTERS.severity) return false;
+    if (VR_FILTERS.status && rule.status !== VR_FILTERS.status) return false;
+    if (VR_FILTERS.cluster && rule.cluster !== VR_FILTERS.cluster) return false;
+    if (VR_FILTERS.search) {
+      const q = VR_FILTERS.search.toLowerCase();
+      const hay = [rule.id, rule.title, rule.purpose, rule.logic_human, rule.cluster, rule.owner, rule.domain,
+        ...(rule.fields.reads || []), rule.messages.block_pt, rule.messages.block_en].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  }
+
+  function vrRender() {
+    const filtered = VR_DATA.rules.filter(vrMatches);
+    vrEl('vr-results-info').innerHTML = 'mostrando <span class="vr-count">' + filtered.length + '</span> de ' + VR_DATA.rules.length + ' regras';
+    const container = vrEl('vr-rules');
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="vr-empty">Nenhuma regra corresponde aos filtros atuais.</div>';
+      return;
+    }
+    container.innerHTML = filtered.map(vrRenderRule).join('');
+    container.querySelectorAll('.vr-rule').forEach(r => {
+      r.querySelector('.vr-rule-head').addEventListener('click', () => r.classList.toggle('open'));
+    });
+  }
+
+  function vrRenderRule(r) {
+    return '<article class="vr-rule vr-card-' + r.pillar + '" data-id="' + r.id + '">' +
+      '<div class="vr-rule-head">' +
+        '<span class="vr-rule-id">' + r.id + '</span>' +
+        '<span class="vr-rule-title">' + vrEsc(r.title) + '</span>' +
+        '<div class="vr-rule-badges">' +
+          '<span class="vr-b vr-cluster">' + r.cluster + '</span>' +
+          '<span class="vr-b vr-pillar-' + r.pillar + '">' + r.pillar + '</span>' +
+          '<span class="vr-b vr-sev-' + r.severity + '">' + r.severity + '</span>' +
+          '<span class="vr-b vr-st-' + r.status + '">' + r.status + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="vr-detail">' + (r.status === 'DRAFT' ? vrRenderDraft(r) : vrRenderFull(r)) + '</div>' +
+    '</article>';
+  }
+
+  function vrRenderDraft(r) {
+    // Gera um stub de pseudo-code básico a partir do logic_human e fields, para que mesmo DRAFT tenha código visível.
+    const fieldsHint = (r.fields.reads || []).slice(0, 4).map(f => '  // ' + f).join('\n');
+    const stub =
+      '// STUB — ainda não refinada para L3 (Onda futura)\n' +
+      'async function evaluate(ctx: RuleContext<\'' + r.id + '\'>): Promise<RuleResult> {\n' +
+      '  // Lógica raw (do RULE_REGISTER / Gap Register):\n' +
+      '  // ' + (r.logic_human || '— sem lógica documentada —') + '\n' +
+      (fieldsHint ? '\n  // Fields a ler:\n' + fieldsHint + '\n' : '') +
+      '\n  // TODO: implementar conforme refinamento L3 (Onda 2–8).\n' +
+      '  return ctx.fail({ ruleId: \'' + r.id + '\', severity: \'' + r.severity + '\',\n' +
+      '    message: \'' + r.id + ' não implementada\' });\n' +
+      '}';
+    return '<div class="vr-dgrid">' +
+      '<div class="vr-ds vr-full">' +
+        '<h4>Status DRAFT — ainda não refinada para L3</h4>' +
+        '<p>Esta regra tem apenas metadados extraídos da fonte original (' + (r.source_type || r.pillar) + '). Será detalhada em uma das próximas ondas de refinamento (Ondas 2–8).</p>' +
+      '</div>' +
+      '<div class="vr-impl vr-full">' +
+        '<h4>Código de implementação · stub (pendente refinamento L3)</h4>' +
+        '<pre>' + vrEsc(stub) + '</pre>' +
+        '<div class="vr-impl-meta">// fields conhecidos: ' + ((r.fields.reads || []).join(', ') || '—') + ' · severity preliminar: ' + r.severity + '</div>' +
+      '</div>' +
+      '<div class="vr-ds vr-full"><div class="vr-kv">' +
+        '<span class="vr-k">domain</span><span class="vr-v">' + (r.domain || '—') + ' / ' + (r.subdomain || '—') + '</span>' +
+        '<span class="vr-k">trigger</span><span class="vr-v"><code>' + r.trigger.event + '/' + r.trigger.phase + '</code></span>' +
+        '<span class="vr-k">logic (raw)</span><span class="vr-v">' + vrEsc(r.logic_human || '—') + '</span>' +
+        '<span class="vr-k">fields.reads</span><span class="vr-v">' + ((r.fields.reads || []).map(f => '<code>' + vrEsc(f) + '</code>').join(' ') || '—') + '</span>' +
+        '<span class="vr-k">owner</span><span class="vr-v">' + r.owner + '</span>' +
+        '<span class="vr-k">disposition</span><span class="vr-v">' + (r.disposition || '—') + '</span>' +
+        (r.methodology_quote ? '<span class="vr-k">methodology</span><span class="vr-v" style="font-style:italic;color:var(--text-secondary);">"' + vrEsc(r.methodology_quote) + '"</span>' : '') +
+      '</div></div>' +
+    '</div>';
+  }
+
+  function vrRenderFull(r) {
+    const lang = vrLang();
+    const blockMsg = r.messages['block_' + lang] || r.messages.block_pt || '';
+    const flagMsg = r.messages['flag_' + lang] || r.messages.flag_pt || '';
+    let msgs = '';
+    if (blockMsg) msgs += '<div class="vr-msg block"><div class="vr-lf">' + lang.toUpperCase() + ' · BLOCK</div>' + vrEsc(blockMsg) + '</div>';
+    if (flagMsg) msgs += '<div class="vr-msg flag"><div class="vr-lf">' + lang.toUpperCase() + ' · FLAG</div>' + vrEsc(flagMsg) + '</div>';
+    if (!msgs) msgs = '<p style="color:var(--text-tertiary);">— sem mensagem definida —</p>';
+
+    return '<div class="vr-dgrid">' +
+      '<div class="vr-ds vr-full"><h4>Propósito (por que existe)</h4><p>' + vrEsc(r.purpose) + '</p></div>' +
+      '<div class="vr-impl vr-full">' +
+        '<h4>Código de implementação · TypeScript (NestJS + Prisma)</h4>' +
+        '<pre>' + vrEsc(r.logic_pseudocode) + '</pre>' +
+        '<div class="vr-impl-meta">// fields lidos: ' + (r.fields.reads.length ? r.fields.reads.join(', ') : '—') + ' · escreve: ' + r.fields.writes.join(', ') + ' · severity: ' + r.severity + '</div>' +
+      '</div>' +
+      '<div class="vr-ds"><h4>Lógica humana</h4><p>' + vrEsc(r.logic_human) + '</p></div>' +
+      '<div class="vr-ds"><h4>Trigger & escopo</h4><div class="vr-kv">' +
+        '<span class="vr-k">event</span><span class="vr-v"><code>' + r.trigger.event + '</code></span>' +
+        '<span class="vr-k">phase</span><span class="vr-v"><code>' + r.trigger.phase + '</code></span>' +
+        '<span class="vr-k">applies_to</span><span class="vr-v">' + r.applies_to.participant_types.join(', ') + ' · ' + r.applies_to.regions.join(', ') + '</span>' +
+        (r.trigger.conditions.length ? '<span class="vr-k">condições</span><span class="vr-v">' + r.trigger.conditions.map(c => '<code>' + vrEsc(c) + '</code>').join(' ') + '</span>' : '') +
+      '</div></div>' +
+      '<div class="vr-ds"><h4>Schema fields</h4><div class="vr-kv">' +
+        '<span class="vr-k">reads</span><span class="vr-v">' + r.fields.reads.map(f => '<code>' + vrEsc(f) + '</code>').join(' ') + '</span>' +
+        '<span class="vr-k">writes</span><span class="vr-v">' + r.fields.writes.map(f => '<code>' + vrEsc(f) + '</code>').join(' ') + '</span>' +
+      '</div></div>' +
+      '<div class="vr-ds"><h4>Evidência documental</h4>' +
+        (r.evidence.length === 0 ? '<p style="color:var(--text-tertiary);">— sem evidência documental obrigatória —</p>' :
+        '<ul>' + r.evidence.map(e => '<li><code>' + e.doc_type + '</code> ' + (e.mandatory ? '<strong style="color:#ef4444;">obrigatório</strong>' : '<em>opcional</em>') + (e.when ? ' · quando: ' + vrEsc(e.when) : '') + '</li>').join('') + '</ul>') +
+      '</div>' +
+      '<div class="vr-ds vr-full"><h4>Mensagens ao usuário <span style="font-size:10px;color:var(--text-tertiary);text-transform:none;letter-spacing:0;">(' + lang.toUpperCase() + ')</span></h4>' + msgs + '</div>' +
+      '<div class="vr-ds vr-full"><h4>Comportamento no sistema</h4><div class="vr-kv">' +
+        '<span class="vr-k">on fail</span><span class="vr-v">' + vrEsc(r.behavior.on_fail) + '</span>' +
+        '<span class="vr-k">on pass</span><span class="vr-v">' + vrEsc(r.behavior.on_pass) + '</span>' +
+        '<span class="vr-k">revalidation</span><span class="vr-v">' + vrEsc(r.behavior.revalidation) + '</span>' +
+        (r.behavior.retry_window ? '<span class="vr-k">retry window</span><span class="vr-v">' + vrEsc(r.behavior.retry_window) + '</span>' : '') +
+        (r.behavior.escalation ? '<span class="vr-k">escalation</span><span class="vr-v">' + vrEsc(r.behavior.escalation) + '</span>' : '') +
+        (r.behavior.performance ? '<span class="vr-k">performance</span><span class="vr-v">' + vrEsc(r.behavior.performance) + '</span>' : '') +
+        '<span class="vr-k">idempotent</span><span class="vr-v">' + (r.behavior.idempotent ? '✓ sim' : '✗ não') + '</span>' +
+      '</div></div>' +
+      '<div class="vr-ds vr-full"><h4>Casos de teste</h4>' +
+        '<div class="vr-tc pos"><div class="vr-tcname">✓ ' + vrEsc(r.test_cases.positive.name) + '</div>' +
+        '<div class="vr-row"><strong>given:</strong> ' + vrEsc(r.test_cases.positive.given) + '</div>' +
+        '<div class="vr-row"><strong>expected:</strong> ' + vrEsc(r.test_cases.positive.expected) + '</div></div>' +
+        r.test_cases.negative.map(nc => '<div class="vr-tc neg"><div class="vr-tcname">✗ ' + vrEsc(nc.name) + '</div>' +
+          '<div class="vr-row"><strong>given:</strong> ' + vrEsc(nc.given) + '</div>' +
+          '<div class="vr-row"><strong>expected:</strong> ' + vrEsc(nc.expected) + '</div></div>').join('') +
+      '</div>' +
+      (r.edge_cases.length ? '<div class="vr-ds vr-full"><h4>Edge cases</h4><ul>' + r.edge_cases.map(ec => '<li>' + vrEsc(ec) + '</li>').join('') + '</ul></div>' : '') +
+      '<div class="vr-ds"><h4>Verificação Bureau Veritas</h4><div class="vr-kv">' +
+        '<span class="vr-k">controles BV</span><span class="vr-v">' + (r.bv_verification.bv_controls.map(c => '<code>' + c + '</code>').join(' ') || '—') + '</span>' +
+        '<span class="vr-k">procedimento</span><span class="vr-v">' + vrEsc(r.bv_verification.procedure) + '</span>' +
+        '<span class="vr-k">sample size</span><span class="vr-v">' + vrEsc(r.bv_verification.sample_size) + '</span>' +
+        '<span class="vr-k">frequência</span><span class="vr-v">' + r.bv_verification.frequency + '</span>' +
+      '</div></div>' +
+      '<div class="vr-ds"><h4>Cross-references</h4><p>' + (r.related.length ? r.related.map(rid => '<code>' + rid + '</code>').join(' ') : '<span style="color:var(--text-tertiary);">— sem cross-refs —</span>') + '</p></div>' +
+      '<div class="vr-ds vr-full"><h4>Origem normativa</h4>' +
+        r.references.map(ref => '<div class="vr-ref"><span class="vr-src">' + ref.source + '</span> · <span style="color:var(--text-primary);font-weight:500;">' + ref.section + '</span>' +
+          (ref.quote ? '<div class="vr-quote">"' + vrEsc(ref.quote) + '"</div>' : '') + '</div>').join('') +
+        (r.methodology_quote ? '<div class="vr-ref" style="margin-top:8px;"><span class="vr-src">METHODOLOGY QUOTE</span><div class="vr-quote">"' + vrEsc(r.methodology_quote) + '"</div></div>' : '') +
+      '</div>' +
+    '</div>';
+  }
+})();
 </script>
 </body>
 </html>
