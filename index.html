@@ -1178,6 +1178,37 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
 .vr-gate-RECYCLASS_CERTIFICATION { color: #14b8a6; border-color: rgba(20,184,166,0.35); }
 .vr-gate-HOMOLOGATION_APPROVAL { color: #f59e0b; border-color: rgba(245,158,11,0.35); }
 .vr-gate-REWARD_DISTRIBUTION { color: #10b981; border-color: rgba(16,185,129,0.35); }
+
+/* ============ VR · PANORAMA EXECUTIVO ============ */
+.vr-pano { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 10px; padding: 20px 24px; margin: 16px 0 24px; }
+.vr-pano-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-tertiary); margin: 0 0 6px; }
+.vr-pano-lead { font-size: 13px; color: var(--text-secondary); margin: 0 0 18px; line-height: 1.55; }
+.vr-pano-lead strong { color: var(--text-primary); }
+.vr-pano-pillars { display: grid; gap: 12px; }
+.vr-pano-pillar { border: 1px solid var(--border-default); border-left-width: 4px; border-radius: 8px; padding: 14px 16px; background: var(--bg-elevated, var(--bg-default)); }
+.vr-pano-pillar.vr-card-PURE { border-left-color: #3b82f6; }
+.vr-pano-pillar.vr-card-PURE_GAP { border-left-color: #f59e0b; }
+.vr-pano-pillar.vr-card-EU { border-left-color: #a78bfa; }
+.vr-pano-pillar.vr-card-RECYCLASS { border-left-color: #14b8a6; }
+.vr-pano-pillar-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.vr-pano-pillar-name { font-weight: 700; font-size: 14px; color: var(--text-primary); }
+.vr-pano-pillar-count { font-family: var(--font-mono, ui-monospace, monospace); font-size: 11px; background: var(--bg-card); padding: 2px 8px; border-radius: 999px; color: var(--text-tertiary); }
+.vr-pano-pillar-desc { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5; }
+.vr-pano-breakdown { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.vr-pano-row { display: flex; align-items: center; gap: 10px; font-size: 12.5px; padding: 4px 0; }
+.vr-pano-row-count { font-family: var(--font-mono, ui-monospace, monospace); font-weight: 700; min-width: 32px; text-align: right; color: var(--text-primary); font-size: 13px; }
+.vr-pano-row-desc { flex: 1; color: var(--text-secondary); }
+.vr-pano-row-desc strong { color: var(--text-primary); }
+.vr-pano details { margin-top: 6px; }
+.vr-pano details summary { cursor: pointer; font-size: 11.5px; color: var(--accent); padding: 4px 0; user-select: none; font-weight: 600; }
+.vr-pano details summary:hover { color: var(--text-primary); }
+.vr-pano details[open] summary { margin-bottom: 8px; }
+.vr-pano-ids { display: flex; flex-wrap: wrap; gap: 4px; padding-left: 8px; }
+.vr-pano-id { font-family: var(--font-mono, ui-monospace, monospace); font-size: 10.5px; padding: 2px 7px; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 4px; color: var(--text-secondary); cursor: pointer; }
+.vr-pano-id:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.vr-pano-id-line { display: flex; align-items: center; gap: 6px; font-size: 11.5px; padding: 3px 0; }
+.vr-pano-id-line .vr-pano-id-mono { font-family: var(--font-mono, ui-monospace, monospace); font-weight: 700; min-width: 50px; color: var(--text-primary); }
+.vr-pano-id-line .vr-pano-id-cond { color: var(--text-tertiary); font-family: var(--font-mono, ui-monospace, monospace); font-size: 10.5px; }
 .vr-st-DRAFT { background: rgba(107,114,128,0.18); color: var(--text-tertiary); }
 .vr-st-REVIEWED { background: rgba(59,130,246,0.12); color: #3b82f6; }
 .vr-st-APPROVED { background: rgba(16,185,129,0.12); color: #10b981; }
@@ -2747,6 +2778,8 @@ flowchart LR
 
   <div class="vr-stats" id="vr-stats"></div>
 
+  <div id="vr-panorama"></div>
+
   <div class="vr-filters">
     <input type="search" id="vr-search" placeholder="🔍 Buscar por ID, título, fields, mensagens, owner…">
     <div class="vr-fgroup"><label>Pilar</label><select id="vr-filter-pillar"><option value="">todos</option></select></div>
@@ -3319,10 +3352,139 @@ document.addEventListener('keydown', (e) => {
 
   fetch('validation-rules-catalog/data/rules.json')
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(d => { VR_DATA = d; vrRenderStats(); vrRenderFilters(); vrRender(); })
+    .then(d => { VR_DATA = d; vrRenderStats(); vrRenderPanorama(); vrRenderFilters(); vrRender(); })
     .catch(err => {
       vrEl('vr-rules').innerHTML = '<div class="vr-empty">Erro ao carregar <code>validation-rules-catalog/data/rules.json</code>: ' + err.message + '<br><br>Sirva o repositório via HTTP para o fetch funcionar (ex.: <code>python3 -m http.server 8000</code> na pasta <code>docs/</code>).</div>';
     });
+
+  function vrRenderPanorama() {
+    const PILLAR_META = {
+      'PURE':       { label: 'PURE (core)',           main_gate: 'TRC_ISSUANCE',            desc: 'Metodologia oficial PURE — regras que governam a EMISSÃO DO TRC. As que falham travam o crédito.' },
+      'PURE_GAP':   { label: 'PURE Gaps',             main_gate: 'TRC_ISSUANCE',            desc: 'Gaps identificados no Gap Register Jun/2025 — regras NOVAS a implementar para cobrir 100% da PURE methodology.' },
+      'EU':         { label: 'EU Adapter',            main_gate: 'LEGAL_OPERATION',         desc: 'Compliance regional UE (WSR 2024/1157 + DIWASS). Trava operação legal de transporte/ingest, NÃO trava emissão de TRC.' },
+      'RECYCLASS':  { label: 'RecyClass Gaps',        main_gate: 'RECYCLASS_CERTIFICATION', desc: 'Pilar OPCIONAL — só dispara se o recycler busca certificação RecyClass. Não afeta TRC nem operação legal.' }
+    };
+    const GATE_LABEL = {
+      TRC_ISSUANCE: 'emissão do TRC',
+      LEGAL_OPERATION: 'operação legal (transporte/ingest UE)',
+      RECYCLASS_CERTIFICATION: 'certificação RecyClass',
+      HOMOLOGATION_APPROVAL: 'aprovação de homologation',
+      REWARD_DISTRIBUTION: 'distribuição de rewards'
+    };
+
+    function bucket(rules) {
+      // Agrupa por (severity, gates_what) e separa BLOCK do main gate em always-on vs conditional
+      const groups = {};
+      rules.forEach(r => {
+        const key = r.severity + ' + ' + (r.gates_what || '—');
+        if (!groups[key]) groups[key] = { severity: r.severity, gate: r.gates_what, rules: [] };
+        groups[key].rules.push(r);
+      });
+      return groups;
+    }
+
+    function isAlwaysOn(r) {
+      const c = r.trigger?.conditions || [];
+      return c.length === 0;
+    }
+
+    function renderIdsCompact(rules) {
+      return '<div class="vr-pano-ids">' + rules.map(r =>
+        '<span class="vr-pano-id" title="' + vrEsc(r.title) + '" data-id="' + r.id + '">' + r.id + '</span>'
+      ).join('') + '</div>';
+    }
+
+    function renderIdsWithCondition(rules) {
+      return rules.map(r => {
+        const cond = (r.trigger?.conditions || [])[0] || '';
+        return '<div class="vr-pano-id-line">' +
+          '<span class="vr-pano-id-mono">' + r.id + '</span>' +
+          '<span style="flex:1;">' + vrEsc(r.title) + '</span>' +
+          (cond ? '<span class="vr-pano-id-cond">← ' + vrEsc(cond) + '</span>' : '') +
+        '</div>';
+      }).join('');
+    }
+
+    let html = '<div class="vr-pano">' +
+      '<div class="vr-pano-title">📖 Como ler este catálogo — Panorama por pilar</div>' +
+      '<p class="vr-pano-lead">Cada pilar tem um <strong>gate principal</strong> diferente. <strong>Severity</strong> diz se a regra trava (BLOCK) ou só sinaliza (FLAG). <strong>gates_what</strong> diz O QUE exatamente é travado. Muitas regras BLOCK são <strong>condicionais</strong> — só disparam em cenários específicos da MassID, não em toda transação.</p>' +
+      '<div class="vr-pano-pillars">';
+
+    ['PURE','PURE_GAP','EU','RECYCLASS'].forEach(pillar => {
+      const meta = PILLAR_META[pillar];
+      const rules = VR_DATA.rules.filter(r => r.pillar === pillar);
+      const groups = bucket(rules);
+      const mainKey = 'BLOCK + ' + meta.main_gate;
+      const mainGroup = groups[mainKey];
+      const mainAlways = mainGroup ? mainGroup.rules.filter(isAlwaysOn) : [];
+      const mainCond = mainGroup ? mainGroup.rules.filter(r => !isAlwaysOn(r)) : [];
+
+      html += '<div class="vr-pano-pillar vr-card-' + pillar + '">' +
+        '<div class="vr-pano-pillar-head">' +
+          '<span class="vr-pano-pillar-name">' + meta.label + '</span>' +
+          '<span class="vr-pano-pillar-count">' + rules.length + ' regras · gate principal: ' + meta.main_gate + '</span>' +
+        '</div>' +
+        '<div class="vr-pano-pillar-desc">' + meta.desc + '</div>' +
+        '<div class="vr-pano-breakdown">';
+
+      // Quebra por grupo (severity + gate)
+      const orderedKeys = Object.keys(groups).sort((a, b) => {
+        if (a === mainKey) return -1;
+        if (b === mainKey) return 1;
+        if (a.startsWith('BLOCK') && b.startsWith('FLAG')) return -1;
+        if (a.startsWith('FLAG') && b.startsWith('BLOCK')) return 1;
+        return a.localeCompare(b);
+      });
+      orderedKeys.forEach(key => {
+        const g = groups[key];
+        const isMain = key === mainKey;
+        let descTxt;
+        if (g.severity === 'BLOCK') {
+          if (g.gate === meta.main_gate) {
+            descTxt = '<strong>' + g.severity + '</strong> que travam <strong>' + GATE_LABEL[g.gate] + '</strong> — precisam PASS sim ou sim.';
+          } else {
+            descTxt = '<strong>' + g.severity + '</strong> que travam <strong>' + GATE_LABEL[g.gate] + '</strong> — pré-requisito separado (não bloqueia ' + GATE_LABEL[meta.main_gate] + ' diretamente).';
+          }
+        } else {
+          descTxt = '<strong>FLAG</strong> que vão para review manual + audit pack — <strong>NÃO travam</strong> ' + GATE_LABEL[g.gate] + '.';
+        }
+
+        html += '<div class="vr-pano-row">' +
+          '<span class="vr-pano-row-count">' + g.rules.length + '</span>' +
+          '<span class="vr-pano-row-desc">' + descTxt + '</span>' +
+        '</div>';
+
+        // Para o grupo principal, separar always-on vs condicional
+        if (isMain) {
+          html += '<details><summary>Listar always-on (' + mainAlways.length + ') · condicionais (' + mainCond.length + ')</summary>' +
+            '<div style="padding:8px 0 4px;"><strong style="font-size:11.5px;color:var(--text-secondary);">⚡ Always-on (' + mainAlways.length + ') — disparam em TODA MassID:</strong></div>' +
+            renderIdsCompact(mainAlways) +
+            '<div style="padding:12px 0 4px;"><strong style="font-size:11.5px;color:var(--text-secondary);">🎯 Condicionais (' + mainCond.length + ') — só disparam em cenários específicos:</strong></div>' +
+            renderIdsWithCondition(mainCond) +
+          '</details>';
+        } else {
+          html += '<details><summary>Listar os ' + g.rules.length + '</summary>' + renderIdsCompact(g.rules) + '</details>';
+        }
+      });
+
+      html += '</div></div>';
+    });
+
+    html += '</div></div>';
+    vrEl('vr-panorama').innerHTML = html;
+
+    // Click no ID dentro do panorama → abre o card e scrolla
+    document.querySelectorAll('.vr-pano-id').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.dataset.id;
+        const card = document.querySelector('.vr-rule[data-id="' + id + '"]');
+        if (card) {
+          card.classList.add('open');
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+    });
+  }
 
   function vrRenderStats() {
     const s = VR_DATA.stats;
