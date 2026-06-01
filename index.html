@@ -1117,6 +1117,21 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
 .cv-rec-meta strong { color: var(--text-secondary); }
 @media (max-width: 768px) { .cv-cov-row { grid-template-columns: 1fr; } }
 
+/* Triagem 👍/👎 nos findings */
+.cv-triagem { display: inline-flex; gap: 6px; margin-left: 6px; }
+.cv-tri-btn { background: var(--bg-elevated, var(--bg-default)); border: 1px solid var(--border-default); color: var(--text-tertiary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; line-height: 1; transition: all 0.15s; font-family: inherit; }
+.cv-tri-btn:hover { color: var(--text-primary); border-color: var(--accent); }
+.cv-tri-btn.active.up { background: rgba(16,185,129,0.18); border-color: #10b981; color: #10b981; }
+.cv-tri-btn.active.down { background: rgba(239,68,68,0.18); border-color: #ef4444; color: #ef4444; }
+.cv-card.triaged-up { opacity: 0.55; }
+.cv-card.triaged-down { border-left-width: 6px; }
+.cv-tri-stat { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 8px; font-size: 12px; font-family: var(--font-mono, ui-monospace, monospace); }
+.cv-tri-stat .pct { color: var(--text-tertiary); }
+.cv-tri-progress { display: flex; height: 6px; background: var(--bg-card); border-radius: 999px; overflow: hidden; margin: 10px 0 18px; }
+.cv-tri-progress > div { transition: width 0.3s; }
+.cv-tri-progress > .up { background: #10b981; }
+.cv-tri-progress > .down { background: #ef4444; }
+
 /* ============ VR · VALIDATION RULES CATALOG ============ */
 .vr-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 20px 0 22px; }
 .vr-stat { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 8px; padding: 14px 16px; }
@@ -2946,7 +2961,25 @@ flowchart LR
     <div class="cv-fgroup"><label>Categoria</label><select id="cv-filter-cat"><option value="">todas</option></select></div>
     <div class="cv-fgroup"><label>Severidade</label><select id="cv-filter-sev"><option value="">todas</option></select></div>
     <div class="cv-fgroup"><label>Decisão de</label><select id="cv-filter-dec"><option value="">todos</option></select></div>
+    <div class="cv-fgroup"><label>Triagem</label><select id="cv-filter-tri"><option value="">todas</option><option value="up">só 👍</option><option value="down">só 👎</option><option value="none">sem marcação</option></select></div>
     <button class="cv-clear" id="cv-clear">limpar</button>
+  </div>
+
+  <!-- Barra de triagem -->
+  <div id="cv-triagem-bar" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin: 4px 0 10px; padding: 10px 14px; background:var(--bg-card); border:1px solid var(--border-default); border-radius:8px;">
+    <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-tertiary); font-weight:700;"><span lang="pt">Triagem</span><span lang="en">Triage</span></span>
+    <span class="cv-tri-stat"><span>👍</span><span id="cv-tri-up">0</span><span class="pct" id="cv-tri-up-pct">(0%)</span></span>
+    <span class="cv-tri-stat"><span>👎</span><span id="cv-tri-down">0</span><span class="pct" id="cv-tri-down-pct">(0%)</span></span>
+    <span class="cv-tri-stat"><span>⏳</span><span id="cv-tri-none">0</span><span class="pct" lang="pt">sem marcação</span><span class="pct" lang="en">unmarked</span></span>
+    <span style="flex:1;"></span>
+    <button class="cv-clear" id="cv-tri-export" title="Baixa JSON com a triagem + timestamp">📥 <span lang="pt">Exportar</span><span lang="en">Export</span></button>
+    <button class="cv-clear" id="cv-tri-import" title="Restaura triagem de um JSON exportado">📤 <span lang="pt">Importar</span><span lang="en">Import</span></button>
+    <input type="file" id="cv-tri-import-input" accept=".json" style="display:none;">
+    <button class="cv-clear" id="cv-tri-clear" style="color:#ef4444;" title="Apaga toda a triagem local">🗑️ <span lang="pt">Limpar</span><span lang="en">Clear</span></button>
+  </div>
+  <div class="cv-tri-progress" aria-label="Triagem progress">
+    <div class="up" id="cv-tri-progress-up" style="width:0%;"></div>
+    <div class="down" id="cv-tri-progress-down" style="width:0%;"></div>
   </div>
 
   <div class="cv-list" id="cv-list">
@@ -3374,7 +3407,7 @@ document.addEventListener('keydown', (e) => {
 /* ============ CONVERGÊNCIA · RENDERER ============ */
 (function() {
   let CV_DATA = null;
-  let CV_F = { search: '', category: '', severity: '', decision_by: '' };
+  let CV_F = { search: '', category: '', severity: '', decision_by: '', tri: '' };
   const cvEl = id => document.getElementById(id);
   const cvEsc = s => s == null ? '' : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -3388,6 +3421,7 @@ document.addEventListener('keydown', (e) => {
   function cvRenderAll() {
     cvRenderStats();
     cvRenderFilters();
+    cvRenderTriBar();
     cvRenderFindings();
     cvRenderRecommendations();
     cvRenderCoverage();
@@ -3429,11 +3463,46 @@ document.addEventListener('keydown', (e) => {
     cvEl('cv-filter-cat').addEventListener('change', e => { CV_F.category = e.target.value; cvRenderFindings(); });
     cvEl('cv-filter-sev').addEventListener('change', e => { CV_F.severity = e.target.value; cvRenderFindings(); });
     cvEl('cv-filter-dec').addEventListener('change', e => { CV_F.decision_by = e.target.value; cvRenderFindings(); });
+    cvEl('cv-filter-tri') && cvEl('cv-filter-tri').addEventListener('change', e => { CV_F.tri = e.target.value; cvRenderFindings(); });
     cvEl('cv-clear').addEventListener('click', () => {
-      CV_F = { search:'', category:'', severity:'', decision_by:'' };
+      CV_F = { search:'', category:'', severity:'', decision_by:'', tri:'' };
       cvEl('cv-search').value = '';
-      ['cv-filter-cat','cv-filter-sev','cv-filter-dec'].forEach(id => cvEl(id).value = '');
+      ['cv-filter-cat','cv-filter-sev','cv-filter-dec','cv-filter-tri'].forEach(id => cvEl(id) && (cvEl(id).value = ''));
       cvRenderFindings();
+    });
+
+    // Export / Import / Clear triagem
+    const nowFile = () => 'impactrakr-triagem-' + new Date().toISOString().slice(0,10) + '.json';
+    cvEl('cv-tri-export') && cvEl('cv-tri-export').addEventListener('click', () => {
+      const data = { exported_at: new Date().toISOString(), source: 'Pendencias & Conflitos · Impactrakr Blueprint', triagem: cvLoadTri() };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = nowFile(); a.click();
+      URL.revokeObjectURL(url);
+    });
+    const impIn = cvEl('cv-tri-import-input');
+    cvEl('cv-tri-import') && cvEl('cv-tri-import').addEventListener('click', () => impIn && impIn.click());
+    impIn && impIn.addEventListener('change', e => {
+      const f = e.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        try {
+          const d = JSON.parse(ev.target.result);
+          if (d.triagem && typeof d.triagem === 'object') {
+            if (confirm('Importar triagem com ' + Object.keys(d.triagem).length + ' achados marcados? Sobrescreve o estado atual.')) {
+              cvSaveTri(d.triagem); cvRenderTriBar(); cvRenderFindings(); alert('Importado.');
+            }
+          } else { alert('Arquivo inválido.'); }
+        } catch(err) { alert('Erro: ' + err.message); }
+      };
+      r.readAsText(f);
+    });
+    cvEl('cv-tri-clear') && cvEl('cv-tri-clear').addEventListener('click', () => {
+      const t = cvLoadTri();
+      if (Object.keys(t).length === 0) { alert('Triagem já está vazia.'); return; }
+      if (confirm('Apagar toda a triagem? ' + Object.keys(t).length + ' marcações serão removidas. Não afeta o JSON oficial.')) {
+        localStorage.removeItem(CV_TRI_KEY); cvRenderTriBar(); cvRenderFindings();
+      }
     });
   }
 
@@ -3449,8 +3518,46 @@ document.addEventListener('keydown', (e) => {
     return true;
   }
 
+  // ====== Triagem 👍/👎 (localStorage) ======
+  const CV_TRI_KEY = 'impactrakr_cv_triagem_v1';
+  function cvLoadTri() { try { return JSON.parse(localStorage.getItem(CV_TRI_KEY) || '{}'); } catch(e) { return {}; } }
+  function cvSaveTri(t) { localStorage.setItem(CV_TRI_KEY, JSON.stringify(t)); }
+  function cvGetTri(id) { return cvLoadTri()[id] || null; }
+  function cvSetTri(id, value) {
+    const t = cvLoadTri();
+    if (value === null || value === undefined || t[id] === value) {
+      delete t[id]; // toggle off
+    } else {
+      t[id] = { value, ts: new Date().toISOString().slice(0,19).replace('T',' ') + ' UTC' };
+    }
+    cvSaveTri(t);
+    cvRenderTriBar();
+    cvRenderFindings();
+  }
+  function cvRenderTriBar() {
+    if (!CV_DATA) return;
+    const t = cvLoadTri();
+    const total = CV_DATA.findings.length;
+    const up = Object.values(t).filter(v => v.value === 'up').length;
+    const down = Object.values(t).filter(v => v.value === 'down').length;
+    const none = total - up - down;
+    cvEl('cv-tri-up') && (cvEl('cv-tri-up').textContent = up);
+    cvEl('cv-tri-down') && (cvEl('cv-tri-down').textContent = down);
+    cvEl('cv-tri-none') && (cvEl('cv-tri-none').textContent = none);
+    cvEl('cv-tri-up-pct') && (cvEl('cv-tri-up-pct').textContent = '(' + Math.round(up/total*100) + '%)');
+    cvEl('cv-tri-down-pct') && (cvEl('cv-tri-down-pct').textContent = '(' + Math.round(down/total*100) + '%)');
+    cvEl('cv-tri-progress-up') && (cvEl('cv-tri-progress-up').style.width = (up/total*100) + '%');
+    cvEl('cv-tri-progress-down') && (cvEl('cv-tri-progress-down').style.width = (down/total*100) + '%');
+  }
+
   function cvRenderFindings() {
-    const filtered = CV_DATA.findings.filter(cvMatch);
+    const tri = cvLoadTri();
+    let filtered = CV_DATA.findings.filter(cvMatch);
+    // filtro de triagem
+    if (CV_F.tri === 'up') filtered = filtered.filter(f => tri[f.id]?.value === 'up');
+    else if (CV_F.tri === 'down') filtered = filtered.filter(f => tri[f.id]?.value === 'down');
+    else if (CV_F.tri === 'none') filtered = filtered.filter(f => !tri[f.id]);
+
     // ordena por severidade (HIGH > MED > LOW), depois por categoria
     const sevOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
     const catOrder = { contradiction: 0, gap: 1, reverse_gap: 2, redundancy: 3 };
@@ -3460,8 +3567,10 @@ document.addEventListener('keydown', (e) => {
       container.innerHTML = '<div class="vr-empty">Nenhum achado corresponde aos filtros.</div>';
       return;
     }
-    container.innerHTML = filtered.map(f =>
-      '<article class="cv-card cv-cat-' + f.category + '">' +
+    container.innerHTML = filtered.map(f => {
+      const t = tri[f.id]?.value;
+      const cardClass = t === 'up' ? ' triaged-up' : (t === 'down' ? ' triaged-down' : '');
+      return '<article class="cv-card cv-cat-' + f.category + cardClass + '">' +
         '<div class="cv-card-head">' +
           '<span class="cv-card-id">' + f.id + '</span>' +
           '<span class="cv-card-title">' + cvEsc(f.title) + '</span>' +
@@ -3470,6 +3579,10 @@ document.addEventListener('keydown', (e) => {
             '<span class="cv-b cv-sev-' + f.severity + '">' + f.severity + '</span>' +
             (f.decision_by ? '<span class="cv-b" style="background:var(--bg-elevated, var(--bg-default));color:var(--text-secondary);">' + cvEsc(f.decision_by) + '</span>' : '') +
           '</div>' +
+          '<div class="cv-triagem">' +
+            '<button class="cv-tri-btn up' + (t === 'up' ? ' active' : '') + '" data-cv-tri="up" data-cv-id="' + f.id + '" title="Concordo / aceito como está">👍</button>' +
+            '<button class="cv-tri-btn down' + (t === 'down' ? ' active' : '') + '" data-cv-tri="down" data-cv-id="' + f.id + '" title="Discordo / precisa revisar">👎</button>' +
+          '</div>' +
         '</div>' +
         '<div class="cv-card-body">' +
           (f.rules_involved && f.rules_involved.length ? '<div class="cv-card-block"><div class="cv-bl">Regras envolvidas</div><p>' + f.rules_involved.map(r => '<span class="cv-rule-ref">' + cvEsc(r) + '</span>').join('') + '</p></div>' : '') +
@@ -3477,8 +3590,15 @@ document.addEventListener('keydown', (e) => {
           (f.evidence ? '<div class="cv-card-block evidence"><div class="cv-bl">Evidência</div><p>' + cvEsc(f.evidence) + '</p></div>' : '') +
           (f.resolution ? '<div class="cv-card-block"><div class="cv-bl">Resolução proposta</div><p>' + cvEsc(f.resolution) + '</p></div>' : '') +
         '</div>' +
-      '</article>'
-    ).join('');
+      '</article>';
+    }).join('');
+    // Bind clicks dos botões 👍/👎
+    container.querySelectorAll('.cv-tri-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        cvSetTri(btn.dataset.cvId, btn.dataset.cvTri);
+      });
+    });
   }
 
   function cvRenderRecommendations() {
