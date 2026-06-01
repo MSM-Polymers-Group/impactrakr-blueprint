@@ -3525,7 +3525,7 @@ document.addEventListener('keydown', (e) => {
   function cvGetTri(id) { return cvLoadTri()[id] || null; }
   function cvSetTri(id, value) {
     const t = cvLoadTri();
-    if (value === null || value === undefined || t[id] === value) {
+    if (value === null || value === undefined || t[id]?.value === value) {
       delete t[id]; // toggle off
     } else {
       t[id] = { value, ts: new Date().toISOString().slice(0,19).replace('T',' ') + ' UTC' };
