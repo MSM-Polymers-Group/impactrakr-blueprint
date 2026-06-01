@@ -1256,6 +1256,17 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
 .aw-queue-item-status { font-family: var(--font-mono, ui-monospace, monospace); font-size: 10.5px; padding: 2px 8px; border-radius: 999px; }
 .aw-queue-item-status.pending { background: rgba(245,158,11,0.18); color: #f59e0b; }
 .aw-queue-item-status.approved { background: rgba(16,185,129,0.18); color: #10b981; }
+.aw-pillar-header { display: flex; align-items: center; gap: 10px; margin: 16px 0 6px; padding: 8px 12px; border-radius: 6px; border-left: 4px solid; background: var(--bg-elevated, var(--bg-default)); font-family: var(--font-mono, ui-monospace, monospace); font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.aw-pillar-header:first-child { margin-top: 0; }
+.aw-pillar-header.pillar-PURE { border-left-color: #3b82f6; color: #3b82f6; }
+.aw-pillar-header.pillar-PURE_GAP { border-left-color: #f59e0b; color: #f59e0b; }
+.aw-pillar-header.pillar-EU { border-left-color: #a78bfa; color: #a78bfa; }
+.aw-pillar-header.pillar-RECYCLASS { border-left-color: #14b8a6; color: #14b8a6; }
+.aw-pillar-header .aw-ph-name { flex: 1; }
+.aw-pillar-header .aw-ph-progress { font-size: 10.5px; color: var(--text-tertiary); font-weight: 600; }
+.aw-pillar-header .aw-ph-bar { width: 100px; height: 5px; background: var(--bg-card); border-radius: 999px; overflow: hidden; }
+.aw-pillar-header .aw-ph-bar > div { height: 100%; background: #10b981; transition: width 0.3s; }
+.aw-sev-divider { padding: 6px 14px 4px; font-size: 10.5px; color: var(--text-tertiary); font-family: var(--font-mono, ui-monospace, monospace); text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* ============ VR · PANORAMA EXECUTIVO ============ */
 .vr-pano { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 10px; padding: 20px 24px; margin: 16px 0 24px; }
@@ -2960,9 +2971,9 @@ flowchart LR
     <select id="aw-q-severity"><option value="">todas severities</option></select>
     <select id="aw-q-status"><option value="">todas</option><option value="pending">pendentes</option><option value="approved">aprovadas</option></select>
     <select id="aw-q-priority">
-      <option value="default">prioridade: HIGH→LOW</option>
+      <option value="default">ordem: pilar → severidade → id (RC, PURE, EU agrupados)</option>
+      <option value="severity">prioridade: BLOCK primeiro (mistura pilares)</option>
       <option value="conflict">primeiro: regras com conflito aberto</option>
-      <option value="pillar">primeiro: PURE → PG → EU → RC</option>
     </select>
     <button class="aw-export" id="aw-export-btn" title="Baixa um JSON com todas as aprovações + assinaturas">📥 Exportar aprovações</button>
     <button class="aw-export" id="aw-import-btn" style="background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border-default);" title="Restaura aprovações de um JSON exportado">📤 Importar</button>
@@ -4096,24 +4107,37 @@ document.addEventListener('keydown', (e) => {
     if (QUEUE_FILTERS.status === 'approved') items = items.filter(r => approvals[r.id]);
 
     // Sort
-    if (QUEUE_FILTERS.priority === 'pillar') {
-      items.sort((a,b) => (pillarOrder[a.pillar] ?? 9) - (pillarOrder[b.pillar] ?? 9) || a.id.localeCompare(b.id));
-    } else if (QUEUE_FILTERS.priority === 'conflict') {
-      // priorizar regras envolvidas em findings (precisa ler convergence.json — usa cache global)
-      const ruleConflicts = window.AW_RULE_CONFLICTS || {};
-      items.sort((a,b) => (ruleConflicts[b.id] || 0) - (ruleConflicts[a.id] || 0) || a.id.localeCompare(b.id));
-    } else {
-      // default: HIGH(BLOCK) → MEDIUM → LOW(FLAG), depois pillar, depois id
+    if (QUEUE_FILTERS.priority === 'severity') {
+      // BLOCK primeiro misturando pilares
       items.sort((a,b) => {
         const sa = a.severity === 'BLOCK' ? 0 : 1;
         const sb = b.severity === 'BLOCK' ? 0 : 1;
         return sa - sb || (pillarOrder[a.pillar] ?? 9) - (pillarOrder[b.pillar] ?? 9) || a.id.localeCompare(b.id);
       });
+    } else if (QUEUE_FILTERS.priority === 'conflict') {
+      // priorizar regras envolvidas em findings (precisa ler convergence.json — usa cache global)
+      const ruleConflicts = window.AW_RULE_CONFLICTS || {};
+      items.sort((a,b) => (ruleConflicts[b.id] || 0) - (ruleConflicts[a.id] || 0) || a.id.localeCompare(b.id));
+    } else {
+      // default NOVO: pilar → severidade (BLOCK antes de FLAG dentro do pilar) → id
+      // Resultado: PURE (BLOCK+FLAG juntos), PURE_GAP (BLOCK+FLAG juntos), EU, RC — cada pilar inteiro
+      items.sort((a,b) => {
+        const sa = a.severity === 'BLOCK' ? 0 : 1;
+        const sb = b.severity === 'BLOCK' ? 0 : 1;
+        return (pillarOrder[a.pillar] ?? 9) - (pillarOrder[b.pillar] ?? 9) || sa - sb || a.id.localeCompare(b.id);
+      });
     }
 
     if (items.length === 0) { list.innerHTML = '<div class="vr-empty">Nenhuma regra corresponde aos filtros.</div>'; return; }
 
-    list.innerHTML = items.map(r => {
+    const PILLAR_LABEL = {
+      'PURE': 'PURE · core methodology',
+      'PURE_GAP': 'PURE Gaps · a implementar',
+      'EU': 'EU Adapter · compliance regional',
+      'RECYCLASS': 'RecyClass · certificação opcional'
+    };
+
+    const renderItem = (r) => {
       const ap = approvals[r.id];
       return '<div class="aw-queue-item ' + (ap ? 'approved' : '') + '" data-aw-open="' + r.id + '">' +
         '<span class="aw-queue-item-id" style="color:' + pillarColor(r.pillar) + ';">' + r.id + '</span>' +
@@ -4122,7 +4146,44 @@ document.addEventListener('keydown', (e) => {
         '<span class="aw-queue-item-title">' + awEsc(r.title) + '</span>' +
         '<span class="aw-queue-item-status ' + (ap ? 'approved' : 'pending') + '">' + (ap ? '✓ aprovada ' + awEsc(ap.approved_at.slice(0,10)) : 'pendente') + '</span>' +
       '</div>';
-    }).join('');
+    };
+
+    // Quando o sort é default (pilar-first), agrupa visualmente por pilar + divider BLOCK/FLAG dentro do pilar
+    if (QUEUE_FILTERS.priority === 'default' || !QUEUE_FILTERS.priority) {
+      let html = '';
+      let lastPillar = null;
+      let lastSeverityInPillar = null;
+      let currentPillarItems = [];
+      const flush = () => {
+        if (!lastPillar || currentPillarItems.length === 0) return;
+        const apCount = currentPillarItems.filter(r => approvals[r.id]).length;
+        const total = currentPillarItems.length;
+        const pct = Math.round(apCount / total * 100);
+        html += '<div class="aw-pillar-header pillar-' + lastPillar + '">' +
+          '<span class="aw-ph-name">' + (PILLAR_LABEL[lastPillar] || lastPillar) + ' · ' + total + ' regras</span>' +
+          '<span class="aw-ph-progress">' + apCount + ' / ' + total + ' aprovadas (' + pct + '%)</span>' +
+          '<span class="aw-ph-bar"><div style="width:' + pct + '%;"></div></span>' +
+        '</div>';
+        let lastSev = null;
+        currentPillarItems.forEach(r => {
+          if (r.severity !== lastSev) {
+            const sevCount = currentPillarItems.filter(x => x.severity === r.severity).length;
+            html += '<div class="aw-sev-divider">— ' + r.severity + ' (' + sevCount + ') —</div>';
+            lastSev = r.severity;
+          }
+          html += renderItem(r);
+        });
+      };
+      items.forEach(r => {
+        if (r.pillar !== lastPillar) { flush(); lastPillar = r.pillar; currentPillarItems = []; }
+        currentPillarItems.push(r);
+      });
+      flush();
+      list.innerHTML = html;
+    } else {
+      // Sort por severidade ou conflict: lista linear sem headers
+      list.innerHTML = items.map(renderItem).join('');
+    }
   }
 
   function pillarColor(p) {
