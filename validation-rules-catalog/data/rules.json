@@ -2105,7 +2105,6 @@
         ]
       },
       "edge_cases": [
-        "Auditor_validation pode vir de Bureau Veritas (BV-19) ou auditor externo aprovado.",
         "Protocol_reference é normalmente apontador a padrão internacional (ASTM/ISO) — texto descritivo serve em casos sem padrão.",
         "Mesmo doc pode servir múltiplos MassIDs da mesma batch — link 1:N permitido.",
         "Documento expirado é tratado por regra Tipo A separada (não aqui)."
@@ -12881,7 +12880,7 @@
           "EU"
         ]
       },
-      "purpose": "Bate o valor de massa declarado entre os documentos legais (WTN, Annex VII, dMRV measurement, recycler_receipt). Drift > tolerância é red flag clássico para fraude documental ou weighbridge mal calibrada. Sem este cross-check, o pipeline aceita inconsistências que reprovariam em auditoria BV. Threshold default: 2% drift (a ser confirmado por Camila/BV).",
+      "purpose": "Bate o valor de massa declarado entre os documentos legais (WTN, Annex VII, dMRV measurement, recycler_receipt). Drift > tolerância é red flag clássico para fraude documental ou weighbridge mal calibrada. Sem este cross-check, o pipeline aceita inconsistências que reprovariam em auditoria BV. Threshold default: 2% drift (a ser confirmado por Compliance).",
       "logic_human": "BLOCK se max diferença entre [WTN.quantityKg, Annex VII.quantityKg, dMRV.measuredKg, recycler_receipt.receivedKg] > 2% do menor valor. PASS se dentro da tolerância.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-17'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  const docs = await ctx.db.document.findMany({ where: {\n    massidId: massid.id, type: { in: ['waste_transfer_note', 'annex_vii', 'recycler_receipt', 'processor_receipt'] }\n  }});\n  const measurements = [massid.measuredKg, ...docs.map(d => d.payload?.quantityKg)].filter(v => v != null && v > 0);\n  if (measurements.length < 2) return ctx.skip({ reason: 'Not enough measurements to reconcile.' });\n  const min = Math.min(...measurements);\n  const max = Math.max(...measurements);\n  const tolerance = ctx.config.get('eu_mass_tolerance', 0.02); // 2%\n  const drift = (max - min) / min;\n  if (drift > tolerance) {\n    return ctx.fail({ ruleId: 'EU-17', severity: 'BLOCK',\n      message: `Mass inconsistency: ${measurements.join('kg, ')}kg — drift ${(drift*100).toFixed(2)}% > tolerance ${(tolerance*100)}%`,\n      field: 'measuredKg' });\n  }\n  return ctx.pass({ ruleId: 'EU-17' });\n}",
       "fields": {

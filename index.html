@@ -1179,6 +1179,84 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
 .vr-gate-HOMOLOGATION_APPROVAL { color: #f59e0b; border-color: rgba(245,158,11,0.35); }
 .vr-gate-REWARD_DISTRIBUTION { color: #10b981; border-color: rgba(16,185,129,0.35); }
 
+/* ============ APPROVAL WIZARD ============ */
+.aw-approved-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 600; font-family: var(--font-mono, ui-monospace, monospace); background: rgba(16,185,129,0.18); color: #10b981; border: 1px solid rgba(16,185,129,0.35); }
+.aw-approve-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--accent); color: white; border: 0; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 600; transition: filter 0.12s; }
+.aw-approve-btn:hover { filter: brightness(1.1); }
+.aw-approve-btn.approved { background: #10b981; }
+.aw-approve-btn.approved:hover { background: #ef4444; }
+.aw-approve-cta { margin-top: 14px; padding: 14px 16px; background: linear-gradient(180deg, rgba(20,184,166,0.08), transparent 70%); border: 1px solid var(--border-default); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.aw-approve-cta-text { font-size: 12.5px; color: var(--text-secondary); flex: 1; }
+.aw-approve-cta-text strong { color: var(--text-primary); }
+
+/* Modal */
+.aw-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; z-index: 200; padding: 20px; overflow-y: auto; }
+.aw-modal-backdrop.active { display: block; }
+.aw-modal { max-width: 1100px; margin: 20px auto; background: var(--bg-default); border: 1px solid var(--border-default); border-radius: 12px; padding: 28px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.aw-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border-default); flex-wrap: wrap; }
+.aw-modal-head h3 { margin: 0; font-size: 18px; font-weight: 700; }
+.aw-modal-head .aw-mh-meta { font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono, ui-monospace, monospace); margin-top: 2px; }
+.aw-modal-close { background: transparent; border: 1px solid var(--border-default); color: var(--text-tertiary); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.aw-modal-close:hover { color: var(--text-primary); }
+.aw-modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.aw-modal-body > .aw-full { grid-column: 1 / -1; }
+.aw-panel { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 8px; padding: 14px 16px; }
+.aw-panel h4 { margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-tertiary); font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.aw-panel p { margin: 0 0 8px; font-size: 13px; color: var(--text-primary); line-height: 1.55; }
+.aw-panel p:last-child { margin-bottom: 0; }
+.aw-panel .aw-quote { font-style: italic; padding: 8px 12px; border-left: 3px solid var(--accent); background: var(--bg-elevated, var(--bg-default)); margin: 6px 0; font-size: 12.5px; }
+.aw-panel pre { background: var(--bg-elevated, var(--bg-default)); border: 1px solid var(--border-default); padding: 12px; border-radius: 6px; font-family: var(--font-mono, ui-monospace, monospace); font-size: 11.5px; line-height: 1.5; overflow-x: auto; margin: 0; color: var(--text-primary); white-space: pre-wrap; }
+.aw-scenario { padding: 10px 12px; border-left: 3px solid; border-radius: 4px; background: var(--bg-elevated, var(--bg-default)); margin-bottom: 8px; font-size: 12.5px; }
+.aw-scenario.pos { border-color: #10b981; }
+.aw-scenario.neg { border-color: #ef4444; }
+.aw-scenario-name { font-weight: 600; margin-bottom: 4px; }
+.aw-scenario-row { font-size: 12px; color: var(--text-secondary); margin-bottom: 2px; }
+.aw-scenario-row strong { color: var(--text-primary); }
+
+/* Checklist */
+.aw-checklist { display: flex; flex-direction: column; gap: 10px; }
+.aw-check { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--bg-elevated, var(--bg-default)); border: 1px solid var(--border-default); border-radius: 6px; cursor: pointer; transition: border-color 0.15s; }
+.aw-check input[type="checkbox"] { margin-top: 2px; cursor: pointer; width: 16px; height: 16px; accent-color: var(--accent); }
+.aw-check.checked { border-color: #10b981; background: rgba(16,185,129,0.06); }
+.aw-check-text { flex: 1; font-size: 12.5px; color: var(--text-primary); line-height: 1.5; }
+.aw-check-text strong { color: var(--text-primary); }
+.aw-check-text .aw-hint { display: block; font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+/* Footer (approve final) */
+.aw-modal-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px solid var(--border-default); gap: 12px; flex-wrap: wrap; }
+.aw-modal-footer-info { font-size: 12px; color: var(--text-tertiary); flex: 1; }
+.aw-final-approve { background: #10b981; color: white; border: 0; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px; }
+.aw-final-approve:disabled { background: var(--border-default); color: var(--text-tertiary); cursor: not-allowed; }
+.aw-final-approve:hover:not(:disabled) { filter: brightness(1.1); }
+
+@media (max-width: 768px) { .aw-modal-body { grid-template-columns: 1fr; } .aw-modal { padding: 18px 16px; } }
+
+/* ============ FILA DE APROVAÇÃO (nova tab) ============ */
+.tab-btn.active.tab-aw { box-shadow: inset 0 -2px 0 #10b981; }
+.tab-btn.active.tab-aw .tab-count { background: rgba(16,185,129,0.18); color: #10b981; }
+.aw-queue-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 16px 0 22px; }
+.aw-queue-stat { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 8px; padding: 14px 16px; }
+.aw-queue-stat.green { border-color: #10b981; }
+.aw-queue-stat .aw-qs-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin-bottom: 6px; font-weight: 600; }
+.aw-queue-stat .aw-qs-value { font-size: 28px; font-weight: 700; line-height: 1; }
+.aw-queue-stat .aw-qs-sub { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono, ui-monospace, monospace); margin-top: 4px; }
+.aw-progress { height: 6px; background: var(--bg-card); border-radius: 999px; overflow: hidden; margin: 14px 0; }
+.aw-progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #14b8a6); transition: width 0.3s; }
+.aw-queue-toolbar { display: flex; gap: 8px; align-items: center; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.aw-queue-toolbar select { background: var(--bg-elevated, var(--bg-default)); border: 1px solid var(--border-default); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: 12px; font-family: var(--font-mono, ui-monospace, monospace); cursor: pointer; }
+.aw-queue-toolbar label { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.aw-export { margin-left: auto; background: var(--accent); color: white; border: 0; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.aw-export:hover { filter: brightness(1.1); }
+.aw-queue-list { display: flex; flex-direction: column; gap: 6px; }
+.aw-queue-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 6px; cursor: pointer; transition: background 0.12s; }
+.aw-queue-item:hover { background: var(--bg-card-hover, var(--bg-card)); border-color: var(--accent); }
+.aw-queue-item.approved { opacity: 0.5; }
+.aw-queue-item-id { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; font-weight: 700; min-width: 55px; }
+.aw-queue-item-title { flex: 1; font-size: 13px; color: var(--text-primary); }
+.aw-queue-item-status { font-family: var(--font-mono, ui-monospace, monospace); font-size: 10.5px; padding: 2px 8px; border-radius: 999px; }
+.aw-queue-item-status.pending { background: rgba(245,158,11,0.18); color: #f59e0b; }
+.aw-queue-item-status.approved { background: rgba(16,185,129,0.18); color: #10b981; }
+
 /* ============ VR · PANORAMA EXECUTIVO ============ */
 .vr-pano { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 10px; padding: 20px 24px; margin: 16px 0 24px; }
 .vr-pano-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-tertiary); margin: 0 0 6px; }
@@ -1266,7 +1344,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
         <span class="search-btn-label" lang="en">Search...</span>
         <kbd>⌘K</kbd>
       </button>
-      <span class="version-pill">v0.3.3 · 30 May 2026</span>
+      <span class="version-pill">v0.3.3 · 31 May 2026</span>
       <div class="lang-toggle" role="group" aria-label="Language">
         <button data-lang="pt" class="active" aria-label="Português">PT</button>
         <button data-lang="en" aria-label="English">EN</button>
@@ -1405,9 +1483,14 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
     <span class="tab-count" id="tab-count-catalog">127</span>
   </button>
   <button class="tab-btn tab-cnv" data-tab="convergence" role="tab" aria-selected="false">
-    <span class="tab-icon">🔍</span>
-    <span lang="pt">Análise de Convergência</span><span lang="en">Convergence Analysis</span>
-    <span class="tab-count" id="tab-count-convergence">42</span>
+    <span class="tab-icon">📋</span>
+    <span lang="pt">Pendências &amp; Conflitos</span><span lang="en">Pending &amp; Conflicts</span>
+    <span class="tab-count" id="tab-count-convergence">47</span>
+  </button>
+  <button class="tab-btn tab-aw" data-tab="approval" role="tab" aria-selected="false">
+    <span class="tab-icon">✍️</span>
+    <span lang="pt">Fila de Aprovação</span><span lang="en">Approval Queue</span>
+    <span class="tab-count" id="tab-count-approval">127</span>
   </button>
 </nav>
 
@@ -2811,12 +2894,12 @@ flowchart LR
 
 <section class="section" id="convergence">
   <div class="section-header">
-    <div class="eyebrow"><span class="eyebrow-dot"></span>CV · <span lang="pt">Auditoria metodológica</span><span lang="en">Methodology audit</span></div>
-    <h2><span lang="pt">Análise de Convergência das 127 regras</span><span lang="en">Convergence Analysis of 127 rules</span></h2>
+    <div class="eyebrow"><span class="eyebrow-dot"></span>PC · <span lang="pt">Auditoria metodológica</span><span lang="en">Methodology audit</span></div>
+    <h2><span lang="pt">Pendências &amp; Conflitos entre as 127 regras</span><span lang="en">Pending &amp; Conflicts across 127 rules</span></h2>
   </div>
   <p class="lede">
-    <span lang="pt">Análise cross-pillar identificando <strong>contradições</strong>, <strong>gaps entre pilares</strong>, <strong>redundâncias</strong> e <strong>gaps reversos</strong> (regras EU/Recyclass que a metodologia PURE não cobre). Cada achado tem evidência verbatim, severidade e resolução proposta. Atualizado em <span id="cv-generated-at">2026-05-29</span>.</span>
-    <span lang="en">Cross-pillar analysis identifying <strong>contradictions</strong>, <strong>inter-pillar gaps</strong>, <strong>redundancies</strong>, and <strong>reverse gaps</strong> (EU/Recyclass rules not covered by PURE methodology). Each finding has verbatim evidence, severity and proposed resolution. Last updated <span lang="en">2026-05-29</span>.</span>
+    <span lang="pt">Análise cross-pilar dos conflitos e gaps abertos entre PURE / PG / EU / RecyClass: <strong>contradições</strong> (mesma data, severidades opostas), <strong>gaps inter-pilar</strong> (regras que assumem campos que nenhuma outra escreve), <strong>redundâncias</strong> (mesma intenção em pilares diferentes) e <strong>gaps reversos</strong> (regras EU/RC que a PURE methodology não cobre). Cada achado tem evidência verbatim, severidade e resolução proposta. Atualizado em <span id="cv-generated-at">2026-05-29</span>.</span>
+    <span lang="en">Cross-pillar analysis of open conflicts and gaps between PURE / PG / EU / RecyClass: <strong>contradictions</strong>, <strong>inter-pillar gaps</strong>, <strong>redundancies</strong>, and <strong>reverse gaps</strong> (EU/RC rules not covered by PURE methodology). Each finding has verbatim evidence, severity, and proposed resolution. Last updated <span lang="en">2026-05-29</span>.</span>
   </p>
 
   <div class="cv-stats" id="cv-stats"></div>
@@ -2855,6 +2938,65 @@ flowchart LR
 
 </div><!-- /pane-convergence -->
 
+<!-- ============ TAB · FILA DE APROVAÇÃO ============ -->
+<div class="tab-pane" id="pane-approval" role="tabpanel">
+
+<section class="section" id="approval-queue">
+  <div class="section-header">
+    <div class="eyebrow"><span class="eyebrow-dot"></span>FA · <span lang="pt">Workflow de aprovação</span><span lang="en">Approval workflow</span></div>
+    <h2><span lang="pt">Fila de Aprovação das 127 regras</span><span lang="en">Approval Queue · 127 rules</span></h2>
+  </div>
+  <p class="lede">
+    <span lang="pt">Co-piloto guiado para você aprovar cada regra com contexto completo: citação verbatim da metodologia, diagrama do trigger, 2 cenários de MassID e checklist. Aprovações ficam salvas no navegador (localStorage). Quando quiser persistir no JSON oficial, clique <strong>"Exportar aprovações"</strong>.</span>
+    <span lang="en">Guided co-pilot to approve each rule with full context: verbatim methodology quote, trigger diagram, 2 MassID scenarios, and checklist. Approvals persist in browser (localStorage). When ready to persist to the official JSON, click <strong>"Export approvals"</strong>.</span>
+  </p>
+
+  <div class="aw-queue-stats" id="aw-queue-stats"></div>
+  <div class="aw-progress"><div class="aw-progress-fill" id="aw-progress-fill" style="width:0%;"></div></div>
+
+  <div class="aw-queue-toolbar">
+    <label>Filtrar:</label>
+    <select id="aw-q-pillar"><option value="">todos pilares</option></select>
+    <select id="aw-q-severity"><option value="">todas severities</option></select>
+    <select id="aw-q-status"><option value="">todas</option><option value="pending">pendentes</option><option value="approved">aprovadas</option></select>
+    <select id="aw-q-priority">
+      <option value="default">prioridade: HIGH→LOW</option>
+      <option value="conflict">primeiro: regras com conflito aberto</option>
+      <option value="pillar">primeiro: PURE → PG → EU → RC</option>
+    </select>
+    <button class="aw-export" id="aw-export-btn" title="Baixa um JSON com todas as aprovações + assinaturas">📥 Exportar aprovações</button>
+    <button class="aw-export" id="aw-import-btn" style="background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border-default);" title="Restaura aprovações de um JSON exportado">📤 Importar</button>
+    <button class="aw-export" id="aw-clear-btn" style="background:var(--bg-card);color:var(--text-tertiary);border:1px solid var(--border-default);" title="Apaga todas as aprovações locais (não afeta o JSON oficial)">🗑️ Limpar</button>
+  </div>
+
+  <div class="aw-queue-list" id="aw-queue-list">
+    <div class="vr-empty"><span lang="pt">Carregando fila…</span><span lang="en">Loading queue…</span></div>
+  </div>
+</section>
+
+</div><!-- /pane-approval -->
+
+<!-- ============ APPROVAL MODAL (overlay) ============ -->
+<div class="aw-modal-backdrop" id="aw-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="aw-modal-title">
+  <div class="aw-modal" id="aw-modal-content">
+    <div class="aw-modal-head">
+      <div>
+        <h3 id="aw-modal-title">—</h3>
+        <div class="aw-mh-meta" id="aw-modal-meta">—</div>
+      </div>
+      <button class="aw-modal-close" id="aw-modal-close">✕ fechar</button>
+    </div>
+    <div class="aw-modal-body" id="aw-modal-body"></div>
+    <div class="aw-modal-footer">
+      <div class="aw-modal-footer-info" id="aw-modal-footer-info">Marque todos os checks para liberar a aprovação.</div>
+      <button class="aw-final-approve" id="aw-final-approve" disabled>✍️ Aprovar como Rodrigo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden file input for import -->
+<input type="file" id="aw-import-input" accept=".json" style="display:none;">
+
 <!-- ============ FOOTER ============ -->
 <footer class="footer">
   <div class="footer-grid">
@@ -2864,7 +3006,7 @@ flowchart LR
       <p style="margin: 4px 0 0; font-size: 12.5px;" lang="en">Last update: <span id="footer-last-updated-en">May 28, 2026</span> · <span id="footer-relative-en">today</span>. Owner: Rodrigo Moraes (Finder Consultoria).</p>
     </div>
     <div style="font-size: 12.5px; text-align: right;">
-      <div class="mono" id="footer-version-pill">v0.3.3 · 2026-05-30</div>
+      <div class="mono" id="footer-version-pill">v0.3.3 · 2026-05-31</div>
       <div class="mono" style="color: var(--accent); margin-top:4px;" id="footer-days-to-golive">— days to go-live</div>
     </div>
   </div>
@@ -2956,7 +3098,7 @@ function initMermaid() {
 window.addEventListener('load', () => setTimeout(initMermaid, 100));
 
 // ============ DYNAMIC DATES (status sempre fresco) ============
-const LAST_UPDATE_ISO = '2026-05-30';
+const LAST_UPDATE_ISO = '2026-05-31';
 const GO_LIVE_ISO = '2026-07-30';
 const PROJECT_START_ISO = '2026-05-01';
 
@@ -3157,8 +3299,10 @@ document.addEventListener('keydown', (e) => {
     panes.forEach(p => p.classList.toggle('active', p.id === 'pane-' + name));
     if (sidebar) {
       sidebar.classList.toggle('tab-cat-active', name === 'catalog');
-      sidebar.classList.toggle('tab-cnv-active', name === 'convergence');
+      sidebar.classList.toggle('tab-cnv-active', name === 'convergence' || name === 'approval');
     }
+    // Re-render fila se entrar na aba approval
+    if (name === 'approval' && window.__awRenderQueue) window.__awRenderQueue();
     if (updateHash) {
       const newHash = name === 'blueprint' ? '' : '#tab=' + name;
       if (newHash !== window.location.hash) history.replaceState(null, '', newHash || window.location.pathname);
@@ -3179,10 +3323,11 @@ document.addEventListener('keydown', (e) => {
     const h = window.location.hash;
     if (h.startsWith('#tab=')) {
       const t = h.slice(5);
-      if (['blueprint','catalog','convergence'].includes(t)) return t;
+      if (['blueprint','catalog','convergence','approval'].includes(t)) return t;
     }
     if (h === '#rules-catalog') return 'catalog';
     if (h === '#convergence') return 'convergence';
+    if (h === '#approval-queue') return 'approval';
     return 'blueprint';
   }
   activate(parseHash(), false);
@@ -3680,8 +3825,408 @@ document.addEventListener('keydown', (e) => {
           (ref.quote ? '<div class="vr-quote">"' + vrEsc(ref.quote) + '"</div>' : '') + '</div>').join('') +
         (r.methodology_quote ? '<div class="vr-ref" style="margin-top:8px;"><span class="vr-src">METHODOLOGY QUOTE</span><div class="vr-quote">"' + vrEsc(r.methodology_quote) + '"</div></div>' : '') +
       '</div>' +
+      vrApprovalCTA(r) +
     '</div>';
   }
+
+  function vrApprovalCTA(r) {
+    const approved = window.AW && window.AW.isApproved && window.AW.isApproved(r.id);
+    const ap = approved ? window.AW.getApproval(r.id) : null;
+    return '<div class="aw-approve-cta">' +
+      '<div class="aw-approve-cta-text">' +
+        (approved
+          ? '✅ <strong>Aprovada por ' + vrEsc(ap.approved_by) + '</strong> em ' + vrEsc(ap.approved_at) + '. Reabra para revisar ou desfazer.'
+          : 'Pronto para aprovar? Co-piloto guiado abre com: citação verbatim da metodologia, diagrama do trigger, 2 cenários de MassID e checklist.') +
+      '</div>' +
+      '<button class="aw-approve-btn ' + (approved ? 'approved' : '') + '" data-aw-open="' + r.id + '">' +
+        (approved ? '🔁 Revisar aprovação' : '✍️ Revisar e aprovar') +
+      '</button>' +
+    '</div>';
+  }
+
+  // Click handler global pra qualquer botão data-aw-open
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-aw-open]');
+    if (btn && window.AW) window.AW.openModal(btn.dataset.awOpen);
+  });
+})();
+
+/* ============ APPROVAL WIZARD MODULE (window.AW) ============ */
+(function() {
+  const STORAGE_KEY = 'impactrakr_rule_approvals_v1';
+  const APPROVER = 'Rodrigo';
+
+  function loadApprovals() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { return {}; } }
+  function saveApprovals(a) { localStorage.setItem(STORAGE_KEY, JSON.stringify(a)); }
+  function nowIso() { return new Date().toISOString().slice(0,19).replace('T',' ') + ' UTC'; }
+  function awEsc(s) { return s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  let RULES = null;
+  let CURRENT_RULE_ID = null;
+
+  function loadRulesIfNeeded(cb) {
+    if (RULES) return cb();
+    fetch('validation-rules-catalog/data/rules.json').then(r => r.json()).then(d => { RULES = d.rules; cb(); });
+  }
+
+  function isApproved(ruleId) { return !!loadApprovals()[ruleId]; }
+  function getApproval(ruleId) { return loadApprovals()[ruleId]; }
+  function setApproval(ruleId, data) {
+    const a = loadApprovals();
+    a[ruleId] = data;
+    saveApprovals(a);
+    refreshQueue();
+    refreshCardCTA(ruleId);
+  }
+  function removeApproval(ruleId) {
+    const a = loadApprovals();
+    delete a[ruleId];
+    saveApprovals(a);
+    refreshQueue();
+    refreshCardCTA(ruleId);
+  }
+
+  function refreshCardCTA(ruleId) {
+    const card = document.querySelector('.vr-rule[data-id="' + ruleId + '"]');
+    if (card && card.classList.contains('open')) {
+      // re-render do detalhe
+      const event = new CustomEvent('aw:rerender-card', { detail: { ruleId } });
+      window.dispatchEvent(event);
+      // como o renderer é fechado, faz hack: re-clica pra forçar re-render
+      const detail = card.querySelector('.vr-detail');
+      // pega o renderer do escopo do vr — não dá acesso fácil; ao invés disso, força reload visual minimal
+      const ap = getApproval(ruleId);
+      const cta = card.querySelector('.aw-approve-cta');
+      if (cta) {
+        if (ap) {
+          cta.querySelector('.aw-approve-cta-text').innerHTML = '✅ <strong>Aprovada por ' + awEsc(ap.approved_by) + '</strong> em ' + awEsc(ap.approved_at) + '. Reabra para revisar ou desfazer.';
+          cta.querySelector('.aw-approve-btn').className = 'aw-approve-btn approved';
+          cta.querySelector('.aw-approve-btn').textContent = '🔁 Revisar aprovação';
+        } else {
+          cta.querySelector('.aw-approve-cta-text').textContent = 'Pronto para aprovar? Co-piloto guiado abre com: citação verbatim da metodologia, diagrama do trigger, 2 cenários de MassID e checklist.';
+          cta.querySelector('.aw-approve-btn').className = 'aw-approve-btn';
+          cta.querySelector('.aw-approve-btn').textContent = '✍️ Revisar e aprovar';
+        }
+      }
+    }
+  }
+
+  function openModal(ruleId) {
+    loadRulesIfNeeded(() => {
+      const r = RULES.find(x => x.id === ruleId);
+      if (!r) return;
+      CURRENT_RULE_ID = ruleId;
+      renderModal(r);
+      document.getElementById('aw-modal-backdrop').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+  }
+  function closeModal() {
+    document.getElementById('aw-modal-backdrop').classList.remove('active');
+    document.body.style.overflow = '';
+    CURRENT_RULE_ID = null;
+  }
+
+  function renderModal(r) {
+    document.getElementById('aw-modal-title').textContent = r.id + ' — ' + r.title;
+    document.getElementById('aw-modal-meta').textContent =
+      r.pillar + ' · ' + r.severity + ' · gates: ' + (r.gates_what || '—') + ' · cluster: ' + r.cluster;
+
+    const ap = getApproval(r.id);
+    const body = document.getElementById('aw-modal-body');
+
+    const trigCond = (r.trigger && r.trigger.conditions && r.trigger.conditions.length) ? r.trigger.conditions[0] : null;
+
+    const mermaidDiagram =
+      'graph LR\n' +
+      '  E([evento: ' + r.trigger.event + ']) --> ' + (trigCond ? 'C{aplicável?<br/>' + awEsc(trigCond).replace(/"/g, "'") + '}' : 'L[avaliar regra]') + '\n' +
+      (trigCond ? '  C -->|sim| L[avaliar regra]\n  C -->|não| SK([SKIP])\n' : '') +
+      '  L -->|PASS| OK([continua pipeline])\n' +
+      '  L -->|FAIL| FAIL([' + r.severity + '<br/>bloqueia: ' + (r.gates_what || '—').replace(/_/g,' ') + '])\n' +
+      '  style FAIL fill:' + (r.severity === 'BLOCK' ? '#ef444433' : '#f59e0b33') + ',stroke:' + (r.severity === 'BLOCK' ? '#ef4444' : '#f59e0b') + ',color:#fff\n' +
+      '  style OK fill:#10b98133,stroke:#10b981,color:#fff\n' +
+      (trigCond ? '  style SK fill:#6b728033,stroke:#6b7280,color:#fff\n' : '');
+
+    body.innerHTML =
+      // Topo: propósito + citação metodologia side-by-side
+      '<div class="aw-panel"><h4>📖 Propósito (o que a Impactrakr protege)</h4><p>' + awEsc(r.purpose) + '</p></div>' +
+      '<div class="aw-panel"><h4>📜 Citação verbatim da fonte normativa</h4>' +
+        (r.methodology_quote ? '<div class="aw-quote">"' + awEsc(r.methodology_quote) + '"</div>' : '<p style="color:var(--text-tertiary);">— sem citação verbatim —</p>') +
+        '<div style="margin-top:8px;font-size:11.5px;color:var(--text-tertiary);">' +
+          r.references.map(ref => '<div>📎 <strong>' + awEsc(ref.source) + '</strong> · ' + awEsc(ref.section) + '</div>').join('') +
+        '</div>' +
+      '</div>' +
+
+      // Diagrama do trigger
+      '<div class="aw-panel aw-full"><h4>🔀 Fluxo do trigger</h4>' +
+        '<pre class="mermaid">' + mermaidDiagram + '</pre>' +
+        '<div style="margin-top:8px;font-size:11.5px;color:var(--text-tertiary);">event=<code>' + r.trigger.event + '</code> · phase=<code>' + r.trigger.phase + '</code> · applies_to=<code>' + r.applies_to.participant_types.join(',') + '</code> · regions=<code>' + r.applies_to.regions.join(',') + '</code></div>' +
+      '</div>' +
+
+      // 2 cenários
+      '<div class="aw-panel aw-full"><h4>🧪 Cenários de MassID</h4>' +
+        '<div class="aw-scenario pos">' +
+          '<div class="aw-scenario-name">✓ Cenário POSITIVO — ' + awEsc(r.test_cases.positive.name) + '</div>' +
+          '<div class="aw-scenario-row"><strong>Dado:</strong> ' + awEsc(r.test_cases.positive.given) + '</div>' +
+          '<div class="aw-scenario-row"><strong>Esperado:</strong> ' + awEsc(r.test_cases.positive.expected) + '</div>' +
+        '</div>' +
+        (r.test_cases.negative.slice(0,2).map(n => '<div class="aw-scenario neg">' +
+          '<div class="aw-scenario-name">✗ Cenário NEGATIVO — ' + awEsc(n.name) + '</div>' +
+          '<div class="aw-scenario-row"><strong>Dado:</strong> ' + awEsc(n.given) + '</div>' +
+          '<div class="aw-scenario-row"><strong>Esperado:</strong> ' + awEsc(n.expected) + '</div>' +
+        '</div>').join('')) +
+      '</div>' +
+
+      // Checklist guiado
+      '<div class="aw-panel aw-full"><h4>✅ Checklist de aprovação (marque todos para liberar)</h4>' +
+        '<div class="aw-checklist">' +
+          renderCheck('trigger', 'Entendi o trigger e quando a regra dispara', 'event <code>' + r.trigger.event + '</code> + ' + (trigCond ? 'condição <code>' + awEsc(trigCond) + '</code>' : 'sem condição (always-on)')) +
+          renderCheck('severity', 'Severidade <strong>' + r.severity + '</strong> faz sentido para o impacto', r.severity === 'BLOCK' ? 'BLOCK trava ' + (r.gates_what || '—').replace(/_/g,' ') : 'FLAG vai para review manual sem travar') +
+          renderCheck('gates', 'gates_what (<code>' + (r.gates_what || '—') + '</code>) reflete o que realmente é bloqueado', 'evita susto de "BLOCK genérico" — clarifica escopo') +
+          renderCheck('fields', 'Schema fields lidos/escritos são realistas para o modelo', awEsc((r.fields.reads || []).slice(0,3).join(', ')) + (r.fields.reads.length > 3 ? '…' : '')) +
+          renderCheck('evidence', 'Evidência documental cobre o que o auditor pediria', (r.evidence.length ? r.evidence.map(e => '<code>' + e.doc_type + '</code>').join(' ') : 'sem evidência obrigatória — regra de lógica pura')) +
+          renderCheck('msg', 'Mensagem PT/EN ao usuário é clara e acionável', '"' + awEsc((r.messages.block_pt || r.messages.flag_pt || '').slice(0, 100)) + '…"') +
+        '</div>' +
+      '</div>';
+
+    // Render mermaid no modal
+    if (window.mermaid && window.mermaid.run) {
+      setTimeout(() => {
+        try { window.mermaid.run({ querySelector: '.aw-panel pre.mermaid' }); } catch(e) {}
+      }, 50);
+    }
+
+    // Footer dinâmico
+    const footerInfo = document.getElementById('aw-modal-footer-info');
+    const approveBtn = document.getElementById('aw-final-approve');
+    if (ap) {
+      footerInfo.innerHTML = '✅ <strong style="color:#10b981;">Já aprovada</strong> por <strong>' + awEsc(ap.approved_by) + '</strong> em ' + awEsc(ap.approved_at) + '.';
+      approveBtn.textContent = '🗑️ Desfazer aprovação';
+      approveBtn.disabled = false;
+      approveBtn.style.background = '#ef4444';
+      approveBtn.onclick = () => {
+        if (confirm('Desfazer aprovação de ' + r.id + '?')) { removeApproval(r.id); closeModal(); }
+      };
+    } else {
+      footerInfo.textContent = 'Marque todos os 6 checks para liberar a aprovação.';
+      approveBtn.textContent = '✍️ Aprovar como ' + APPROVER;
+      approveBtn.disabled = true;
+      approveBtn.style.background = '';
+      approveBtn.onclick = () => {
+        setApproval(r.id, {
+          approved_by: APPROVER,
+          approved_at: nowIso(),
+          rule_id: r.id,
+          rule_title: r.title,
+          rule_version: r.version,
+          checklist: Array.from(document.querySelectorAll('.aw-check input:checked')).map(c => c.dataset.checkId)
+        });
+        closeModal();
+      };
+    }
+
+    // Liga checkboxes
+    document.querySelectorAll('.aw-check input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        cb.closest('.aw-check').classList.toggle('checked', cb.checked);
+        const all = document.querySelectorAll('.aw-check input[type="checkbox"]');
+        const done = document.querySelectorAll('.aw-check input[type="checkbox"]:checked');
+        if (!ap) {
+          approveBtn.disabled = (done.length !== all.length);
+        }
+      });
+    });
+  }
+
+  function renderCheck(id, text, hint) {
+    return '<label class="aw-check" data-check="' + id + '">' +
+      '<input type="checkbox" data-check-id="' + id + '">' +
+      '<span class="aw-check-text"><strong>' + text + '</strong><span class="aw-hint">' + hint + '</span></span>' +
+    '</label>';
+  }
+
+  // ============ Fila de Aprovação ============
+  let QUEUE_FILTERS = { pillar: '', severity: '', status: '', priority: 'default' };
+
+  function refreshQueue() {
+    const stats = computeQueueStats();
+    updateQueueStats(stats);
+    renderQueueList();
+    // Atualiza o badge da tab
+    const badge = document.getElementById('tab-count-approval');
+    if (badge && RULES) badge.textContent = (RULES.length - stats.approved);
+  }
+
+  function computeQueueStats() {
+    if (!RULES) return { total: 0, approved: 0, pending: 0, pct: 0 };
+    const approvals = loadApprovals();
+    const total = RULES.length;
+    const approved = Object.keys(approvals).length;
+    const pending = total - approved;
+    return { total, approved, pending, pct: total ? Math.round(approved / total * 100) : 0 };
+  }
+
+  function updateQueueStats(s) {
+    const el = document.getElementById('aw-queue-stats');
+    if (!el) return;
+    el.innerHTML =
+      '<div class="aw-queue-stat green"><div class="aw-qs-label">Aprovadas</div><div class="aw-qs-value" style="color:#10b981;">' + s.approved + '</div><div class="aw-qs-sub">de ' + s.total + ' (' + s.pct + '%)</div></div>' +
+      '<div class="aw-queue-stat"><div class="aw-qs-label">Pendentes</div><div class="aw-qs-value" style="color:#f59e0b;">' + s.pending + '</div><div class="aw-qs-sub">aguardando revisão</div></div>' +
+      '<div class="aw-queue-stat"><div class="aw-qs-label">Approver ativo</div><div class="aw-qs-value" style="font-size:18px;">' + APPROVER + '</div><div class="aw-qs-sub">solo approver</div></div>' +
+      '<div class="aw-queue-stat"><div class="aw-qs-label">Persistência</div><div class="aw-qs-value" style="font-size:18px;">localStorage</div><div class="aw-qs-sub">exporte para versionar</div></div>';
+    const fill = document.getElementById('aw-progress-fill');
+    if (fill) fill.style.width = s.pct + '%';
+  }
+
+  function renderQueueList() {
+    if (!RULES) return;
+    const list = document.getElementById('aw-queue-list');
+    if (!list) return;
+
+    const approvals = loadApprovals();
+    const sevOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+    const pillarOrder = { PURE: 0, PURE_GAP: 1, EU: 2, RECYCLASS: 3 };
+
+    let items = RULES.slice();
+
+    // Filtros
+    if (QUEUE_FILTERS.pillar) items = items.filter(r => r.pillar === QUEUE_FILTERS.pillar);
+    if (QUEUE_FILTERS.severity) items = items.filter(r => r.severity === QUEUE_FILTERS.severity);
+    if (QUEUE_FILTERS.status === 'pending') items = items.filter(r => !approvals[r.id]);
+    if (QUEUE_FILTERS.status === 'approved') items = items.filter(r => approvals[r.id]);
+
+    // Sort
+    if (QUEUE_FILTERS.priority === 'pillar') {
+      items.sort((a,b) => (pillarOrder[a.pillar] ?? 9) - (pillarOrder[b.pillar] ?? 9) || a.id.localeCompare(b.id));
+    } else if (QUEUE_FILTERS.priority === 'conflict') {
+      // priorizar regras envolvidas em findings (precisa ler convergence.json — usa cache global)
+      const ruleConflicts = window.AW_RULE_CONFLICTS || {};
+      items.sort((a,b) => (ruleConflicts[b.id] || 0) - (ruleConflicts[a.id] || 0) || a.id.localeCompare(b.id));
+    } else {
+      // default: HIGH(BLOCK) → MEDIUM → LOW(FLAG), depois pillar, depois id
+      items.sort((a,b) => {
+        const sa = a.severity === 'BLOCK' ? 0 : 1;
+        const sb = b.severity === 'BLOCK' ? 0 : 1;
+        return sa - sb || (pillarOrder[a.pillar] ?? 9) - (pillarOrder[b.pillar] ?? 9) || a.id.localeCompare(b.id);
+      });
+    }
+
+    if (items.length === 0) { list.innerHTML = '<div class="vr-empty">Nenhuma regra corresponde aos filtros.</div>'; return; }
+
+    list.innerHTML = items.map(r => {
+      const ap = approvals[r.id];
+      return '<div class="aw-queue-item ' + (ap ? 'approved' : '') + '" data-aw-open="' + r.id + '">' +
+        '<span class="aw-queue-item-id" style="color:' + pillarColor(r.pillar) + ';">' + r.id + '</span>' +
+        '<span class="vr-b vr-pillar-' + r.pillar + '">' + r.pillar + '</span>' +
+        '<span class="vr-b vr-sev-' + r.severity + '">' + r.severity + '</span>' +
+        '<span class="aw-queue-item-title">' + awEsc(r.title) + '</span>' +
+        '<span class="aw-queue-item-status ' + (ap ? 'approved' : 'pending') + '">' + (ap ? '✓ aprovada ' + awEsc(ap.approved_at.slice(0,10)) : 'pendente') + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  function pillarColor(p) {
+    return { PURE: '#3b82f6', PURE_GAP: '#f59e0b', EU: '#a78bfa', RECYCLASS: '#14b8a6' }[p] || 'var(--accent)';
+  }
+
+  // ============ Bootstrap ============
+  document.addEventListener('DOMContentLoaded', () => {
+    // Carrega RULES de cara
+    fetch('validation-rules-catalog/data/rules.json').then(r => r.json()).then(d => {
+      RULES = d.rules;
+      // Pré-popula filtros
+      const pillarSel = document.getElementById('aw-q-pillar');
+      const sevSel = document.getElementById('aw-q-severity');
+      if (pillarSel) {
+        Object.keys(d.stats.by_pillar).sort().forEach(v => {
+          const o = document.createElement('option'); o.value = v; o.textContent = v;
+          pillarSel.appendChild(o);
+        });
+      }
+      if (sevSel) {
+        Object.keys(d.stats.by_severity).sort().forEach(v => {
+          const o = document.createElement('option'); o.value = v; o.textContent = v;
+          sevSel.appendChild(o);
+        });
+      }
+      refreshQueue();
+    });
+
+    // Carrega convergence pra mapear conflitos por regra
+    fetch('validation-rules-catalog/data/convergence.json').then(r => r.json()).then(d => {
+      const conflicts = {};
+      (d.findings || []).forEach(f => {
+        (f.rules_involved || []).forEach(rid => {
+          conflicts[rid] = (conflicts[rid] || 0) + (f.severity === 'HIGH' ? 10 : f.severity === 'MEDIUM' ? 3 : 1);
+        });
+      });
+      window.AW_RULE_CONFLICTS = conflicts;
+    }).catch(() => {});
+
+    // Handlers da modal
+    document.getElementById('aw-modal-close').addEventListener('click', closeModal);
+    document.getElementById('aw-modal-backdrop').addEventListener('click', e => {
+      if (e.target.id === 'aw-modal-backdrop') closeModal();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && CURRENT_RULE_ID) closeModal(); });
+
+    // Filtros da fila
+    ['pillar','severity','status','priority'].forEach(k => {
+      const el = document.getElementById('aw-q-' + k);
+      if (el) el.addEventListener('change', e => { QUEUE_FILTERS[k] = e.target.value; renderQueueList(); });
+    });
+
+    // Export / Import / Clear
+    const exp = document.getElementById('aw-export-btn');
+    if (exp) exp.addEventListener('click', () => {
+      const data = { exported_at: nowIso(), approver: APPROVER, approvals: loadApprovals() };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'impactrakr-approvals-' + new Date().toISOString().slice(0,10) + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+    const imp = document.getElementById('aw-import-btn');
+    const impIn = document.getElementById('aw-import-input');
+    if (imp && impIn) {
+      imp.addEventListener('click', () => impIn.click());
+      impIn.addEventListener('change', e => {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            if (data.approvals && typeof data.approvals === 'object') {
+              if (confirm('Importar ' + Object.keys(data.approvals).length + ' aprovações? Isso sobrescreve o estado atual.')) {
+                saveApprovals(data.approvals);
+                refreshQueue();
+                alert('Importado.');
+              }
+            } else { alert('Arquivo inválido.'); }
+          } catch(err) { alert('Erro ao parsear: ' + err.message); }
+        };
+        reader.readAsText(file);
+      });
+    }
+    const clr = document.getElementById('aw-clear-btn');
+    if (clr) clr.addEventListener('click', () => {
+      if (confirm('Apagar todas as ' + Object.keys(loadApprovals()).length + ' aprovações locais? Não afeta o JSON oficial.')) {
+        localStorage.removeItem(STORAGE_KEY);
+        refreshQueue();
+      }
+    });
+
+    // Click na fila → abre modal
+    document.getElementById('aw-queue-list').addEventListener('click', e => {
+      const item = e.target.closest('[data-aw-open]');
+      if (item) openModal(item.dataset.awOpen);
+    });
+  });
+
+  // Exporta API
+  window.AW = { isApproved, getApproval, openModal };
+  window.__awRenderQueue = refreshQueue;
 })();
 </script>
 </body>
