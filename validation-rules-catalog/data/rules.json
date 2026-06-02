@@ -1,7 +1,7 @@
 {
   "$schema": "./rules.schema.json",
-  "catalog_version": "0.4.1",
-  "catalog_last_updated": "2026-05-29",
+  "catalog_version": "0.4.2",
+  "catalog_last_updated": "2026-06-01",
   "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr.",
   "sources": [
     {
@@ -28,22 +28,22 @@
     }
   ],
   "stats": {
-    "total": 127,
+    "total": 129,
     "by_pillar": {
       "PURE": 67,
-      "PURE_GAP": 17,
+      "PURE_GAP": 19,
       "EU": 26,
       "RECYCLASS": 17
     },
     "by_severity": {
-      "BLOCK": 107,
+      "BLOCK": 109,
       "FLAG": 20
     },
     "by_status": {
-      "REVIEWED": 127
+      "REVIEWED": 129
     },
     "by_cluster": {
-      "RECYCLER_OUTCOME": 16,
+      "RECYCLER_OUTCOME": 18,
       "HOMOLOGATION_PARTICIPANT": 14,
       "KYC_GOVERNANCE": 9,
       "QUALITY_ANTIFRAUD": 10,
@@ -10753,6 +10753,274 @@
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE"
+    },
+    {
+      "id": "PG-18",
+      "title": "Blend composition tracking (mistura de fardos por Ecoparque)",
+      "pillar": "PURE_GAP",
+      "cluster": "RECYCLER_OUTCOME",
+      "severity": "BLOCK",
+      "gates_what": "TRC_ISSUANCE",
+      "trigger": {
+        "event": "RECYCLING_OUTCOME_WRITE",
+        "phase": "POST_RECYCLING",
+        "conditions": [
+          "RecyclingOutcome.isBlend == TRUE"
+        ]
+      },
+      "applies_to": {
+        "participant_types": [
+          "R"
+        ],
+        "regions": [
+          "GLOBAL"
+        ]
+      },
+      "purpose": "Garante que outputs reciclados produzidos a partir de mistura (blend) de múltiplos Ecoparques/origens registrem a composição com `% peso ou volume por origem`, data e hora do blend. Sem esse registro, rastreabilidade até a origem individual é impossível — quebra a Camada 3 do moat estratégico Impactrakr (data moat: 'X% deste pellet veio do Ecoparque Y'). Recyclass V1.1 §5 também exige rastreabilidade de blend management. Sem PG-18, brand owner que compra PCR não consegue defender claim de origem.",
+      "logic_human": "BLOCK se RecyclingOutcome.isBlend = TRUE AND blendComposition é vazio OR % por origem não soma 100% (±0.5% tolerance) OR data/hora do blend ausente.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-18'>): Promise<RuleResult> {\n  const outcome = ctx.recyclingOutcome;\n  if (!outcome.isBlend) return ctx.skip();\n  if (!outcome.blendComposition || outcome.blendComposition.length === 0) {\n    return ctx.fail({ ruleId: 'PG-18', severity: 'BLOCK',\n      message: 'Blend composition missing: must declare % per source Ecoparque',\n      field: 'blendComposition' });\n  }\n  const total = outcome.blendComposition.reduce((s, c) => s + c.percentage, 0);\n  if (Math.abs(total - 100) > 0.5) {\n    return ctx.fail({ ruleId: 'PG-18', severity: 'BLOCK',\n      message: `Blend percentages sum to ${total}%, must be 100% (±0.5%)`,\n      field: 'blendComposition' });\n  }\n  if (!outcome.blendAt) {\n    return ctx.fail({ ruleId: 'PG-18', severity: 'BLOCK',\n      message: 'Blend timestamp (date+time) missing',\n      field: 'blendAt' });\n  }\n  for (const c of outcome.blendComposition) {\n    const eco = await ctx.db.ecoparque.findById(c.ecoparqueId);\n    if (!eco) return ctx.fail({ ruleId: 'PG-18', severity: 'BLOCK',\n      message: `Ecoparque ${c.ecoparqueId} not found in source registry`,\n      field: 'blendComposition.ecoparqueId' });\n  }\n  return ctx.pass({ ruleId: 'PG-18' });\n}",
+      "fields": {
+        "reads": [
+          "RecyclingOutcome.isBlend",
+          "RecyclingOutcome.blendComposition",
+          "RecyclingOutcome.blendAt",
+          "Ecoparque.id"
+        ],
+        "writes": [
+          "ValidationResult"
+        ]
+      },
+      "evidence": [
+        {
+          "doc_type": "blend_composition_record",
+          "mandatory": true,
+          "when": "RecyclingOutcome.isBlend = TRUE"
+        },
+        {
+          "doc_type": "ecoparque_certification",
+          "mandatory": true,
+          "when": "per source Ecoparque"
+        }
+      ],
+      "messages": {
+        "block_pt": "Lote de produção marcado como blend (mistura de várias origens) precisa declarar % por Ecoparque, data e hora do blend. Sem isso, não conseguimos rastrear até a origem individual e o TRC não pode ser emitido.",
+        "block_en": "Production batch marked as blend (mixture of multiple sources) must declare % per Ecoparque, blend date and time. Without it, traceability to individual source is broken and TRC cannot be issued."
+      },
+      "behavior": {
+        "idempotent": true,
+        "on_fail": "Bloqueia RECYCLING_OUTCOME_WRITE e cascateia bloqueio pra PRE_CARROT_SUBMIT; AuditLog com snapshot do outcome + composição declarada; notifica Methodology.",
+        "on_pass": "Continua pipeline; salva blend ID com cada percentage; gera audit pack pra Recyclass.",
+        "revalidation": "Re-roda a cada update de RecyclingOutcome.blendComposition; em PRE_CARROT_SUBMIT como gate final.",
+        "retry_window": "Imediato; assim que operator corrigir composição, revalida automaticamente.",
+        "escalation": "Se blend permanece inválido por > 30 dias, MassIDs upstream associadas ao outcome ficam em fila de revisão.",
+        "performance": "JOIN com Ecoparque pra cada source — cachear lookups por outcomeId."
+      },
+      "test_cases": {
+        "positive": {
+          "name": "Blend com 3 Ecoparques somando 100%",
+          "given": "outcome.isBlend=true, blendComposition=[{ecoparqueId:'E1', percentage:40}, {ecoparqueId:'E2', percentage:35}, {ecoparqueId:'E3', percentage:25}], blendAt='2026-06-15T10:00:00Z', todos Ecoparques existem.",
+          "expected": "PASS."
+        },
+        "negative": [
+          {
+            "name": "blendComposition vazia",
+            "given": "outcome.isBlend=true, blendComposition=[].",
+            "expected": "BLOCK 'Blend composition missing: must declare % per source Ecoparque'."
+          },
+          {
+            "name": "Percentages somam 98%",
+            "given": "blendComposition somando 98% (faltam 2% de algum lote).",
+            "expected": "BLOCK 'Blend percentages sum to 98%, must be 100% (±0.5%)'."
+          },
+          {
+            "name": "Ecoparque inexistente",
+            "given": "blendComposition referenciando Ecoparque com ID não cadastrado.",
+            "expected": "BLOCK 'Ecoparque X not found in source registry'."
+          }
+        ]
+      },
+      "edge_cases": [
+        "Tolerance ±0.5%: rounding errors de planilha são aceitos (99.95–100.05).",
+        "Se RecyclingOutcome.isBlend=false (lote de origem única), regra é SKIPped — não dispara.",
+        "Permite Ecoparque com percentage=0 mas IDs distintos (caso de auditoria 'cheguei a misturar mas não usei volume desse').",
+        "blendAt timezone: armazenar sempre em UTC, exibir conforme tenant locale."
+      ],
+      "bv_verification": {
+        "bv_controls": [],
+        "procedure": "Auditor seleciona sample de Recycling Outcomes marcados como blend e verifica: (a) composição declarada existe e soma 100%, (b) cada Ecoparque listado tem cadastro válido, (c) blend timestamp coerente com dados de produção downstream.",
+        "sample_size": "Sample 30 outcomes blend",
+        "frequency": "Quarterly"
+      },
+      "related": [
+        "P-19",
+        "P-58",
+        "P-65",
+        "RC-03",
+        "RC-11",
+        "PG-19"
+      ],
+      "references": [
+        {
+          "source": "PURE_DMRV_GAP_REGISTER_JUN2025",
+          "section": "PG-18 (gap identificado via input Gian 01/jun)"
+        },
+        {
+          "source": "RECYCLASS_AUDIT_SCHEME_V1.1",
+          "section": "§5 Blend management"
+        },
+        {
+          "source": "OTHER",
+          "section": "Gian recycler flow mapping (01/jun) — etapa 5"
+        }
+      ],
+      "methodology_quote": "Mistura de fardos provenientes de vários Ecoparques: registrar % peso (ou volume) de cada Ecoparque, data e hora do blend (Gian).",
+      "status": "REVIEWED",
+      "owner": "Methodology",
+      "manual_review": false,
+      "source_type": "PURE_GAP",
+      "disposition": "New",
+      "odoo_objects": [],
+      "dmrv_output": "outcome_traceability_valid",
+      "domain": "Recycler / Blend",
+      "subdomain": "Composition tracking",
+      "version": "0.1.0",
+      "last_reviewed": "2026-06-01",
+      "audit_findings": [
+        "G-08"
+      ],
+      "is_new": true,
+      "new_source": "Gian recycler flow mapping (WhatsApp 01/jun)"
+    },
+    {
+      "id": "PG-19",
+      "title": "Output QC approval document (aprovação documental do lote produzido)",
+      "pillar": "PURE_GAP",
+      "cluster": "RECYCLER_OUTCOME",
+      "severity": "BLOCK",
+      "gates_what": "TRC_ISSUANCE",
+      "trigger": {
+        "event": "PRE_CARROT_SUBMIT",
+        "phase": "POST_RECYCLING",
+        "conditions": []
+      },
+      "applies_to": {
+        "participant_types": [
+          "R"
+        ],
+        "regions": [
+          "GLOBAL"
+        ]
+      },
+      "purpose": "Antes da emissão do TRC sobre um lote produzido, exige documento de aprovação QC do output vinculado ao output batch ID. Hoje o catálogo cobre QC do INPUT (P-15..P-16 composition cluster), mas não cobre QC do OUTPUT (lote final pronto pra venda). Auditor BV/SGS vai pedir prova de aprovação física do produto reciclado antes de creditá-lo. Sem PG-19, audit pack fica incompleto e Recyclass cert vira frágil.",
+      "logic_human": "BLOCK em PRE_CARROT_SUBMIT se output_qc_approval document não existir, OR validade expirada, OR não vinculado ao outputBatchId, OR aprovador não identificado.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-19'>): Promise<RuleResult> {\n  const outcome = ctx.recyclingOutcome;\n  const qcDoc = await ctx.db.document.findOne({ where: {\n    type: 'output_qc_approval',\n    relatedOutputBatchId: outcome.outputBatchId\n  }});\n  if (!qcDoc) {\n    return ctx.fail({ ruleId: 'PG-19', severity: 'BLOCK',\n      message: `Output QC approval document missing for batch ${outcome.outputBatchId}`,\n      field: 'documents.output_qc_approval' });\n  }\n  if (!qcDoc.approverId || !qcDoc.approvalDate) {\n    return ctx.fail({ ruleId: 'PG-19', severity: 'BLOCK',\n      message: 'QC approval missing approver or approval date',\n      field: 'output_qc_approval.approverId' });\n  }\n  if (qcDoc.validUntil && qcDoc.validUntil < ctx.now) {\n    return ctx.fail({ ruleId: 'PG-19', severity: 'BLOCK',\n      message: `Output QC approval expired on ${qcDoc.validUntil.toISOString()}`,\n      field: 'output_qc_approval.validUntil' });\n  }\n  return ctx.pass({ ruleId: 'PG-19' });\n}",
+      "fields": {
+        "reads": [
+          "RecyclingOutcome.outputBatchId",
+          "Document.type",
+          "Document.relatedOutputBatchId",
+          "Document.approverId",
+          "Document.approvalDate",
+          "Document.validUntil"
+        ],
+        "writes": [
+          "ValidationResult"
+        ]
+      },
+      "evidence": [
+        {
+          "doc_type": "output_qc_approval",
+          "mandatory": true
+        }
+      ],
+      "messages": {
+        "block_pt": "Lote produzido precisa ter documento de aprovação QC anexado e vinculado ao ID do batch antes de emitir crédito. Anexe a aprovação física assinada pelo responsável antes de prosseguir.",
+        "block_en": "Production batch requires QC approval document attached and linked to batch ID before issuing credit. Attach the signed physical approval before continuing."
+      },
+      "behavior": {
+        "idempotent": true,
+        "on_fail": "Bloqueia PRE_CARROT_SUBMIT; audit log com snapshot do outcome; notifica Compliance.",
+        "on_pass": "Continua pipeline; QC document hash entra no audit pack que Recyclass auditor consome.",
+        "revalidation": "Re-roda em upload de Document type='output_qc_approval'; em PRE_CARROT_SUBMIT como gate final.",
+        "retry_window": "Imediato (upload do doc via UI).",
+        "escalation": "Se QC approval permanece ausente por > 30 dias, output batch entra em fila de revisão Methodology e MassIDs upstream marcadas com FLAG.",
+        "performance": "Lookup por outputBatchId indexado; doc validation O(1)."
+      },
+      "test_cases": {
+        "positive": {
+          "name": "Output QC aprovado e vinculado",
+          "given": "Document type='output_qc_approval' existe com relatedOutputBatchId='BB-12345', approverId='qc-001', approvalDate='2026-06-15', validUntil null ou futuro.",
+          "expected": "PASS."
+        },
+        "negative": [
+          {
+            "name": "Documento ausente",
+            "given": "Nenhum Document type='output_qc_approval' associado ao outputBatchId.",
+            "expected": "BLOCK 'Output QC approval document missing for batch BB-12345'."
+          },
+          {
+            "name": "Aprovador não identificado",
+            "given": "Documento existe mas approverId é null.",
+            "expected": "BLOCK 'QC approval missing approver or approval date'."
+          },
+          {
+            "name": "Aprovação expirada",
+            "given": "Documento existe com validUntil < now (caso de re-validação anual obrigatória).",
+            "expected": "BLOCK 'Output QC approval expired on YYYY-MM-DD'."
+          }
+        ]
+      },
+      "edge_cases": [
+        "Output QC approval pode ter validade indeterminada (validUntil null) — interpretar como 'aprovado permanente' até revogação manual.",
+        "Aprovador pode ser pessoa física (qcOperatorId) ou laboratório externo (qcLabId) — ambos válidos se identificados.",
+        "Lotes rejeitados em QC: documento pode existir com approverDecision='REJECTED'. Regra falha (NÃO conta como aprovado).",
+        "Re-aprovação após correção: novo documento substitui o anterior (vincula pelo outputBatchId, último valid wins)."
+      ],
+      "bv_verification": {
+        "bv_controls": [],
+        "procedure": "Auditor seleciona sample de outputs em READY_FOR_CARROT e verifica: (a) cada um tem output_qc_approval document anexado, (b) aprovador identificado e qualificado, (c) data + assinatura digital ou física registrada, (d) cadeia de custódia até este documento intacta.",
+        "sample_size": "Sample 30 output batches",
+        "frequency": "Monthly"
+      },
+      "related": [
+        "P-19",
+        "P-58",
+        "P-59",
+        "P-60",
+        "RC-11",
+        "PG-18"
+      ],
+      "references": [
+        {
+          "source": "PURE_DMRV_GAP_REGISTER_JUN2025",
+          "section": "PG-19 (gap identificado via input Gian 01/jun)"
+        },
+        {
+          "source": "RECYCLASS_AUDIT_SCHEME_V1.1",
+          "section": "§4.5 Stock Management + §5 Output controls"
+        },
+        {
+          "source": "OTHER",
+          "section": "Gian recycler flow mapping (01/jun) — etapa 8"
+        }
+      ],
+      "methodology_quote": "Amostragem do lote produzido: documento de aprovação vinculado ao ID do lote (Gian).",
+      "status": "REVIEWED",
+      "owner": "Compliance",
+      "manual_review": false,
+      "source_type": "PURE_GAP",
+      "disposition": "New",
+      "odoo_objects": [],
+      "dmrv_output": "outcome_qc_valid",
+      "domain": "Recycler / Output QC",
+      "subdomain": "QC approval document",
+      "version": "0.1.0",
+      "last_reviewed": "2026-06-01",
+      "audit_findings": [
+        "G-09"
+      ],
+      "is_new": true,
+      "new_source": "Gian recycler flow mapping (WhatsApp 01/jun)"
     },
     {
       "id": "EU-01",
