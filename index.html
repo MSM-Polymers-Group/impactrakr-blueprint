@@ -3581,12 +3581,7 @@ document.addEventListener('keydown', (e) => {
     // ordena por severidade (HIGH > MED > LOW), depois por categoria
     const sevOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
     const catOrder = { contradiction: 0, gap: 1, reverse_gap: 2, redundancy: 3 };
-    filtered.sort((a,b) =>
-      (b.is_new === true ? 1 : 0) - (a.is_new === true ? 1 : 0) ||
-      (sevOrder[a.severity] ?? 9) - (sevOrder[b.severity] ?? 9) ||
-      (catOrder[a.category] ?? 9) - (catOrder[b.category] ?? 9) ||
-      a.id.localeCompare(b.id)
-    );
+    filtered.sort((a,b) => (sevOrder[a.severity] ?? 9) - (sevOrder[b.severity] ?? 9) || (catOrder[a.category] ?? 9) - (catOrder[b.category] ?? 9) || a.id.localeCompare(b.id));
     const container = cvEl('cv-list');
     if (filtered.length === 0) {
       container.innerHTML = '<div class="vr-empty">Nenhum achado corresponde aos filtros.</div>';
@@ -3874,8 +3869,6 @@ document.addEventListener('keydown', (e) => {
 
   function vrRender() {
     const filtered = VR_DATA.rules.filter(vrMatches);
-    // ordena com is_new no topo, preservando ordem natural restante
-    filtered.sort((a,b) => (b.is_new === true ? 1 : 0) - (a.is_new === true ? 1 : 0));
     vrEl('vr-results-info').innerHTML = 'mostrando <span class="vr-count">' + filtered.length + '</span> de ' + VR_DATA.rules.length + ' regras';
     const container = vrEl('vr-rules');
     if (filtered.length === 0) {
