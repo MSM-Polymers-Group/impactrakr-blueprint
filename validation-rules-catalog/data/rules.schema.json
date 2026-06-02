@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://impactrakr.com/schemas/validation-rules.schema.json",
-  "title": "Impactrakr Validation Rule (L3 spec)",
-  "description": "Specification schema for every validation rule in the Impactrakr Validation Engine. L3 = ready for implementation + BV audit. Each rule must satisfy this contract.",
+  "title": "Impactrakr Validation Rule (L3 spec + MvF-compliance fields)",
+  "description": "Specification schema for every validation rule in the Impactrakr Validation Engine. L3 = ready for implementation + BV audit. Schema v0.2 adds the 4 MvF-compliance fields per Carrot dMRV Hub §3.4.6 + §3.5: event_ids, geographic_scope, action_on_failure, rule_type. These are OPTIONAL during migration (catalog v0.4.x → v0.5.x); will become required in v0.6+. Each rule must satisfy this contract.",
   "type": "object",
   "required": [
     "id", "title", "pillar", "severity", "trigger", "applies_to",
@@ -35,9 +35,9 @@
         "RECYCLER_OUTCOME", "QUALITY_ANTIFRAUD",
         "WASTE_CLASSIFICATION", "CHAIN_OF_CUSTODY", "DOC_INTEGRITY", "CROSS_BORDER",
         "ADMINISTRATION_LICENSING", "STAFF_ORG", "PROCESS_CAPACITY",
-        "ENVIRONMENTAL", "SUBCONTRACTING"
+        "ENVIRONMENTAL", "SUBCONTRACTING", "OTHER"
       ],
-      "description": "Functional cluster (used for filtering in HTML view)."
+      "description": "Functional cluster (used for filtering in HTML view). OTHER = not yet categorized; should migrate to specific cluster over time."
     },
     "severity": {
       "type": "string",
@@ -57,26 +57,50 @@
           "type": "string",
           "enum": [
             "PARTICIPANT_ONBOARDING",
+            "PARTICIPANT_CREATE",
+            "PARTICIPANT_UPDATE",
             "MASSID_INGEST",
+            "MASSID_UPDATE",
             "MASSID_TRANSITION",
             "DOCUMENT_UPLOAD",
+            "DOCUMENT_CREATE",
+            "DOCUMENT_UPDATE",
             "RECYCLING_OUTCOME_WRITE",
             "MONTHLY_RECONCILIATION",
-            "PRE_CARROT_SUBMIT",
+            "PRE_REGISTRY_SUBMIT",
+            "TERMS_VERSION_PUBLISHED",
             "TRC_RETIREMENT",
             "INCIDENT_TRIGGERED"
           ],
-          "description": "When the rule fires."
+          "description": "When the rule fires. Registry-agnostic per ADR-033."
         },
         "phase": {
           "type": "string",
-          "enum": ["PRE_VALIDATION", "RUNTIME", "POST_RECYCLING", "MONTHLY", "ENFORCEMENT"],
-          "description": "Phase within the event lifecycle."
+          "enum": [
+            "PRE_VALIDATION", "RUNTIME",
+            "POST_CREATE", "POST_UPDATE", "POST_PUBLISH", "POST_RECYCLING",
+            "MONTHLY", "ENFORCEMENT"
+          ],
+          "description": "Phase within the event lifecycle. POST_CREATE/POST_UPDATE/POST_PUBLISH added in v0.2 to support PARTICIPANT_CREATE/UPDATE and TERMS_VERSION_PUBLISHED triggers."
         },
         "conditions": {
           "type": "array",
           "items": {"type": "string"},
           "description": "Pre-conditions for the rule to fire (skip otherwise). Format: 'Model.field == value'. Empty array = always fires for the event."
+        },
+        "secondary_triggers": {
+          "type": "array",
+          "description": "Additional trigger events that fire the same rule. Used when a rule must re-evaluate on multiple lifecycle points (e.g., PARTICIPANT_CREATE + PARTICIPANT_UPDATE).",
+          "items": {
+            "type": "object",
+            "required": ["event", "phase"],
+            "properties": {
+              "event": {"type": "string"},
+              "phase": {"type": "string"},
+              "purpose": {"type": "string"},
+              "conditions": {"type": "array", "items": {"type": "string"}}
+            }
+          }
         }
       }
     },
@@ -220,7 +244,7 @@
         "negative": {
           "type": "array",
           "minItems": 2,
-          "maxItems": 5,
+          "maxItems": 10,
           "items": {
             "type": "object",
             "required": ["name", "given", "expected"],
@@ -245,8 +269,11 @@
       "properties": {
         "bv_controls": {
           "type": "array",
-          "items": {"type": "string", "pattern": "^BV-[0-9]{2}$"},
-          "description": "Bureau Veritas control IDs (from BV_CHECKLIST sheet) that audit this rule."
+          "items": {
+            "type": "string",
+            "pattern": "^([A-Z]{2,12}(-[A-Z]+)?-[0-9]{1,2}|BV-[0-9]{2})$"
+          },
+          "description": "Bureau Veritas control IDs (from BV_CHECKLIST sheet) OR semantic control codes. Pattern accepts: BV-XX (legacy BV format) or SEMANTIC-NN (e.g., KYC-01, EXCLUSIVITY-01, CONSENT-01)."
         },
         "procedure": {
           "type": "string",
@@ -258,8 +285,7 @@
         },
         "frequency": {
           "type": "string",
-          "enum": ["Initial + annual", "Quarterly", "Monthly", "On demand"],
-          "description": "Audit frequency."
+          "description": "Audit frequency — free-text. Common values: 'Initial + annual', 'Annual', 'Semi-annual', 'Quarterly', 'Quarterly + ad-hoc', 'Monthly', 'On demand'. Free-text allows precise per-rule cadence."
         }
       }
     },
@@ -282,15 +308,23 @@
               "PURE_DMRV_MASTER_FINAL",
               "RECYCLASS_AUDIT_SCHEME_V1.1",
               "WSR_2024_1157",
+              "EU_REG_2024_1157",
               "EN_15343_2007",
               "EN_15347",
               "ISO_22095_2020",
               "DIRECTIVE_2008_98_EC",
+              "WFD_2008_98_EC",
+              "EU_DECISION_2000_532_EC",
+              "PPWR_2024",
               "REACH_EC_1907_2006",
               "GDPR_EU_2016_679",
+              "GDPR_2016_679",
               "CARROT_WHITEPAPER",
+              "CARROT_BOLD_RECYCLING_RULES",
+              "CARROT_DMRV_HUB_V1.0",
               "IMP_46_DOCUMENT_MATRIX",
               "ADR_002_REGIONAL_COMPLIANCE_ADAPTER",
+              "ADR_033_REGISTRY_ABSTRACTION",
               "OTHER"
             ]
           },
@@ -311,7 +345,10 @@
     },
     "owner": {
       "type": "string",
-      "enum": ["Compliance", "Methodology", "Tech", "Ops", "Reporting", "Compliance/Tech", "Compliance/Ops"],
+      "enum": [
+        "Compliance", "Methodology", "Tech", "Ops", "Reporting",
+        "Compliance/Tech", "Compliance/Ops", "Compliance / Ops", "Methodology/Tech"
+      ],
       "description": "Who owns the rule's content."
     },
     "manual_review": {
@@ -359,6 +396,42 @@
       "type": "array",
       "items": {"type": "string"},
       "description": "Audit findings IDs from audit-pure-methodology-consistency.md that affect this rule (e.g. ['B-04', 'E-01'])."
+    },
+    "event_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^E[0-9]{1,2}$"
+      },
+      "description": "MvF-compliance field per Carrot dMRV Hub §3.4.4 + §3.4.6. The event(s) in the catalog (E0..E12) where this rule is executed. Cross-event rules list multiple events. Empty/absent during migration (rules.json v0.4 → v0.5) — will be required after Phase E4 (Event Catalog) is completed for PURE."
+    },
+    "geographic_scope": {
+      "type": "string",
+      "enum": ["Universal", "Territorial"],
+      "description": "MvF-compliance field per Carrot dMRV Hub §3.5. Universal = rule applies regardless of territory. Territorial = rule has territory-specific parameters (e.g., manifest type BR=MTR vs EU=Annex VII). Territorial rules need a Geographical Adaptation Appendix entry. Empty during migration."
+    },
+    "action_on_failure": {
+      "type": "string",
+      "enum": ["Rejeição", "Bloqueio", "Sinalização", "Escalonamento"],
+      "description": "MvF-compliance field per Carrot dMRV Hub §3.4.6. Finer-grained than the legacy `severity` (BLOCK/FLAG). Rejeição = data rejected at intake; Bloqueio = downstream operation blocked until regularization; Sinalização = flag for human review without blocking; Escalonamento = escalate to Compliance after retry window. During migration, derive from `severity` + `behavior.on_fail` semantics."
+    },
+    "rule_type": {
+      "type": "string",
+      "enum": ["Estrutura", "Metodologia", "Auditoria"],
+      "description": "MvF-compliance field per Carrot dMRV Hub §3.4.6. Orthogonal to `pillar`. Estrutura = integrity of form/completeness (independent of methodology content); Metodologia = conformity with PURE-specific criteria and parameters; Auditoria = consistency, cross-referencing, pattern-based checks requiring deeper analysis. During migration this is derived from current rule semantics."
+    },
+    "is_new": {
+      "type": "boolean",
+      "description": "Visual highlight flag for catalog UI. Marks rules recently created/imported (e.g., PG-18, PG-19, PG-20 from Onda 1 review). Optional metadata, no semantic impact on validation."
+    },
+    "new_source": {
+      "type": "string",
+      "description": "When is_new=true, brief description of where the rule came from (e.g., 'Gian recycler flow mapping (WhatsApp 01/jun)', 'Onda 1 review — Carrot-inspired split'). Provides traceability for recent additions."
+    },
+    "validators": {
+      "type": "object",
+      "description": "Optional. Documents per-field validators (regex, range, jurisdiction-specific checksums) for format/semantic validation rules like PG-01.",
+      "additionalProperties": true
     }
   }
 }

@@ -1,7 +1,7 @@
 {
   "$schema": "./rules.schema.json",
-  "catalog_version": "0.4.2",
-  "catalog_last_updated": "2026-06-01",
+  "catalog_version": "0.5.0",
+  "catalog_last_updated": "2026-06-02",
   "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr.",
   "sources": [
     {
@@ -28,24 +28,25 @@
     }
   ],
   "stats": {
-    "total": 129,
+    "total": 130,
     "by_pillar": {
       "PURE": 67,
-      "PURE_GAP": 19,
+      "PURE_GAP": 20,
       "EU": 26,
       "RECYCLASS": 17
     },
     "by_severity": {
-      "BLOCK": 109,
+      "BLOCK": 110,
       "FLAG": 20
     },
     "by_status": {
-      "REVIEWED": 129
+      "REVIEWED": 129,
+      "DRAFT": 1
     },
     "by_cluster": {
       "RECYCLER_OUTCOME": 18,
       "HOMOLOGATION_PARTICIPANT": 14,
-      "KYC_GOVERNANCE": 9,
+      "KYC_GOVERNANCE": 10,
       "QUALITY_ANTIFRAUD": 10,
       "DOC_INTEGRITY": 2,
       "MATERIAL_COMPOSITION": 14,
@@ -85,7 +86,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Garante que toda MassID submetida ao programa pertence a um Project Period vigente. Eventos fora da janela project_start..project_end não podem gerar TRC porque cairiam fora do escopo metodológico aprovado pela Carrot/PURE e seriam rejeitados em auditoria BV. Sem este gate temporal, é possível back-date evidências de períodos não cobertos pelo contrato vigente — fraude clássica de programas de crédito.",
+      "purpose": "Garante que toda MassID submetida ao programa pertence a um Project Period vigente. Eventos fora da janela project_start..project_end não podem gerar TRC porque cairiam fora do escopo metodológico aprovado pela registry/PURE e seriam rejeitados em auditoria BV. Sem este gate temporal, é possível back-date evidências de períodos não cobertos pelo contrato vigente — fraude clássica de programas de crédito.",
       "logic_human": "BLOCK se MassID.completionDate < Project.startDate OR MassID.completionDate > Project.endDate. PASS se completionDate estiver dentro da janela do projeto associado.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-01'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  const project = await ctx.db.project.findById(massid.projectId);\n  if (!project) {\n    return ctx.fail({ ruleId: 'P-01', severity: 'BLOCK',\n      message: 'No project linked to MassID', field: 'projectId' });\n  }\n  const completion = massid.completionDate;\n  if (completion == null) {\n    return ctx.fail({ ruleId: 'P-01', severity: 'BLOCK',\n      message: 'completion_date missing', field: 'completionDate' });\n  }\n  if (completion < project.startDate || completion > project.endDate) {\n    return ctx.fail({ ruleId: 'P-01', severity: 'BLOCK',\n      message: `completion_date ${completion.toISOString()} outside project window [${project.startDate.toISOString()}, ${project.endDate.toISOString()}]`,\n      field: 'completionDate' });\n  }\n  return ctx.pass({ ruleId: 'P-01' });\n}",
       "fields": {
@@ -318,14 +319,26 @@
     },
     {
       "id": "P-03",
-      "title": "KYC KYB completed",
+      "title": "KYC / KYB identity verification",
       "pillar": "PURE",
       "cluster": "KYC_GOVERNANCE",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "PARTICIPANT_CREATE",
+            "phase": "POST_CREATE",
+            "purpose": "Garante que participants que nunca geram MassID (ex: Brand Owners, INT) tambem sao validados."
+          },
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Revalida se kycStatus ou kyc_kyb_record sofrer alteracao apos cadastro."
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -340,9 +353,9 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Garante que ninguém participa do programa sem ter completado o processo de identificação formal (Know Your Customer / Know Your Business). KYC é o gate básico de governance: sem ele, a Impactrakr não tem como provar para Bureau Veritas, Carrot Network ou auditores regulatórios que conhece os atores na sua rede. Esta é a primeira linha de defesa contra fraude, double-counting e bad actors.",
-      "logic_human": "BLOCK se Participant.kycStatus ≠ 'complete' OU se kyc_kyb_record ausente para o participant. PASS caso contrário.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-03'>): Promise<RuleResult> {\n  const participant = await ctx.db.participant.findById(ctx.input.participantId);\n  if (!participant) return ctx.fail({ ruleId: 'P-03', severity: 'BLOCK',\n    message: 'Participant not found', field: 'participantId' });\n  if (participant.kycStatus !== 'complete') {\n    return ctx.fail({ ruleId: 'P-03', severity: 'BLOCK',\n      message: ctx.locale === 'pt' ? 'KYC/KYB incompleto.' : 'KYC/KYB incomplete.',\n      field: 'kycStatus' });\n  }\n  const kycDoc = await ctx.db.document.findOne({ where: {\n    participantId: participant.id, type: 'kyc_kyb_record' } });\n  if (!kycDoc) {\n    return ctx.fail({ ruleId: 'P-03', severity: 'BLOCK',\n      message: 'kyc_kyb_record document missing', field: 'documents' });\n  }\n  return ctx.pass({ ruleId: 'P-03' });\n}",
+      "purpose": "Verifica que cada participante completou o processo formal de identificação base (Know Your Customer / Know Your Business). É o gate fundamental de governance — sem KYC válido, Impactrakr não consegue provar para BV, o registry ou auditores que conhece os atores na rede. Esta regra cobre IDENTIDADE BASE (nome legal, documento, endereço, UBO). Habilitação específica por role (licença de Hauler, licença ambiental de Recycler, etc.) é validada pela regra PG-20 separadamente. Em ambiente sandbox a regra emite FLAG (aviso) para permitir testes; em produção é BLOCK.",
+      "logic_human": "BLOCK em produção (FLAG em sandbox) se Participant.kycStatus ≠ 'complete' OU kyc_kyb_record ausente OU kyc_kyb_record.kycValidUntil < now. PASS caso contrário.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-03'>): Promise<RuleResult> {\n  const p = ctx.participant;\n  const isProd = ctx.environment === 'production';\n  const sev: 'BLOCK' | 'FLAG' = isProd ? 'BLOCK' : 'FLAG';\n\n  if (p.kycStatus !== 'complete') {\n    return ctx.fail({ ruleId: 'P-03', severity: sev,\n      message: isProd ? 'KYC/KYB nao completo — bloqueia operacao'\n                       : 'AVISO sandbox: KYC/KYB nao completo (em prod isso bloquearia)',\n      field: 'participant.kycStatus' });\n  }\n  const rec = await ctx.db.document.findOne({ where: {\n    type: 'kyc_kyb_record', participantId: p.id\n  }});\n  if (!rec) {\n    return ctx.fail({ ruleId: 'P-03', severity: sev,\n      message: 'kyc_kyb_record document missing',\n      field: 'documents.kyc_kyb_record' });\n  }\n  if (rec.kycValidUntil && rec.kycValidUntil < ctx.now) {\n    return ctx.fail({ ruleId: 'P-03', severity: sev,\n      message: `KYC expired on ${rec.kycValidUntil.toISOString()}. Renew before continuing.`,\n      field: 'kyc_kyb_record.kycValidUntil' });\n  }\n  return ctx.pass({ ruleId: 'P-03' });\n}",
       "fields": {
         "reads": [
           "Participant.id",
@@ -357,21 +370,103 @@
       "evidence": [
         {
           "doc_type": "kyc_kyb_record",
-          "mandatory": true
+          "mandatory": true,
+          "structure": {
+            "legalEntityType": {
+              "type": "enum",
+              "values": [
+                "INDIVIDUAL",
+                "COMPANY"
+              ],
+              "required": true
+            },
+            "legalName": {
+              "type": "string",
+              "required": true
+            },
+            "taxId": {
+              "type": "string",
+              "required": true,
+              "examples": [
+                "CPF (BR)",
+                "CNPJ (BR)",
+                "EU VAT",
+                "passport"
+              ]
+            },
+            "taxIdJurisdiction": {
+              "type": "string",
+              "required": true,
+              "format": "ISO 3166-2"
+            },
+            "addressId": {
+              "type": "FK",
+              "ref": "Address",
+              "required": true
+            },
+            "proofOfAddressDocId": {
+              "type": "FK",
+              "ref": "Document",
+              "required": true
+            },
+            "identityDocId": {
+              "type": "FK",
+              "ref": "Document",
+              "required": true,
+              "note": "Foto do passport / RG / CPF"
+            },
+            "ubo": {
+              "type": "JSON",
+              "required_if": "legalEntityType=COMPANY",
+              "schema": "[{name, ownershipPct, taxId}]"
+            },
+            "kycCompletedAt": {
+              "type": "timestamp",
+              "required": true
+            },
+            "kycValidUntil": {
+              "type": "timestamp",
+              "required": true,
+              "default_rule": "kycCompletedAt + 12 months"
+            },
+            "kycProvider": {
+              "type": "string",
+              "required": true,
+              "examples": [
+                "Manual_Impactrakr",
+                "Onfido",
+                "Sumsub",
+                "Veriff",
+                "Persona"
+              ]
+            },
+            "kycExternalRef": {
+              "type": "string",
+              "required": false,
+              "purpose": "ID da verificacao no provider externo, se aplicavel"
+            }
+          }
         }
       ],
       "messages": {
-        "block_pt": "KYC/KYB do participante não está completo. Conclua o processo de identificação (nome completo, documento, endereço) e anexe o registro KYC/KYB antes de participar.",
-        "block_en": "Participant KYC/KYB is not complete. Finish the identification process (full name, ID, address) and attach the KYC/KYB record before participating."
+        "block_pt": "KYC/KYB do participante não está completo ou expirado. Conclua/renove o processo de identificação (nome legal, documento, endereço, UBO se empresa) e garanta validade de 12 meses antes de continuar.",
+        "block_en": "Participant KYC/KYB is incomplete or expired. Complete/renew the identification process (legal name, document, address, UBO if company) and ensure 12-month validity before continuing.",
+        "flag_sandbox_pt": "AVISO sandbox: KYC/KYB incompleto ou expirado. Em produção isso bloqueia. Conclua a verificação para simular o fluxo real.",
+        "flag_sandbox_en": "Sandbox warning: KYC/KYB incomplete or expired. In production this blocks. Complete verification to simulate the real flow."
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "Escreve ValidationResult(passed=false, severity=BLOCK, message, field='kycStatus'); bloqueia ingest de MassID ou onboarding; loga em AuditLog; surface mensagem ao usuário; envia notificação para owner Compliance.",
-        "on_pass": "Escreve ValidationResult(passed=true, severity=BLOCK); silencioso ao usuário; continua o pipeline.",
-        "revalidation": "Re-roda a cada update do Participant.kycStatus, a cada upload de novo document, e em todo MASSID_INGEST onde o participant aparece como ator.",
-        "retry_window": "Imediato: assim que o KYC completar, MassIDs/onboardings em fila revalidam automaticamente via job 'revalidate-blocked-on-P03'.",
-        "escalation": "Após 30 dias sem completar KYC, o participant entra na review queue de Compliance (espelha §14 da metodologia: 30-day timeout).",
-        "performance": "Lookup O(1) por participantId; documento via index (participantId, type)."
+        "environment_aware": true,
+        "environment_severity_map": {
+          "production": "BLOCK",
+          "sandbox": "FLAG"
+        },
+        "on_fail": "Em prod: bloqueia evento; emite AuditLog com snapshot do participant + provider info. Em sandbox: flag visivel mas pipeline segue.",
+        "on_pass": "Pipeline continua; KYC info entra no audit pack pra Recyclass/BV.",
+        "revalidation": "Re-roda a cada PARTICIPANT_UPDATE (kycStatus / kyc_kyb_record / kycValidUntil change). Em MASSID_INGEST como gate final.",
+        "retry_window": "Imediato (upload do doc ou atualizacao via UI).",
+        "escalation": "Se kycStatus permanece incompleto por > 30 dias apos cadastro, Participant entra em fila de revisao Compliance e qualquer MassID ja atrelado fica FLAG.",
+        "performance": "Lookup Document por participantId + type indexado; O(1)."
       },
       "test_cases": {
         "positive": {
@@ -405,15 +500,16 @@
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-03"
+          "KYC-01"
         ],
-        "procedure": "Auditor seleciona sample randomizado de 30 participants do período, verifica para cada (a) que kycStatus='complete', (b) que existe Document kyc_kyb_record com hash íntegro, (c) que dados do KYC batem com o que está no Participant model. Reporta % de conformidade.",
-        "sample_size": "Sample 30 participants",
+        "procedure": "Auditor seleciona sample de Participants ativos e verifica: (a) kyc_kyb_record existe e nao esta expirado, (b) campos obrigatorios completos conforme schema, (c) kycProvider declarado faz sentido (Manual_Impactrakr tem registro de quem aprovou; Onfido/Sumsub tem kycExternalRef rastreavel).",
+        "sample_size": "Sample 30 participants ativos",
         "frequency": "Quarterly"
       },
       "related": [
         "PG-01",
         "PG-09",
+        "PG-20",
         "BV-03"
       ],
       "references": [
@@ -429,6 +525,15 @@
           "source": "PURE_METHODOLOGY_JUN2025",
           "section": "§3.4.3",
           "quote": "All Participants are KYC'd"
+        },
+        {
+          "source": "CARROT_BOLD_RECYCLING_RULES",
+          "section": "Application Rules #4 (Participant Accreditations)",
+          "url": "https://github.com/carrot-foundation/methodology-rules/blob/main/apps/methodologies/bold-recycling/rule-processors/mass-id/participant-accreditations-and-verifications-requirements/README.md"
+        },
+        {
+          "source": "OTHER",
+          "section": "Onda 1 Aprovacao Rodrigo (02/jun) — split identity (P-03) vs role-accreditation (PG-20)"
         }
       ],
       "methodology_quote": "All Participants are KYC'd (Know Your Customer), including Waste Generators and PURE Plastic Credit Buyers as part of the Participation Requirements.",
@@ -443,10 +548,16 @@
       "dmrv_output": "eligibility_valid",
       "domain": "Eligibility",
       "subdomain": "KYC/KYB",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-02",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-04",
@@ -467,9 +578,9 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Bloqueia emissão de TRC duplicado para a mesma MassID. Um MassID só pode gerar UM Tokenized Recycling Credit ao longo de toda sua vida — qualquer tentativa de re-emissão (mesmo após retire/burn) é fraude por design. É o gate de unicidade core do sistema Carrot Network. Sem P-04, o protocolo perde a propriedade fundamental de cada token corresponder a 1 kg específico e único de plástico reciclado.",
-      "logic_human": "BLOCK se já existir um TRC vinculado ao MassID.hash (consulta Carrot registry). PASS se nenhum token foi emitido antes.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-04'>): Promise<RuleResult> {\n  const massid = ctx.input.massid;\n  if (!massid.hash) {\n    return ctx.fail({ ruleId: 'P-04', severity: 'BLOCK',\n      message: 'MassID hash missing — cannot verify uniqueness', field: 'hash' });\n  }\n  const existing = await ctx.carrotRegistry.findTokenByMassidHash(massid.hash);\n  if (existing) {\n    return ctx.fail({ ruleId: 'P-04', severity: 'BLOCK',\n      message: `TRC already issued for this MassID (token ${existing.tokenId})`,\n      field: 'hash' });\n  }\n  const localToken = await ctx.db.tokenRegistry.findFirst({ where: { massidHash: massid.hash }});\n  if (localToken) {\n    return ctx.fail({ ruleId: 'P-04', severity: 'BLOCK',\n      message: `TRC issuance in flight for this MassID (local token ${localToken.id})`,\n      field: 'hash' });\n  }\n  return ctx.pass({ ruleId: 'P-04' });\n}",
+      "purpose": "Bloqueia emissão de TRC duplicado para a mesma MassID. Um MassID só pode gerar UM Tokenized Recycling Credit ao longo de toda sua vida — qualquer tentativa de re-emissão (mesmo após retire/burn) é fraude por design. É o gate de unicidade core do sistema rede de registries. Sem P-04, o protocolo perde a propriedade fundamental de cada token corresponder a 1 kg específico e único de plástico reciclado.",
+      "logic_human": "BLOCK se já existir um TRC vinculado ao MassID.hash (consulta registry de destino). PASS se nenhum token foi emitido antes.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-04'>): Promise<RuleResult> {\n  const massid = ctx.input.massid;\n  if (!massid.hash) {\n    return ctx.fail({ ruleId: 'P-04', severity: 'BLOCK',\n      message: 'MassID hash missing — cannot verify uniqueness', field: 'hash' });\n  }\n  const existing = await ctx.targetRegistry.findTokenByMassidHash(massid.hash);\n  if (existing) {\n    return ctx.fail({ ruleId: 'P-04', severity: 'BLOCK',\n      message: `TRC already issued for this MassID (token ${existing.tokenId})`,\n      field: 'hash' });\n  }\n  const localToken = await ctx.db.tokenRegistry.findFirst({ where: { massidHash: massid.hash }});\n  if (localToken) {\n    return ctx.fail({ ruleId: 'P-04', severity: 'BLOCK',\n      message: `TRC issuance in flight for this MassID (local token ${localToken.id})`,\n      field: 'hash' });\n  }\n  return ctx.pass({ ruleId: 'P-04' });\n}",
       "fields": {
         "reads": [
           "MassID.hash",
@@ -484,7 +595,7 @@
         {
           "doc_type": "registry_metadata",
           "mandatory": false,
-          "when": "system-generated by Carrot"
+          "when": "system-generated by the registry"
         }
       ],
       "messages": {
@@ -493,28 +604,28 @@
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "BLOCK absoluto em PRE_CARROT_SUBMIT; gera evento bad_actor_candidate (cascateia para P-67); AuditLog com snapshot da MassID + token existente; notifica Compliance imediatamente.",
+        "on_fail": "BLOCK absoluto em PRE_REGISTRY_SUBMIT; gera evento bad_actor_candidate (cascateia para P-67); AuditLog com snapshot da MassID + token existente; notifica Compliance imediatamente.",
         "on_pass": "ValidationResult(passed=true); registra timestamp do check; continua pipeline de submissão.",
-        "revalidation": "Sempre roda em PRE_CARROT_SUBMIT (último gate antes do envio). Também roda em job 'p04-rescan' a cada 12h sobre MassIDs em READY_FOR_CARROT (detecta tokens emitidos por outra integração entre o check e o submit).",
+        "revalidation": "Sempre roda em PRE_REGISTRY_SUBMIT (último gate antes do envio). Também roda em job 'p04-rescan' a cada 12h sobre MassIDs em READY_FOR_REGISTRY (detecta tokens emitidos por outra integração entre o check e o submit).",
         "retry_window": "N/A — caso confirmado de duplicate é fraude. Falso positivo (token de teste, race condition) requer intervenção Compliance manual.",
         "escalation": "Re-tentativa do mesmo participant após BLOCK → flag bad actor; investigação Compliance + possível suspensão (§14).",
-        "performance": "Consulta Carrot registry é IO-bound (~100-300ms). Cachear resultado negativo por 1h. Lookup local em tokenRegistry indexado por massidHash."
+        "performance": "Consulta registry de destino é IO-bound (~100-300ms). Cachear resultado negativo por 1h. Lookup local em tokenRegistry indexado por massidHash."
       },
       "test_cases": {
         "positive": {
           "name": "MassID virgem sem token prévio",
-          "given": "MassID.hash único; carrotRegistry.findTokenByMassidHash retorna null; tokenRegistry local também vazio.",
+          "given": "MassID.hash único; targetRegistry.findTokenByMassidHash retorna null; tokenRegistry local também vazio.",
           "expected": "ValidationResult(passed=true, ruleId='P-04'). Submissão prossegue."
         },
         "negative": [
           {
-            "name": "Token já emitido na Carrot",
-            "given": "carrotRegistry retorna {tokenId: 'TRC-2026-1234'} para o hash.",
+            "name": "Token já emitido no registry",
+            "given": "targetRegistry retorna {tokenId: 'TRC-2026-1234'} para o hash.",
             "expected": "BLOCK 'TRC already issued for this MassID (token TRC-2026-1234)'. evento bad_actor_candidate emitido."
           },
           {
             "name": "Emissão local em flight",
-            "given": "Carrot retorna null mas tokenRegistry local tem registro pending.",
+            "given": "o registry retorna null mas tokenRegistry local tem registro pending.",
             "expected": "BLOCK 'TRC issuance in flight for this MassID (local token ...)'. Evita race condition."
           },
           {
@@ -525,7 +636,7 @@
         ]
       },
       "edge_cases": [
-        "Re-tentativa após Carrot retornar erro 5xx: re-tenta P-04 em backoff exponencial (3 tentativas) antes de declarar PASS.",
+        "Re-tentativa após o registry retornar erro 5xx: re-tenta P-04 em backoff exponencial (3 tentativas) antes de declarar PASS.",
         "Token retirado/burned ainda conta — não permite re-emissão (regra da metodologia §3.4.2).",
         "Race condition entre dois INTs submetendo a mesma MassID simultaneamente: o lock local em tokenRegistry resolve no caller que chegou primeiro.",
         "Hash chain rota: se MassID foi atualizado pós-cálculo do hash original, recalcular antes de checar (consultar P-65 FIFO custody integrity)."
@@ -535,7 +646,7 @@
           "BV-24",
           "BV-31"
         ],
-        "procedure": "Auditor seleciona sample de tokens emitidos no período, verifica para cada que o massidHash é único no Carrot registry global. Cross-reference com tokenRegistry local. Investiga qualquer duplicate como incidente.",
+        "procedure": "Auditor seleciona sample de tokens emitidos no período, verifica para cada que o massidHash é único no registry de destino global. Cross-reference com tokenRegistry local. Investiga qualquer duplicate como incidente.",
         "sample_size": "Full scan (todos tokens emitidos no período)",
         "frequency": "Monthly"
       },
@@ -569,7 +680,7 @@
       "source_type": "PURE/BOLD",
       "disposition": "Keep",
       "odoo_objects": [
-        "carrot_sync",
+        "registry_sync",
         "token_registry"
       ],
       "dmrv_output": "credit_uniqueness_valid",
@@ -589,7 +700,19 @@
       "trigger": {
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "PARTICIPANT_CREATE",
+            "phase": "POST_CREATE",
+            "purpose": "Garante que participants que ainda não geraram MassID já tenham aceite registrado."
+          },
+          {
+            "event": "TERMS_VERSION_PUBLISHED",
+            "phase": "POST_PUBLISH",
+            "purpose": "Quando Methodology publica nova versão major do termo, flag todos os participants que precisam re-aceitar."
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -604,9 +727,9 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Impede que o mesmo lote de massa de resíduo gere crédito em mais de um programa ambiental (Verra, Plastic Bank, Recyclass, PURE) — o pecado capital de qualquer mercado de créditos. Cada participant precisa ter assinado, em algum momento, o acordo de exclusividade da Carrot/PURE para esse fluxo específico de dados. Sem isso, abre porta para double-counting e perda imediata de credibilidade perante BV, EPR programs e buyers.",
-      "logic_human": "BLOCK se Participant.exclusivityFlag ≠ TRUE OU se contract_exclusivity_ack ausente. PASS caso contrário.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-05'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  if (!p?.exclusivityFlag) {\n    return ctx.fail({ ruleId: 'P-05', severity: 'BLOCK',\n      message: 'exclusivity_flag not TRUE', field: 'exclusivityFlag' });\n  }\n  const ack = await ctx.db.document.findOne({ where: {\n    participantId: p.id, type: 'contract_exclusivity_ack' } });\n  if (!ack) {\n    return ctx.fail({ ruleId: 'P-05', severity: 'BLOCK',\n      message: 'contract_exclusivity_ack missing', field: 'documents' });\n  }\n  return ctx.pass({ ruleId: 'P-05' });\n}",
+      "purpose": "Impede que o mesmo LOTE (MassID/underlying data) gere crédito em mais de um programa ambiental (Verra, Plastic Bank, Recyclass, PURE) — pecado capital de qualquer mercado de créditos. P-05 é o COMPROMISSO formal: cada participant assina termo declarando que cada lote submetido à PURE/registry não foi/será submetido a outro scheme. P-66 faz a VERIFICAÇÃO técnica (cross-check de hash). Sãoo complementares — P-05 = onboarding, P-66 = certificação. A exclusividade é POR-MASSA, não da operação inteira: um Recycler pode operar em múltiplos programas desde que cada lote individual seja exclusivo a um único scheme.",
+      "logic_human": "BLOCK em prod (FLAG em sandbox) se Participant.exclusivityFlag ≠ TRUE OR contract_exclusivity_ack ausente OR a aceitação não estava válida no momento do pickupAt do MassID (considera revokeEffectiveAt: revogação não é retroativa, lotes já submetidos permanecem exclusivos).",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-05'>): Promise<RuleResult> {\n  const p = ctx.participant;\n  const isProd = ctx.environment === 'production';\n  const sev: 'BLOCK' | 'FLAG' = isProd ? 'BLOCK' : 'FLAG';\n\n  if (!p.exclusivityFlag) {\n    return ctx.fail({ ruleId: 'P-05', severity: sev,\n      message: isProd ? 'Falta aceite de exclusividade.'\n                       : 'AVISO sandbox: falta aceite de exclusividade.',\n      field: 'participant.exclusivityFlag' });\n  }\n  const ack = await ctx.db.document.findOne({ where: {\n    type: 'contract_exclusivity_ack', participantId: p.id\n  }});\n  if (!ack) {\n    return ctx.fail({ ruleId: 'P-05', severity: sev,\n      message: 'contract_exclusivity_ack document missing',\n      field: 'documents.contract_exclusivity_ack' });\n  }\n\n  // Validar exclusividade no MOMENTO do pickup (não no now).\n  // Revogação não é retroativa: lotes submetidos antes de revokeEffectiveAt permanecem válidos.\n  const pickupAt = ctx.massId?.pickupAt ?? ctx.now;\n  if (pickupAt < ack.acceptedAt) {\n    return ctx.fail({ ruleId: 'P-05', severity: sev,\n      message: `Aceite assinado em ${ack.acceptedAt.toISOString()} é posterior ao pickup do lote (${pickupAt.toISOString()}). Lote anterior ao aceite.`,\n      field: 'contract_exclusivity_ack.acceptedAt' });\n  }\n  if (ack.revokeEffectiveAt && pickupAt >= ack.revokeEffectiveAt) {\n    return ctx.fail({ ruleId: 'P-05', severity: sev,\n      message: `Aceite revogado em ${ack.revokeEffectiveAt.toISOString()}. Lote pickup posterior à revogação.`,\n      field: 'contract_exclusivity_ack.revokeEffectiveAt' });\n  }\n\n  // Versionamento: re-aceite obrigatório se versão major do termo mudou.\n  const currentTermsMajor = ctx.config.currentTermsVersion.split('.')[0];\n  const ackMajor = ack.termsVersion.split('.')[0];\n  if (currentTermsMajor !== ackMajor) {\n    return ctx.fail({ ruleId: 'P-05', severity: sev,\n      message: `Termo atualizado para versão ${ctx.config.currentTermsVersion}. Re-aceite obrigatório.`,\n      field: 'contract_exclusivity_ack.termsVersion' });\n  }\n  return ctx.pass({ ruleId: 'P-05' });\n}",
       "fields": {
         "reads": [
           "Participant.id",
@@ -622,62 +745,138 @@
       "evidence": [
         {
           "doc_type": "contract_exclusivity_ack",
-          "mandatory": true
+          "mandatory": true,
+          "structure": {
+            "termsVersion": {
+              "type": "string",
+              "format": "semver",
+              "required": true,
+              "example": "1.2.0",
+              "note": "Mudança em version MAJOR exige re-aceite por todos."
+            },
+            "termsDocHash": {
+              "type": "string",
+              "format": "SHA-256",
+              "required": true,
+              "note": "Hash do PDF/HTML do termo no momento do aceite — imutabilidade."
+            },
+            "acceptedAt": {
+              "type": "timestamp",
+              "required": true
+            },
+            "acceptedBy": {
+              "type": "string",
+              "required": true,
+              "purpose": "Nome do signatário (pessoa que clicou aceitar)."
+            },
+            "acceptedByRole": {
+              "type": "string",
+              "required": true,
+              "example": "Diretor / CEO / Sócio"
+            },
+            "clientIp": {
+              "type": "string",
+              "required": true
+            },
+            "userAgent": {
+              "type": "string",
+              "required": true
+            },
+            "revokedAt": {
+              "type": "timestamp",
+              "required": false,
+              "note": "Timestamp da solicitação de revogação."
+            },
+            "revokeEffectiveAt": {
+              "type": "timestamp",
+              "required": false,
+              "note": "Data a partir da qual a revogação vale. NUNCA retroativo: lotes submetidos antes desta data permanecem exclusivos."
+            },
+            "revocationReason": {
+              "type": "string",
+              "required": false
+            }
+          }
         }
       ],
       "messages": {
-        "block_pt": "Falta o aceite de exclusividade de dados. O mesmo lote de massa de resíduo não pode ser reportado em outro programa de créditos ambientais. Assine o termo de exclusividade Carrot/PURE antes de participar.",
-        "block_en": "Data exclusivity acknowledgement missing. The same waste mass cannot be reported to another environmental credit scheme. Sign the Carrot/PURE exclusivity acknowledgement before participating."
+        "block_pt": "Falta o aceite de exclusividade de dados ou o termo foi atualizado. O mesmo lote não pode ser reportado em outro programa de créditos. Assine o termo de exclusividade registry/PURE antes de continuar. Revogação só vale pra lotes futuros — submissões anteriores permanecem exclusivas.",
+        "block_en": "Data exclusivity acknowledgement missing or terms updated. The same batch cannot be reported to another credits program. Sign the registry/PURE exclusivity terms before continuing. Revocation only affects future batches — prior submissions remain exclusive.",
+        "flag_sandbox_pt": "AVISO sandbox: aceite de exclusividade ausente/expirado. Em produção isso bloqueia.",
+        "flag_sandbox_en": "Sandbox warning: exclusivity ack missing/expired. In production this blocks."
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "Bloqueia onboarding e ingest. Mensagem ao usuário com link direto para aceite digital do termo. AuditLog. Notifica Compliance.",
-        "on_pass": "Continua pipeline silenciosamente.",
-        "revalidation": "Re-roda em cada renovação anual (vide P-66). Re-roda se exclusivityFlag for revogado manualmente por Compliance.",
-        "retry_window": "Aceite imediato via UI; revalidação automática após aceite.",
-        "escalation": "Sem aceite após 30 dias do convite → exclusão da rede (§14 timeout).",
-        "performance": "O(1) lookup."
+        "environment_aware": true,
+        "environment_severity_map": {
+          "production": "BLOCK",
+          "sandbox": "FLAG"
+        },
+        "on_fail": "Em prod: bloqueia MASSID_INGEST + escreve AuditLog com snapshot. Em sandbox: flag visível, pipeline segue.",
+        "on_pass": "Pipeline continua; ack hash entra no audit pack pra BV/Recyclass/registry.",
+        "revalidation": "Re-roda em PARTICIPANT_UPDATE (exclusivityFlag/revokeEffectiveAt change), MASSID_INGEST como gate final, e quando Methodology publica nova versão MAJOR do termo (TERMS_VERSION_PUBLISHED).",
+        "retry_window": "Imediato (re-aceite via UI gera novo ack record).",
+        "escalation": "Se exclusivityFlag permanece false por > 30 dias após cadastro, qualquer MassID associado fica em fila de revisão Compliance.",
+        "performance": "Lookup Document por participantId + type indexado. Timestamp comparison O(1).",
+        "non_retroactive_revocation": "Princípio fundamental: revogação NÃO é retroativa. Validação usa pickupAt do MassID, não now(). Lotes já submetidos antes de revokeEffectiveAt permanecem exclusivos o registry/PURE pra sempre. Decisão Rodrigo 02/jun: 'massas já enviadas para nossa base nao existe revogação'."
       },
       "test_cases": {
         "positive": {
-          "name": "Aceite válido com termo assinado",
-          "given": "Participant.exclusivityFlag = TRUE AND existe Document type='contract_exclusivity_ack' com signature válida e exclusivityAcceptedAt definido.",
-          "expected": "ValidationResult(passed=true)."
+          "name": "Aceite válido, pickup posterior ao aceite",
+          "given": "participant.exclusivityFlag=true, ack existe com termsVersion=1.2.0, acceptedAt=2026-01-15, sem revokeEffectiveAt; massId.pickupAt=2026-06-01.",
+          "expected": "PASS."
         },
         "negative": [
           {
-            "name": "exclusivityFlag = FALSE",
-            "given": "Participant nunca aceitou termo (flag default false).",
-            "expected": "BLOCK com message 'exclusivity_flag not TRUE'."
+            "name": "exclusivityFlag false em prod",
+            "given": "exclusivityFlag=false, environment=production",
+            "expected": "BLOCK 'Falta aceite de exclusividade'."
           },
           {
-            "name": "exclusivityFlag = TRUE mas documento ausente",
-            "given": "Flag flipped manualmente mas nenhum Document do tipo correto existe.",
-            "expected": "BLOCK com message 'contract_exclusivity_ack missing'."
+            "name": "Aceite revogado antes do pickup",
+            "given": "ack.revokeEffectiveAt=2026-05-01, massId.pickupAt=2026-06-01",
+            "expected": "BLOCK 'Aceite revogado em 2026-05-01. Lote pickup posterior à revogação.'"
           },
           {
-            "name": "Aceite revogado",
-            "given": "Participant.exclusivityFlag = TRUE → flipped para FALSE após disputa.",
-            "expected": "BLOCK; MassIDs subsequentes não passam; MassIDs já certificados antes não retroagem (regra runtime)."
+            "name": "Revogação NÃO bloqueia lote anterior (princípio non-retroactive)",
+            "given": "ack.revokeEffectiveAt=2026-06-01, massId.pickupAt=2026-05-15",
+            "expected": "PASS — revogação só vale a partir de 2026-06-01; pickup é anterior."
+          },
+          {
+            "name": "Pickup anterior ao aceite",
+            "given": "ack.acceptedAt=2026-06-01, massId.pickupAt=2026-05-01",
+            "expected": "BLOCK 'Aceite posterior ao pickup do lote.'"
+          },
+          {
+            "name": "Versão MAJOR mudou (precisa re-aceitar)",
+            "given": "ack.termsVersion=1.x.y mas config.currentTermsVersion=2.0.0",
+            "expected": "BLOCK 'Termo atualizado para versão 2.0.0. Re-aceite obrigatório.'"
+          },
+          {
+            "name": "Sandbox com aceite ausente",
+            "given": "exclusivityFlag=false, environment=sandbox",
+            "expected": "FLAG (não bloqueia) com aviso de que prod bloquearia."
           }
         ]
       },
       "edge_cases": [
-        "Renovação anual (P-66) re-aciona esta regra; expiração silenciosa não está coberta aqui — fica em P-66.",
-        "Aceite por procuração legal exige Document type='power_of_attorney' adicional (extensão futura).",
-        "Re-onboarding: se Participant foi excluído e re-admitido, exclusivityFlag deve ser re-aceito.",
-        "Esta regra NÃO checa se o lote específico já foi reivindicado em outro programa — isso é responsabilidade da P-66 (anti double counting check)."
+        "Revogação parcial (revogar pra um stream específico, manter pra outro): NÃO suportado v1. Revogação é all-or-nothing por participant. Refinement futuro se demanda surgir.",
+        "Bump de versão MINOR (ex: 1.2 → 1.3) NÃO exige re-aceite — só MAJOR (1.x → 2.0). Permite correções pequenas sem fricção pro usuário.",
+        "Re-aceite após revogação: gera NOVO ack record (não atualiza o anterior). Auditor BV vê histórico cronológico completo.",
+        "Hash do termo: armazena hash do documento no momento do aceite (PDF/HTML servido pra usuário). Se termo for atualizado depois, hash continua provando o que foi aceito."
       ],
       "bv_verification": {
-        "bv_controls": [],
-        "procedure": "Auditor verifica documento contract_exclusivity_ack para cada Participant da chain do sample. Confirma hash, assinatura, data, e que cláusula de exclusividade está presente. Cross-check com lista pública de outros registries (quando disponível).",
-        "sample_size": "100% Participants na chain do sample auditado",
+        "bv_controls": [
+          "EXCLUSIVITY-01"
+        ],
+        "procedure": "Auditor seleciona sample de Participants ativos + sample de MassIDs e verifica: (a) cada Participant ativo tem contract_exclusivity_ack válido, (b) hash do termo aceito bate com a versão arquivada, (c) MassIDs cujo pickupAt > acceptedAt e < revokeEffectiveAt (se aplicável), (d) revogações registradas não foram aplicadas retroativamente.",
+        "sample_size": "Sample 30 participants + 50 MassIDs",
         "frequency": "Quarterly"
       },
       "related": [
+        "P-03",
         "P-66",
-        "PG-02",
-        "BV-28"
+        "PG-02"
       ],
       "references": [
         {
@@ -692,6 +891,15 @@
           "source": "PURE_METHODOLOGY_JUN2025",
           "section": "§5.1",
           "quote": "Carrot's Terms & Conditions"
+        },
+        {
+          "source": "PURE_METHODOLOGY_JUN2025",
+          "section": "§3.4.2 (interpretação)",
+          "quote": "Underlying data must not be submitted to another environmental crediting scheme — interpretado como por-MASSA, não por-participant"
+        },
+        {
+          "source": "OTHER",
+          "section": "Onda 1 Aprovação Rodrigo (02/jun) — exclusividade non-retroactive"
         }
       ],
       "methodology_quote": "Participants cannot request other certifications using the same data submitted to the Carrot Network.",
@@ -706,10 +914,17 @@
       "dmrv_output": "governance_valid",
       "domain": "Eligibility",
       "subdomain": "Exclusivity",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-02",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "event_ids": [
+        "E0",
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-06",
@@ -863,7 +1078,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Garante que toda massa registrada no MassID está em quilogramas. Outras unidades (libras, toneladas, gramas) quebram cálculos downstream de yield, plausibilidade e payload Carrot — que assumem kg como base. É um gate trivial mas crítico: silent unit mismatch é uma das classes de bug mais perigosas em sistemas de medição, pois nenhuma camada acima detecta o erro até a auditoria BV recalcular e bater inconsistente.",
+      "purpose": "Garante que toda massa registrada no MassID está em quilogramas. Outras unidades (libras, toneladas, gramas) quebram cálculos downstream de yield, plausibilidade e payload do registry — que assumem kg como base. É um gate trivial mas crítico: silent unit mismatch é uma das classes de bug mais perigosas em sistemas de medição, pois nenhuma camada acima detecta o erro até a auditoria BV recalcular e bater inconsistente.",
       "logic_human": "BLOCK se MassID.uom ≠ 'kg' (case-sensitive). PASS caso contrário.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-07'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  if (!massid) {\n    return ctx.fail({ ruleId: 'P-07', severity: 'BLOCK',\n      message: 'MassID not found', field: 'massidId' });\n  }\n  const uom = massid.uom;\n  if (uom == null || String(uom).trim() === '') {\n    return ctx.fail({ ruleId: 'P-07', severity: 'BLOCK',\n      message: 'Unit of measure (uom) is required',\n      field: 'uom' });\n  }\n  if (uom !== 'kg') {\n    return ctx.fail({ ruleId: 'P-07', severity: 'BLOCK',\n      message: `Unit of measure must be 'kg', got '${uom}'`,\n      field: 'uom' });\n  }\n  return ctx.pass({ ruleId: 'P-07' });\n}",
       "fields": {
@@ -1235,7 +1450,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Exige que cada MassID declare explicitamente o waste stream (single polymer, mixed, composite, byproduct, residual) e a origin class (residential, commercial, industrial, marine). Sem esta classificação, regras downstream (P-13 composite, P-14 mixed, P-15 adjustment factor, P-17 hazard) não sabem qual fluxo aplicar — silent default vira falso-positivo. A classificação também alimenta payload Carrot e relatórios de impact por stream.",
+      "purpose": "Exige que cada MassID declare explicitamente o waste stream (single polymer, mixed, composite, byproduct, residual) e a origin class (residential, commercial, industrial, marine). Sem esta classificação, regras downstream (P-13 composite, P-14 mixed, P-15 adjustment factor, P-17 hazard) não sabem qual fluxo aplicar — silent default vira falso-positivo. A classificação também alimenta payload do registry e relatórios de impact por stream.",
       "logic_human": "BLOCK se MassID.streamClass for NULL/blank OR MassID.originClass for NULL/blank. PASS caso contrário.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-10'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  const required = ['streamClass', 'originClass'];\n  const missing = required.filter(f => !massid[f] || String(massid[f]).trim() === '');\n  if (missing.length) {\n    return ctx.fail({ ruleId: 'P-10', severity: 'BLOCK',\n      message: `Waste stream classification missing fields: ${missing.join(', ')}`,\n      field: missing[0] });\n  }\n  const STREAM_VALUES = ['single_polymer','mixed','composite','byproduct','residual'];\n  const ORIGIN_VALUES = ['residential','commercial','industrial','marine','open_dump'];\n  if (!STREAM_VALUES.includes(massid.streamClass)) {\n    return ctx.fail({ ruleId: 'P-10', severity: 'BLOCK',\n      message: `streamClass '${massid.streamClass}' not in approved enum`,\n      field: 'streamClass' });\n  }\n  if (!ORIGIN_VALUES.includes(massid.originClass)) {\n    return ctx.fail({ ruleId: 'P-10', severity: 'BLOCK',\n      message: `originClass '${massid.originClass}' not in approved enum`,\n      field: 'originClass' });\n  }\n  return ctx.pass({ ruleId: 'P-10' });\n}",
       "fields": {
@@ -2174,7 +2389,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Exclui MassIDs contaminados com substâncias tóxicas/perigosas, a menos que tenham passado por método de descontaminação padronizado e aprovado. Plástico perigoso vira passivo regulatório (EU WSR / Basel B3011) e fora do escopo PURE. Sem este gate, créditos seriam emitidos sobre material que legalmente não deveria ser reciclado — risco de revogação massiva pela Carrot Network e BV.",
+      "purpose": "Exclui MassIDs contaminados com substâncias tóxicas/perigosas, a menos que tenham passado por método de descontaminação padronizado e aprovado. Plástico perigoso vira passivo regulatório (EU WSR / Basel B3011) e fora do escopo PURE. Sem este gate, créditos seriam emitidos sobre material que legalmente não deveria ser reciclado — risco de revogação massiva pela rede de registries e BV.",
       "logic_human": "BLOCK se MassID.hazardFlag=TRUE AND (decontaminationMethod ausente OR decontaminationApproved=FALSE). PASS caso contrário.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-17'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  if (massid.hazardFlag !== true) {\n    return ctx.pass({ ruleId: 'P-17' });\n  }\n  const method = massid.decontaminationMethod;\n  if (method == null || String(method).trim() === '') {\n    return ctx.fail({ ruleId: 'P-17', severity: 'BLOCK',\n      message: 'Hazardous MassID requires declared decontamination method',\n      field: 'decontaminationMethod' });\n  }\n  const approval = await ctx.db.document.findFirst({\n    where: { massidId: massid.id, type: 'decontamination_approval' }\n  });\n  if (!approval) {\n    return ctx.fail({ ruleId: 'P-17', severity: 'BLOCK',\n      message: 'decontamination_approval document missing',\n      field: 'documents' });\n  }\n  return ctx.pass({ ruleId: 'P-17' });\n}",
       "fields": {
@@ -8004,7 +8219,7 @@
       },
       "evidence": [
         {
-          "doc_type": "carrot_submission_payload",
+          "doc_type": "registry_submission_payload",
           "mandatory": true
         }
       ],
@@ -8343,14 +8558,29 @@
     },
     {
       "id": "P-66",
-      "title": "No conflicting environmental credit claim",
+      "title": "No conflicting environmental credit claim (reactive enforcement)",
       "pillar": "PURE",
       "cluster": "KYC_GOVERNANCE",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-avalia quando Compliance atualiza external_claim_check.reviewStatus."
+          },
+          {
+            "event": "DOCUMENT_CREATE",
+            "phase": "POST_CREATE",
+            "conditions": [
+              "doc.type == 'external_claim_check'"
+            ],
+            "purpose": "Dispara quando Compliance cria/adiciona o flag manual."
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -8365,9 +8595,9 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Detecta double-counting cruzando o hash do MassID/payload com registries externos antes de emitir o TRC. Enquanto P-05 garante o ACEITE de exclusividade, P-66 verifica EM RUNTIME se o aceite está sendo honrado. Se a mesma massa apareceu em outro scheme, mesmo com aceite assinado, o credit é bloqueado e o participant é flagged como Bad Actor (P-67).",
-      "logic_human": "BLOCK se external_claim_flag = TRUE para o MassID (detectado via cross-check com registries conhecidos). PASS se flag = FALSE ou NULL (default seguro).",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-66'>): Promise<RuleResult> {\n  const massid = ctx.input.massid;\n  const externalCheck = await ctx.externalRegistry.checkClaim({\n    massidHash: massid.hash,\n    payloadHash: massid.payloadHash,\n    scopes: ['VERRA', 'PLASTICBANK', 'RECYCLASS_TRACE', 'OTHER']\n  });\n  if (externalCheck.flag === true) {\n    await ctx.db.massid.update({ where: { id: massid.id },\n      data: { externalClaimFlag: true, exceptionState: 'PENDING_REVIEW' } });\n    await ctx.eventBus.emit('bad_actor_candidate', { massidId: massid.id, source: externalCheck.source });\n    return ctx.fail({ ruleId: 'P-66', severity: 'BLOCK',\n      message: `Conflicting claim detected at ${externalCheck.source}`, field: 'externalClaimFlag' });\n  }\n  return ctx.pass({ ruleId: 'P-66' });\n}",
+      "purpose": "Enforcement reativo de double-counting. Não fazemos cross-check ativo com outros registries (Verra, Plastic Bank, Recyclass) porque (a) não temos integração e (b) o próprio registry não faz isso em pre-validation. Quando Compliance descobre double-counting via denúncia, auditoria BV, ou Recyclass audit, marca external_claim_flag = TRUE no MassID. Regra bloqueia retroativamente esse MassID e dispara P-67 que propaga FLAG (revisão manual) pra TODOS os MassIDs do mesmo participant — defesa em profundidade: quem cometeu uma vez provavelmente cometeu outras. Duplicata interna de hash já é coberta real-time por P-63 (no cross-check ativo necessário aqui).",
+      "logic_human": "BLOCK em prod (FLAG em sandbox) se external_claim_check.reviewStatus = 'confirmed' OR external_claim_flag = TRUE. PASS se flag ausente, false, OR reviewStatus = 'false_positive'.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-66'>): Promise<RuleResult> {\n  const isProd = ctx.environment === 'production';\n  const sev: 'BLOCK' | 'FLAG' = isProd ? 'BLOCK' : 'FLAG';\n\n  const claim = await ctx.db.document.findOne({ where: {\n    type: 'external_claim_check', massIdId: ctx.massId.id\n  }});\n\n  // Default seguro: sem flag = passa.\n  if (!claim || claim.reviewStatus === 'false_positive') {\n    return ctx.pass({ ruleId: 'P-66' });\n  }\n\n  if (claim.reviewStatus === 'confirmed') {\n    // Bloqueia MassID atual.\n    const result = ctx.fail({ ruleId: 'P-66', severity: sev,\n      message: `Double-counting confirmado (source: ${claim.flagSource}, by: ${claim.reviewedBy})`,\n      field: 'external_claim_check.reviewStatus' });\n\n    // Dispara P-67 (Bad Actor propagation) — FLAG todos os MassIDs do mesmo participant.\n    await ctx.dispatchRule({\n      ruleId: 'P-67',\n      participantId: ctx.massId.participantId,\n      reason: `P-66 confirmed double-counting (MassID ${ctx.massId.id})`,\n      scope: 'ALL_FROM_SAME_PARTICIPANT'\n    });\n    return result;\n  }\n\n  // reviewStatus = 'pending': aguarda decisão Compliance. Não bloqueia ainda.\n  return ctx.flag({ ruleId: 'P-66', severity: 'FLAG',\n    message: 'External claim em revisão pelo Compliance. Aguardando decisão.',\n    field: 'external_claim_check.reviewStatus' });\n}",
       "fields": {
         "reads": [
           "MassID.hash",
@@ -8383,65 +8613,131 @@
       "evidence": [
         {
           "doc_type": "external_claim_check",
-          "mandatory": true,
-          "when": "system-generated"
+          "mandatory": false,
+          "note": "System-generated quando Compliance ou auditor marca o MassID. Ausência = PASS (default seguro).",
+          "structure": {
+            "massIdHash": {
+              "type": "string",
+              "format": "SHA-256",
+              "required": true
+            },
+            "flaggedAt": {
+              "type": "timestamp",
+              "required": true
+            },
+            "flagSource": {
+              "type": "enum",
+              "values": [
+                "compliance_manual",
+                "auditor_finding",
+                "external_complaint",
+                "internal_hash_collision"
+              ],
+              "required": true
+            },
+            "evidence": {
+              "type": "string",
+              "required": true,
+              "purpose": "Texto/link descrevendo onde a duplicata foi encontrada — ID externo, screenshot, citação de relatório."
+            },
+            "flaggedBy": {
+              "type": "string",
+              "required": true,
+              "purpose": "userId do Compliance ou 'system' se automático."
+            },
+            "reviewStatus": {
+              "type": "enum",
+              "values": [
+                "pending",
+                "confirmed",
+                "false_positive"
+              ],
+              "required": true,
+              "default": "pending"
+            },
+            "reviewedBy": {
+              "type": "string",
+              "required": false,
+              "purpose": "Quem confirmou ou marcou como falso positivo."
+            },
+            "reviewedAt": {
+              "type": "timestamp",
+              "required": false
+            }
+          }
         }
       ],
       "messages": {
-        "block_pt": "Esta MassID foi detectada em outro registry ambiental. Crédito bloqueado e participante associado vai entrar em revisão. Se acreditar que é um falso positivo, abra ticket com a Compliance.",
-        "block_en": "This MassID was detected in another environmental registry. Credit blocked and associated participant will enter review. If you believe this is a false positive, open a ticket with Compliance."
+        "block_pt": "Esta MassID foi confirmada como reportada em outro registry ambiental. Crédito bloqueado. Todos os outros lotes do participante entram em revisão (P-67). Se acreditar que é falso positivo, abra ticket com a Compliance.",
+        "block_en": "This MassID is confirmed as reported in another environmental registry. Credit blocked. All other batches from this participant enter review (P-67). If you believe this is a false positive, open a ticket with Compliance.",
+        "flag_sandbox_pt": "AVISO sandbox: external claim flag confirmado. Em produção bloquearia.",
+        "flag_sandbox_en": "Sandbox warning: external claim flag confirmed. In production this blocks.",
+        "flag_pending_pt": "External claim em revisão pelo Compliance. Crédito em espera até decisão.",
+        "flag_pending_en": "External claim under Compliance review. Credit on hold pending decision."
       },
       "behavior": {
-        "idempotent": false,
-        "on_fail": "Marca MassID.externalClaimFlag=true e exceptionState='PENDING_REVIEW'; emite evento bad_actor_candidate (cascateia para P-67); bloqueia PRE_CARROT_SUBMIT; AuditLog; notifica Compliance.",
-        "on_pass": "Atualiza external_claim_check.lastChecked; continua pipeline.",
-        "revalidation": "Re-roda a cada 24h em background (job 'p66-rescan') sobre MassIDs em READY_FOR_CARROT; re-roda imediatamente em PRE_CARROT_SUBMIT.",
-        "retry_window": "Não há retry automático — falso positivo requer ticket Compliance e reclassificação manual.",
-        "escalation": "Confirmação de double-counting → P-67 propaga para participants da chain → §14 (penalidades).",
-        "performance": "External registry check é IO-bound; cachear 24h por (massidHash, scope). Batch para listas grandes."
+        "idempotent": true,
+        "environment_aware": true,
+        "environment_severity_map": {
+          "production": "BLOCK",
+          "sandbox": "FLAG"
+        },
+        "on_fail": "Bloqueia MassID atual em prod (flag em sandbox). DISPARA P-67 automaticamente pra propagar revisão a TODOS os MassIDs do mesmo participant. AuditLog detalhado com evidência da Compliance.",
+        "on_pass": "Default — passa silenciosamente. Maioria absoluta das ingestões cai aqui.",
+        "revalidation": "Re-roda automaticamente quando Compliance atualiza reviewStatus (pending → confirmed → false_positive). Se Compliance reverte pra false_positive, MassID volta a ser válido e P-67 propagation é desfeita.",
+        "retry_window": "Não tem retry pelo participant — só Compliance pode revisar a flag.",
+        "escalation": "Confirmação dispara P-67 (FLAG, não BLOCK) que coloca TODOS os MassIDs do participant em fila de revisão Compliance. Defesa em profundidade — quem cometeu uma vez tem alta probabilidade de ter cometido mais vezes. Compliance revisa caso a caso.",
+        "performance": "Lookup Document por massIdId + type indexado, O(1).",
+        "not_active_cross_check": "DECISÃO 02/jun: NÃO fazemos cross-check ativo com registries externos (Verra, Plastic Bank, Recyclass). Sem integração técnica + o registry de destino também não faz pre-validation. P-66 é reactive — ativado por descoberta manual via denúncia/auditoria. Duplicata real-time de hash dentro da própria base é coberta por P-63."
       },
       "test_cases": {
         "positive": {
-          "name": "Sem claim conflitante",
-          "given": "external_claim_check.flag = FALSE para todos scopes verificados.",
-          "expected": "PASS."
+          "name": "MassID sem external claim",
+          "given": "Nenhum external_claim_check existe pra este MassID.",
+          "expected": "PASS (default seguro)."
         },
         "negative": [
           {
-            "name": "Claim detectado em Verra",
-            "given": "externalCheck retorna {flag: true, source: 'VERRA'} para o massidHash.",
-            "expected": "BLOCK; MassID.externalClaimFlag=true; exceptionState='PENDING_REVIEW'; evento bad_actor_candidate emitido."
+            "name": "Confirmed em prod — bloqueia + propaga P-67",
+            "given": "external_claim_check existe, reviewStatus='confirmed', flagSource='auditor_finding', environment=production.",
+            "expected": "BLOCK 'Double-counting confirmado'. P-67 dispara FLAG em todos os MassIDs do participant."
           },
           {
-            "name": "Registry externo offline",
-            "given": "externalCheck retorna {flag: null, error: 'timeout'} (não conseguiu checar).",
-            "expected": "Comportamento configurável: default = FLAG (severidade reduzida) + retry em 1h; estrito = BLOCK preventivo. Decisão de produto."
+            "name": "Pending — flag mas não bloqueia",
+            "given": "external_claim_check existe, reviewStatus='pending'.",
+            "expected": "FLAG 'External claim em revisão'. MassID em espera até Compliance decidir."
           },
           {
-            "name": "Hash match parcial",
-            "given": "payloadHash bate com outro registry mas massidHash não.",
-            "expected": "FLAG (ambíguo) + manual_review = true; envia para Compliance investigar."
+            "name": "False positive — passa",
+            "given": "external_claim_check existe, reviewStatus='false_positive'.",
+            "expected": "PASS. Compliance liberou."
+          },
+          {
+            "name": "Confirmed em sandbox",
+            "given": "reviewStatus='confirmed', environment='sandbox'.",
+            "expected": "FLAG (não bloqueia em sandbox)."
           }
         ]
       },
       "edge_cases": [
-        "Registry externo pode ter latência de dias — falso negativo é possível mas mitigado pelo rescan 24h.",
-        "Cross-jurisdiction: claim válido em ETS europeu ≠ double-counting com Carrot — manter whitelist de scopes compatíveis.",
-        "Cross-credit-type: PURE (plastic) vs TCC (carbon) podem coexistir se PURE estiver retirado (§12 metodologia)."
+        "Revisão Compliance reverter de 'confirmed' pra 'false_positive': revalidação automática desbloqueia MassID e desfaz P-67 propagation (volta status dos demais MassIDs).",
+        "flagSource='internal_hash_collision' é deixado como opção mas P-63 já cobre real-time. Reservado pra casos onde duplicata é descoberta via análise heurística futura.",
+        "Múltiplas flags pro mesmo MassID (Compliance e auditor marcam separadamente): consolida em um único external_claim_check; histórico vai pra AuditLog.",
+        "P-67 cascata em loop: se P-67 disparado pra MassID já com P-67 ativo, idempotente — não duplica entries."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-28"
+          "EXCLUSIVITY-02"
         ],
-        "procedure": "Auditor revisa external_claim_check records para sample de 30 MassIDs do período. Confirma que (a) check foi executado, (b) resultado registrado, (c) MassIDs com flag=true foram bloqueadas, (d) propagação para P-67 ocorreu.",
-        "sample_size": "Sample 30 MassIDs",
-        "frequency": "Quarterly"
+        "procedure": "Auditor verifica: (a) processo de Compliance pra criar external_claim_check está documentado, (b) MassIDs com reviewStatus=confirmed estão de fato bloqueados, (c) P-67 propagation aconteceu para todos os MassIDs do participant afetado, (d) trilha de auditoria registra quem marcou e quando.",
+        "sample_size": "100% dos external_claim_check existentes (geralmente baixo volume)",
+        "frequency": "Quarterly + ad-hoc quando incidente reportado"
       },
       "related": [
         "P-05",
+        "P-63",
         "P-67",
-        "PG-02",
-        "BV-28"
+        "PG-02"
       ],
       "references": [
         {
@@ -8451,6 +8747,10 @@
         {
           "source": "PURE_METHODOLOGY_JUN2025",
           "section": "§3.4.2"
+        },
+        {
+          "source": "OTHER",
+          "section": "Onda 1 Aprovação Rodrigo (02/jun) — reactive enforcement, sem cross-check ativo, propagação automática P-67"
         }
       ],
       "methodology_quote": "If such activities are discovered, the participant will be penalized, along with, potentially, all of those who are associated with the bad actor.",
@@ -8466,10 +8766,16 @@
       "dmrv_output": "quality_valid",
       "domain": "Quality",
       "subdomain": "External Credit Claim",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-02",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-67",
@@ -8612,14 +8918,26 @@
     },
     {
       "id": "PG-01",
-      "title": "KYC field completeness",
+      "title": "KYC field format and semantic validation",
       "pillar": "PURE_GAP",
       "cluster": "KYC_GOVERNANCE",
       "severity": "BLOCK",
       "trigger": {
-        "event": "PARTICIPANT_ONBOARDING",
-        "phase": "PRE_VALIDATION",
-        "conditions": []
+        "event": "PARTICIPANT_CREATE",
+        "phase": "POST_CREATE",
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Revalida formato se qualquer campo do kyc_kyb_record mudar."
+          },
+          {
+            "event": "MASSID_INGEST",
+            "phase": "PRE_VALIDATION",
+            "purpose": "Gate final antes de qualquer operação — garante que dados ainda são válidos."
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -8634,20 +8952,16 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Refina P-03 (que só checa flag binária kycStatus=complete) com os campos individuais que a metodologia PURE §5.1.1 exige verbatim: nome completo, mobile, birthdate, email, endereço residencial para PF; razão social, registro empresarial, endereço comercial para PJ. Sem essa granularidade, BV vai apontar que 'KYC complete' não significa nada auditável. Quando esta regra entrar em produção, P-03 passa a ser sanity check superficial.",
-      "logic_human": "BLOCK se qualquer campo individual mandatório estiver vazio/nulo. Para PF: kycFullName, kycMobile, kycBirthdate, kycEmail, kycResidentialAddress. Para PJ: companyLegalName, companyRegistration, companyAddress + os campos PF do representante legal.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-01'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  const requiredIndiv = ['kycFullName', 'kycMobile', 'kycBirthdate', 'kycEmail', 'kycResidentialAddress'];\n  const missing = requiredIndiv.filter(f => !p?.[f] || String(p[f]).trim() === '');\n  if (missing.length > 0) {\n    return ctx.fail({ ruleId: 'PG-01', severity: 'BLOCK',\n      message: `KYC fields missing: ${missing.join(', ')}`, field: missing[0] });\n  }\n  if (p.participantType === 'business' || p.participantType === 'INT') {\n    const reqBiz = ['companyLegalName', 'companyRegistration', 'companyAddress'];\n    const missingBiz = reqBiz.filter(f => !p?.[f]);\n    if (missingBiz.length > 0) {\n      return ctx.fail({ ruleId: 'PG-01', severity: 'BLOCK',\n        message: `Business KYB fields missing: ${missingBiz.join(', ')}`, field: missingBiz[0] });\n    }\n  }\n  return ctx.pass({ ruleId: 'PG-01' });\n}",
+      "purpose": "Complementa P-03 (que garante presença do kyc_kyb_record com estrutura mínima) validando FORMATO e SEMÂNTICA de cada campo individual. P-03 confirma que existe — PG-01 confirma que faz sentido. Sem isso, BV/auditor pode encontrar 'taxId = 12345' ou 'email = blank@.', dados inválidos que P-03 sozinho não pega. Validações: email RFC-compliant, mobile E.164, birthdate sanity (≥18 e ≤120 anos), taxId checksum por jurisdição (CPF mod-11, CNPJ mod-11, EU VAT por país). Decisão Rodrigo 02/jun (opção C): mantém PG-01 separada como camada de qualidade de dados.",
+      "logic_human": "BLOCK em prod (FLAG em sandbox) se qualquer campo do kyc_kyb_record falhar em validação de formato: email não tem RFC structure, mobile não está em E.164, birthdate fora de [18, 120] anos, taxId não passa checksum da jurisdição. SKIP se P-03 falhou (record ausente — sem o que validar).",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-01'>): Promise<RuleResult> {\n  const isProd = ctx.environment === 'production';\n  const sev: 'BLOCK' | 'FLAG' = isProd ? 'BLOCK' : 'FLAG';\n\n  const rec = await ctx.db.document.findOne({ where: {\n    type: 'kyc_kyb_record', participantId: ctx.participant.id\n  }});\n  // SKIP se P-03 já bloqueou — não tem o que validar.\n  if (!rec) return ctx.skip({ ruleId: 'PG-01', reason: 'P-03 deve passar antes' });\n\n  const errors: { field: string; reason: string }[] = [];\n\n  // 1. Email — RFC 5322 simplificada\n  if (rec.email && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(rec.email)) {\n    errors.push({ field: 'email', reason: `formato inválido: \"${rec.email}\"` });\n  }\n\n  // 2. Mobile — E.164 (international format)\n  if (rec.mobile && !/^\\+?[1-9]\\d{1,14}$/.test(rec.mobile.replace(/[\\s-()]/g, ''))) {\n    errors.push({ field: 'mobile', reason: `não é E.164: \"${rec.mobile}\"` });\n  }\n\n  // 3. Birthdate — sanity check (18 ≤ idade ≤ 120)\n  if (rec.birthdate) {\n    const age = computeAge(rec.birthdate, ctx.now);\n    if (age < 18) errors.push({ field: 'birthdate', reason: `menor de 18 anos (${age})` });\n    if (age > 120) errors.push({ field: 'birthdate', reason: `idade implausível (${age})` });\n  }\n\n  // 4. taxId — checksum por jurisdição\n  if (rec.taxId && rec.taxIdJurisdiction) {\n    const valid = await ctx.validators.taxId.check(rec.taxId, rec.taxIdJurisdiction);\n    if (!valid) errors.push({\n      field: 'taxId', reason: `checksum inválido pra ${rec.taxIdJurisdiction}: \"${rec.taxId}\"`\n    });\n  }\n\n  if (errors.length > 0) {\n    return ctx.fail({\n      ruleId: 'PG-01', severity: sev,\n      message: `KYC com formato inválido: ${errors.map(e => e.field).join(', ')}`,\n      field: 'kyc_kyb_record', metadata: { errors }\n    });\n  }\n  return ctx.pass({ ruleId: 'PG-01' });\n}",
       "fields": {
         "reads": [
-          "Participant.participantType",
-          "Participant.kycFullName",
-          "Participant.kycMobile",
-          "Participant.kycBirthdate",
-          "Participant.kycEmail",
-          "Participant.kycResidentialAddress",
-          "Participant.companyLegalName",
-          "Participant.companyRegistration",
-          "Participant.companyAddress"
+          "kyc_kyb_record.email",
+          "kyc_kyb_record.mobile",
+          "kyc_kyb_record.birthdate",
+          "kyc_kyb_record.taxId",
+          "kyc_kyb_record.taxIdJurisdiction"
         ],
         "writes": [
           "ValidationResult"
@@ -8656,65 +8970,88 @@
       "evidence": [
         {
           "doc_type": "kyc_kyb_record",
-          "mandatory": true
+          "mandatory": true,
+          "note": "Mesmo doc validado por P-03. PG-01 SKIPa se ausente (P-03 já bloqueou)."
         }
       ],
       "messages": {
-        "block_pt": "KYC incompleto. Faltam campos obrigatórios: {fields}. Complete o cadastro antes de prosseguir.",
-        "block_en": "KYC incomplete. Required fields missing: {fields}. Complete the registration before continuing."
+        "block_pt": "Cadastro KYC com campos em formato inválido: {fields}. Corrija e salve novamente.",
+        "block_en": "KYC fields have invalid format: {fields}. Fix and save again.",
+        "flag_sandbox_pt": "AVISO sandbox: campos KYC com formato inválido ({fields}). Em produção bloquearia.",
+        "flag_sandbox_en": "Sandbox warning: KYC fields with invalid format ({fields}). In production this blocks."
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "Bloqueia onboarding e MASSID_INGEST; mensagem lista os campos faltantes; loga em AuditLog; UI direciona para form de complete.",
-        "on_pass": "Silencioso.",
-        "revalidation": "Re-roda em todo update de Participant (campos KYC) e em todo MASSID_INGEST.",
-        "retry_window": "Imediato. Quando o user completa os campos, MassIDs em fila revalidam.",
-        "escalation": "30 dias sem completar → exclusão (§14).",
-        "performance": "Lookup O(1)."
+        "environment_aware": true,
+        "environment_severity_map": {
+          "production": "BLOCK",
+          "sandbox": "FLAG"
+        },
+        "on_fail": "Bloqueia operação em prod; UI mostra lista de campos com erro (não só mensagem genérica).",
+        "on_pass": "Pipeline continua; dados validados podem entrar em integrações downstream.",
+        "revalidation": "Re-roda em qualquer PARTICIPANT_UPDATE que toque os campos validados. Em MASSID_INGEST como gate final.",
+        "retry_window": "Imediato (usuário corrige no form).",
+        "escalation": "Sem escalation automática — falha é fix-on-the-spot pelo usuário.",
+        "performance": "Validators síncronos exceto EU-VAT (VIES é HTTP — usar cache 24h + timeout 2s + fallback gracioso).",
+        "skip_if_p03_fails": "Se P-03 falhou (record ausente), PG-01 SKIPa silenciosamente — usuário vê P-03 primeiro."
       },
       "test_cases": {
         "positive": {
-          "name": "PF completo com todos campos",
-          "given": "Participant pessoa física com kycFullName, kycMobile, kycBirthdate, kycEmail, kycResidentialAddress todos preenchidos.",
+          "name": "Todos os campos com formato válido",
+          "given": "email='ana@msm.mt', mobile='+35699123456', birthdate='1988-05-20', taxId='12345678901' (CPF válido), jurisdiction='BR'",
           "expected": "PASS."
         },
         "negative": [
           {
-            "name": "PF sem kycMobile",
-            "given": "Participant PF com kycMobile = null.",
-            "expected": "BLOCK com message 'KYC fields missing: kycMobile' e field='kycMobile'."
+            "name": "Email inválido",
+            "given": "email='ana@msm' (sem TLD)",
+            "expected": "BLOCK 'KYC com formato inválido: email'."
           },
           {
-            "name": "PJ sem companyRegistration",
-            "given": "participantType='business' com companyRegistration vazio.",
-            "expected": "BLOCK com message 'Business KYB fields missing: companyRegistration'."
+            "name": "Mobile não E.164",
+            "given": "mobile='12345' (muito curto)",
+            "expected": "BLOCK 'mobile não é E.164'."
           },
           {
-            "name": "Múltiplos campos faltantes",
-            "given": "PF sem kycBirthdate e sem kycEmail.",
-            "expected": "BLOCK com message listando ambos: 'KYC fields missing: kycBirthdate, kycEmail'."
+            "name": "Birthdate menor de 18",
+            "given": "birthdate calculando age=17",
+            "expected": "BLOCK 'menor de 18 anos (17)'."
+          },
+          {
+            "name": "CPF com checksum inválido",
+            "given": "taxId='11111111111', jurisdiction='BR-CPF'",
+            "expected": "BLOCK 'checksum inválido pra BR-CPF'."
+          },
+          {
+            "name": "Record ausente (P-03 não passou)",
+            "given": "kyc_kyb_record não existe.",
+            "expected": "SKIP (sem o que validar — usuário vê P-03 primeiro)."
+          },
+          {
+            "name": "EU-VAT inválido com VIES timeout",
+            "given": "taxId='IT12345678901', VIES retorna timeout.",
+            "expected": "Comportamento gracioso: passa com WARN no log (não bloqueia por infra externa). Compliance revisa offline."
           }
         ]
       },
       "edge_cases": [
-        "kycBirthdate de menor de idade gera FLAG adicional (delegado para PG-15 labor compliance).",
-        "Address sem CEP: validação de formato fica fora desta regra (delega para layer de input validation Zod).",
-        "INT recebe a checagem PJ obrigatoriamente + representante legal PF.",
-        "Migração de dados legados: Participants criados antes desta regra ganham status='LEGACY_NEEDS_REFRESH' e bloqueiam até completarem; mensagem específica."
+        "VIES (validador EU-VAT) é HTTP externo — cache 24h e fallback gracioso evita que VIES down bloqueie ingestão.",
+        "Birthdate exótico (118-120 anos): passa mas escreve WARN log + Compliance pode revisar.",
+        "taxIdJurisdiction='PASSPORT': sem checksum específico — só valida que é alfanumérico 6-20 chars.",
+        "Idade calculada usa now() do contexto (não Date.now()) pra determinismo nos testes.",
+        "Campos opcionais (sem regulação obrigatória pra preenchimento) só validam SE preenchidos. Vazio = SKIP do campo."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-03"
+          "KYC-02"
         ],
-        "procedure": "Auditor seleciona sample 30 Participants, verifica que cada um tem TODOS os campos individuais preenchidos no Participant model e que estão consistentes com o kyc_kyb_record document anexado.",
-        "sample_size": "Sample 30 participants",
-        "frequency": "Quarterly"
+        "procedure": "Auditor amostra Participants ativos e re-executa validações dos campos KYC com algoritmos públicos: valida regex email, formato E.164 do mobile, idade plausível, e checksum do taxId pela jurisdição. Espera 100% match com resultado armazenado em ValidationResult.",
+        "sample_size": "Sample 50 participants",
+        "frequency": "Semi-annual"
       },
       "related": [
         "P-03",
-        "PG-09",
-        "PG-15",
-        "PG-16",
+        "PG-02",
         "BV-03"
       ],
       "references": [
@@ -8725,6 +9062,14 @@
         {
           "source": "PURE_METHODOLOGY_JUN2025",
           "section": "§5.1.1"
+        },
+        {
+          "source": "OTHER",
+          "section": "Decisão Rodrigo 02/jun (opção C — separar presence de format/semantic validation)"
+        },
+        {
+          "source": "OTHER",
+          "section": "RFC 5322 (email), ITU-T E.164 (telefone), VIES (EU VAT)"
         }
       ],
       "methodology_quote": "All Participants must provide: full name, mobile number, birthdate, email, residential address.",
@@ -8737,21 +9082,84 @@
       "dmrv_output": "",
       "domain": "KYC / Identity",
       "subdomain": "",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-02",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "validators": {
+        "email": {
+          "type": "regex",
+          "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+          "note": "RFC 5322 simplificado. Não valida MX record (overkill MVP)."
+        },
+        "mobile": {
+          "type": "regex",
+          "pattern": "^\\+?[1-9]\\d{1,14}$",
+          "note": "E.164 international format após strip de espaços/hífens/parênteses. Validação de DDD/country code não obrigatória."
+        },
+        "birthdate": {
+          "type": "range",
+          "min_age": 18,
+          "max_age": 120,
+          "note": "Plausibilidade básica. Idades exóticas (ex: 119) entram com WARN no log mas passam."
+        },
+        "taxId": {
+          "type": "jurisdiction_specific_checksum",
+          "supported": [
+            "BR-CPF",
+            "BR-CNPJ",
+            "EU-VAT",
+            "PASSPORT"
+          ],
+          "fallback": "PASSPORT — apenas formato (alfanumérico, 6-20 chars). Sem checksum pra documento estrangeiro arbitrário.",
+          "providers": [
+            {
+              "name": "BR-CPF",
+              "algorithm": "mod-11 brasileiro"
+            },
+            {
+              "name": "BR-CNPJ",
+              "algorithm": "mod-11 com pesos brasileiro"
+            },
+            {
+              "name": "EU-VAT",
+              "algorithm": "VIES validation per país (DE/IT/FR/MT/ES/PT/etc.)"
+            }
+          ]
+        }
+      },
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Rejeição",
+      "rule_type": "Estrutura"
     },
     {
       "id": "PG-02",
-      "title": "T&C and data-rights acceptance",
+      "title": "T&C and data-rights acceptance — chain-wide check",
       "pillar": "PURE_GAP",
       "cluster": "KYC_GOVERNANCE",
       "severity": "BLOCK",
       "trigger": {
-        "event": "PARTICIPANT_ONBOARDING",
+        "event": "PRE_REGISTRY_SUBMIT",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "doc.type == 'participant_consent_record'"
+            ],
+            "purpose": "Revalida MassIDs pendentes quando alguém da chain re-aceita ou revoga."
+          },
+          {
+            "event": "TERMS_VERSION_PUBLISHED",
+            "phase": "POST_PUBLISH",
+            "purpose": "Quando Methodology publica nova versão MAJOR do termo, marca toda chain pra re-aceite."
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -8766,9 +9174,9 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Enforça que TODOS os Participants da chain do MassID aceitaram formalmente o Carrot Terms & Conditions e o Data Rights agreement antes da emissão de TRC. PG-02 vai além de P-05 (que é aceite estático no onboarding) — esta regra checa o estado vivo no momento PRE_CARROT_SUBMIT, garantindo que ninguém revogou o aceite no meio do caminho. Sem isso, Carrot pode receber payload com participant que tecnicamente não está mais consentindo.",
-      "logic_human": "BLOCK PRE_CARROT_SUBMIT se ANY participant em MassID.chain tem tcAcceptanceFlag != TRUE OR dataRightsAckFlag != TRUE.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-02'>): Promise<RuleResult> {\n  const chain = await ctx.db.getChainParticipants(ctx.input.massidId);\n  const issues = [];\n  for (const p of chain) {\n    if (p.tcAcceptanceFlag !== true) issues.push({ pid: p.id, field: 'tcAcceptanceFlag' });\n    if (p.dataRightsAckFlag !== true) issues.push({ pid: p.id, field: 'dataRightsAckFlag' });\n  }\n  if (issues.length > 0) {\n    return ctx.fail({ ruleId: 'PG-02', severity: 'BLOCK',\n      message: `T&C or data-rights missing for ${issues.length} participants`,\n      field: 'chain.participants' });\n  }\n  return ctx.pass({ ruleId: 'PG-02' });\n}",
+      "purpose": "Enforça que TODOS os Participants da chain do MassID (Generator, Hauler, Recycler, Processor, INT) têm aceite vivo de T&C + Data Rights no momento da submissão ao registry. P-05 valida o participant individual no onboarding/ingestão; PG-02 valida a chain inteira em PRE_REGISTRY_SUBMIT — captura casos onde participants intermediários revogaram entre ingestão e submissão. Sem isso, o registry pode receber payload com elo da chain que não está mais consentindo, expondo o programa a violação de Terms / GDPR / LGPD.",
+      "logic_human": "BLOCK em prod (FLAG em sandbox) no momento PRE_REGISTRY_SUBMIT se QUALQUER participant em MassID.chain tem participant_consent_record ausente OR (tcAcceptance ou dataRightsAck) revogado antes do pickupAt do MassID OR termsVersion MAJOR desatualizado. PASS se TODA a chain está com aceite vivo válido no momento do pickup.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-02'>): Promise<RuleResult> {\n  const isProd = ctx.environment === 'production';\n  const sev: 'BLOCK' | 'FLAG' = isProd ? 'BLOCK' : 'FLAG';\n  const pickupAt = ctx.massId.pickupAt;\n  const pending: { participantId: string; missing: string[] }[] = [];\n\n  for (const link of ctx.massId.chain) {\n    const consent = await ctx.db.document.findOne({ where: {\n      type: 'participant_consent_record', participantId: link.participantId\n    }});\n    const missing: string[] = [];\n    if (!consent) {\n      missing.push('participant_consent_record_missing');\n    } else {\n      // Cada bundle (tc, dataRights) é revogável independentemente.\n      for (const bundle of ['tcAcceptance', 'dataRightsAck'] as const) {\n        const b = consent[bundle];\n        if (!b) { missing.push(`${bundle}_missing`); continue; }\n        // Versão MAJOR desatualizada → re-aceite obrigatório.\n        const curMajor = ctx.config.currentTermsVersion[bundle].split('.')[0];\n        const ackMajor = b.termsVersion.split('.')[0];\n        if (curMajor !== ackMajor) {\n          missing.push(`${bundle}_major_outdated`);\n          continue;\n        }\n        // Non-retroactive revocation: pickup anterior à revogação é OK.\n        if (pickupAt < b.acceptedAt) {\n          missing.push(`${bundle}_accepted_after_pickup`);\n        }\n        if (b.revokeEffectiveAt && pickupAt >= b.revokeEffectiveAt) {\n          missing.push(`${bundle}_revoked_before_pickup`);\n        }\n      }\n    }\n    if (missing.length > 0) pending.push({ participantId: link.participantId, missing });\n  }\n\n  if (pending.length > 0) {\n    return ctx.fail({\n      ruleId: 'PG-02', severity: sev,\n      message: `${pending.length} participantes da cadeia sem aceite vivo válido.`,\n      field: 'massId.chain.participants.consent',\n      metadata: { pending }\n    });\n  }\n  return ctx.pass({ ruleId: 'PG-02' });\n}",
       "fields": {
         "reads": [
           "Participant.tcAcceptanceFlag",
@@ -8782,64 +9190,194 @@
       },
       "evidence": [
         {
-          "doc_type": "contract_exclusivity_ack",
+          "doc_type": "participant_consent_record",
           "mandatory": true,
-          "when": "tc_aml_dataRights bundle"
+          "note": "Substitui contract_exclusivity_ack (deprecated). Bundle compartilhado entre P-05 (exclusivity), PG-02 (T&C + DataRights), PG-03 (AML).",
+          "structure": {
+            "participantId": {
+              "type": "FK",
+              "ref": "Participant",
+              "required": true
+            },
+            "tcAcceptance": {
+              "type": "object",
+              "required": true,
+              "fields": {
+                "termsVersion": {
+                  "type": "string",
+                  "format": "semver"
+                },
+                "termsDocHash": {
+                  "type": "string",
+                  "format": "SHA-256"
+                },
+                "acceptedAt": {
+                  "type": "timestamp"
+                },
+                "acceptedBy": {
+                  "type": "string"
+                },
+                "acceptedByRole": {
+                  "type": "string"
+                },
+                "revokedAt": {
+                  "type": "timestamp",
+                  "required": false
+                },
+                "revokeEffectiveAt": {
+                  "type": "timestamp",
+                  "required": false
+                },
+                "revocationReason": {
+                  "type": "string",
+                  "required": false
+                }
+              }
+            },
+            "dataRightsAck": {
+              "type": "object",
+              "required": true,
+              "fields": {
+                "termsVersion": {
+                  "type": "string",
+                  "format": "semver"
+                },
+                "termsDocHash": {
+                  "type": "string",
+                  "format": "SHA-256"
+                },
+                "acceptedAt": {
+                  "type": "timestamp"
+                },
+                "acceptedBy": {
+                  "type": "string"
+                },
+                "scope": {
+                  "type": "array",
+                  "items": "string",
+                  "examples": [
+                    "GDPR",
+                    "LGPD",
+                    "PIPEDA"
+                  ]
+                },
+                "revokedAt": {
+                  "type": "timestamp",
+                  "required": false
+                },
+                "revokeEffectiveAt": {
+                  "type": "timestamp",
+                  "required": false
+                },
+                "revocationReason": {
+                  "type": "string",
+                  "required": false
+                }
+              }
+            },
+            "exclusivityAck": {
+              "type": "object",
+              "required": true,
+              "note": "Estrutura definida em P-05 — referenciada aqui pra completude do bundle."
+            },
+            "amlAck": {
+              "type": "object",
+              "required": true,
+              "note": "Estrutura a definir em PG-03 (próxima regra)."
+            },
+            "clientIp": {
+              "type": "string",
+              "required": true,
+              "purpose": "Captado no momento de cada aceite."
+            },
+            "userAgent": {
+              "type": "string",
+              "required": true
+            }
+          }
         }
       ],
       "messages": {
-        "block_pt": "{n} participantes da cadeia ainda não aceitaram os Termos da Carrot ou os direitos sobre os dados. Solicite o aceite antes de emitir o crédito.",
-        "block_en": "{n} chain participants have not yet accepted Carrot's Terms or the data-rights agreement. Request acceptance before issuing the credit."
+        "block_pt": "{n} participantes da cadeia ainda não aceitaram os Termos do registry ou os direitos sobre os dados, ou revogaram antes do pickup desta massa. Solicite o aceite antes de submeter o crédito.",
+        "block_en": "{n} chain participants have not accepted the registry's Terms or data-rights, or revoked before this batch's pickup. Request acceptance before submitting the credit.",
+        "flag_sandbox_pt": "AVISO sandbox: aceite chain incompleto. Em produção bloquearia.",
+        "flag_sandbox_en": "Sandbox warning: chain acceptance incomplete. In production this blocks."
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "Bloqueia PRE_CARROT_SUBMIT; lista participants pendentes; envia notificação automática para cada um com link de aceite digital; AuditLog.",
-        "on_pass": "Continua pipeline; registra timestamp da última verificação.",
-        "revalidation": "Re-roda PRE_CARROT_SUBMIT (sempre) + monthly job 'pg02-rescan' que detecta revogações de aceite e marca MassIDs futuras dependentes.",
-        "retry_window": "Aceite imediato via UI; revalidação após.",
-        "escalation": "30 dias sem aceite → participant excluído da chain (§14); MassIDs dependentes vão para review queue.",
-        "performance": "Batch lookup via getChainParticipants (single query)."
+        "environment_aware": true,
+        "environment_severity_map": {
+          "production": "BLOCK",
+          "sandbox": "FLAG"
+        },
+        "on_fail": "Bloqueia PRE_REGISTRY_SUBMIT em prod (flag em sandbox); lista participants pendentes com motivo específico por bundle (tc_missing, dataRights_revoked_before_pickup, etc); envia notificação automática a cada participant pendente com link de aceite/re-aceite via DocumentLinkService.",
+        "on_pass": "Pipeline continua; bundle hashes entram no audit pack pra BV/Recyclass/registry.",
+        "revalidation": "Re-roda em qualquer DOCUMENT_UPDATE no participant_consent_record. Em PRE_REGISTRY_SUBMIT como gate final. Quando Methodology publica nova versão MAJOR de qualquer bundle, flag todos MassIDs em fila.",
+        "retry_window": "Imediato (re-aceite via UI gera novo entry no bundle correspondente).",
+        "escalation": "Se chain incompleta por > 30 dias, MassID entra em fila Compliance pra decisão (drop ou wait).",
+        "performance": "Lookup Document por participantId + type indexado; chain length tipicamente 3-5 elos. Total O(chain_size). Sem chamadas externas.",
+        "non_retroactive_revocation": "Consistente com P-05: validação usa pickupAt do MassID. Revogação posterior ao pickup NÃO bloqueia o MassID. Cada bundle (tc, dataRights, exclusivity, aml) é revogável INDEPENDENTEMENTE — revogar dataRights não revoga exclusivity automaticamente.",
+        "bundle_independence": "Decisão Rodrigo 02/jun: revogação independente. Recycler pode revogar dataRights pra GDPR sem revogar exclusivity ao registry. Cada bundle tem seu próprio revokeEffectiveAt."
       },
       "test_cases": {
         "positive": {
-          "name": "Toda chain com aceite válido",
-          "given": "MassID.chain = [G1, H1, R1]; cada um com tcAcceptanceFlag=true AND dataRightsAckFlag=true.",
+          "name": "Chain completa com aceite vivo",
+          "given": "Chain de 4 participants, todos com participant_consent_record contendo tcAcceptance + dataRightsAck vivos, termsVersion=major1, pickup posterior a ambos acceptedAt, sem revokeEffectiveAt.",
           "expected": "PASS."
         },
         "negative": [
           {
-            "name": "Generator sem aceite T&C",
-            "given": "G1.tcAcceptanceFlag = false.",
-            "expected": "BLOCK com message 'T&C or data-rights missing for 1 participants'."
+            "name": "1 participant sem consent record",
+            "given": "Chain de 4; um Hauler sem participant_consent_record.",
+            "expected": "BLOCK '1 participantes da cadeia sem aceite vivo válido' com metadata { pending: [{ participantId, missing: [participant_consent_record_missing] }] }."
           },
           {
-            "name": "Múltiplos participants pendentes",
-            "given": "G1 sem T&C, R1 sem dataRights.",
-            "expected": "BLOCK; lista interna de 2 issues; mensagem agrega contagem."
+            "name": "Participant revogou dataRights antes do pickup",
+            "given": "Recycler com dataRightsAck.revokeEffectiveAt=2026-05-01; massId.pickupAt=2026-05-15.",
+            "expected": "BLOCK com missing=[dataRightsAck_revoked_before_pickup]."
           },
           {
-            "name": "Aceite revogado após onboarding",
-            "given": "Participant aceitou em t0, revogou em t1; MassID submetida em t2.",
-            "expected": "BLOCK; revalidação detectou estado atual."
+            "name": "Revogação posterior ao pickup — passa (non-retroactive)",
+            "given": "Recycler com dataRightsAck.revokeEffectiveAt=2026-06-01; massId.pickupAt=2026-05-15.",
+            "expected": "PASS — revogação só vale pra pickups futuros."
+          },
+          {
+            "name": "Revogação independente — tc revogado mas dataRights vivo",
+            "given": "Hauler com tcAcceptance.revokeEffectiveAt=2026-05-01 (antes pickup); dataRightsAck vivo. Pickup=2026-06-01.",
+            "expected": "BLOCK 1 participante (tcAcceptance_revoked_before_pickup) — bundle independence: dataRights vivo não compensa tc revogado."
+          },
+          {
+            "name": "Versão MAJOR desatualizada",
+            "given": "Generator com tcAcceptance.termsVersion=1.5.0; config.currentTermsVersion.tcAcceptance=2.0.0.",
+            "expected": "BLOCK missing=[tcAcceptance_major_outdated]."
+          },
+          {
+            "name": "Sandbox com chain incompleta",
+            "given": "Chain sem aceite, environment=sandbox.",
+            "expected": "FLAG (não bloqueia)."
           }
         ]
       },
       "edge_cases": [
-        "Participant deletado da chain via correção manual (compliance) NÃO conta — regra ignora.",
-        "Aceite por bulk-onboarding (CSV import) precisa de signed=true por cada participant individualmente.",
-        "T&C version bump: se a versão T&C mudar, regra exige re-aceite (campo tcVersionAccepted)."
+        "INT não está na chain explícita do MassID (ele submete o payload). Verificação: PG-02 ITERA participants da chain estática (G/H/P/R/B) + o INT que faz a submissão (puxado de ctx.submitterId).",
+        "Brand Owner pode estar na chain mas não emitir/processar massa: PG-02 valida o aceite dele mesmo assim, porque ele é o off-taker do TRC.",
+        "Bundle parcial: se participant aceitou só tc mas não dataRights, falha só em dataRights. Mensagem lista bundles específicos.",
+        "Re-aceite após revogação gera NOVO entry no bundle, não atualiza o anterior — auditor vê histórico cronológico.",
+        "Chain enorme (10+ elos): performance é O(chain_size) — cada link 1 lookup indexed. Limite prático ~50."
       ],
       "bv_verification": {
-        "bv_controls": [],
-        "procedure": "Auditor revisa carrot_submission_payload de sample 30 MassIDs; para cada, verifica que TODOS participants da chain têm tcAcceptanceFlag/dataRightsAckFlag=true com timestamp e documento associado.",
-        "sample_size": "Sample 30 MassIDs",
-        "frequency": "Quarterly"
+        "bv_controls": [
+          "CONSENT-01"
+        ],
+        "procedure": "Auditor amostra MassIDs com status='SUBMITTED_TO_REGISTRY' e re-executa PG-02: confirma que cada elo da chain tem participant_consent_record com tcAcceptance + dataRightsAck válidos no pickupAt. Espera 100% match.",
+        "sample_size": "30 MassIDs submetidos",
+        "frequency": "Quarterly + ad-hoc se houver denúncia"
       },
       "related": [
+        "P-03",
         "P-05",
-        "P-66",
         "PG-03",
-        "PG-04",
+        "PG-15",
         "PG-16"
       ],
       "references": [
@@ -8854,6 +9392,14 @@
         {
           "source": "PURE_METHODOLOGY_JUN2025",
           "section": "§5.1.9"
+        },
+        {
+          "source": "GDPR_2016_679",
+          "section": "Art. 7 (Conditions for consent)"
+        },
+        {
+          "source": "OTHER",
+          "section": "Onda 1 Aprovação Rodrigo (02/jun) — bundle consolidado, revogação independente, non-retroactive"
         }
       ],
       "methodology_quote": "Participants cannot request other certifications.",
@@ -8866,10 +9412,17 @@
       "dmrv_output": "",
       "domain": "Governance / Legal",
       "subdomain": "",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-02",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E0",
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-03",
@@ -8895,7 +9448,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Anti-Money-Laundering / Combating the Financing of Terrorism. PURE §5.1.2 exige que cada participant reconheça que entender o uso da plataforma para lavagem de dinheiro ou financiamento de terrorismo é proibido. Em jurisdições com requisito formal (UE, Brasil pós-Lei 9613), o aceite vira BLOCK. Em outras, fica FLAG informativo enquanto o legal team da Carrot avança. Pode ser implementado como cláusula dentro do T&C de PG-02.",
+      "purpose": "Anti-Money-Laundering / Combating the Financing of Terrorism. PURE §5.1.2 exige que cada participant reconheça que entender o uso da plataforma para lavagem de dinheiro ou financiamento de terrorismo é proibido. Em jurisdições com requisito formal (UE, Brasil pós-Lei 9613), o aceite vira BLOCK. Em outras, fica FLAG informativo enquanto o legal team do registry avança. Pode ser implementado como cláusula dentro do T&C de PG-02.",
       "logic_human": "FLAG se amlCftAckFlag != TRUE em jurisdição padrão. BLOCK se a jurisdição do participant exigir formalmente AML (lista config jurisdiction_aml_strict).",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-03'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  const strictJurisdictions = ctx.config.get('jurisdiction_aml_strict'); // ['EU', 'BR', 'US', 'UK']\n  const isStrict = strictJurisdictions.includes(p.countryCode);\n  if (p.amlCftAckFlag !== true) {\n    const sev = isStrict ? 'BLOCK' : 'FLAG';\n    return ctx.fail({ ruleId: 'PG-03', severity: sev,\n      message: 'AML/CFT acknowledgement missing', field: 'amlCftAckFlag' });\n  }\n  return ctx.pass({ ruleId: 'PG-03' });\n}",
       "fields": {
@@ -8917,9 +9470,9 @@
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "Strict: bloqueia PRE_CARROT_SUBMIT. Non-strict: FLAG para review queue Compliance + permite prosseguir.",
+        "on_fail": "Strict: bloqueia PRE_REGISTRY_SUBMIT. Non-strict: FLAG para review queue Compliance + permite prosseguir.",
         "on_pass": "Silencioso.",
-        "revalidation": "Re-roda em update de Participant e em PRE_CARROT_SUBMIT.",
+        "revalidation": "Re-roda em update de Participant e em PRE_REGISTRY_SUBMIT.",
         "retry_window": "Imediato.",
         "escalation": "Não escalável automaticamente — Compliance decide caso a caso.",
         "performance": "Lookup config + Participant."
@@ -9065,13 +9618,13 @@
         ]
       },
       "edge_cases": [
-        "Wallet validation: EVM-compatible para Polygon (Carrot usa Polygon). Outras chains não cobertas.",
+        "Wallet validation: EVM-compatible para Polygon (o registry usa Polygon). Outras chains não cobertas.",
         "Multi-wallet por participant: regra checa wallet primary; secondary é informacional.",
         "Wallet do INT é diferente — INT recebe via API integration, não via wallet pessoal."
       ],
       "bv_verification": {
         "bv_controls": [],
-        "procedure": "Auditor verifica walletAddress para sample 30 participants; confirma formato EVM, presença em registry Carrot, ausência em ban list.",
+        "procedure": "Auditor verifica walletAddress para sample 30 participants; confirma formato EVM, presença em registry de destino, ausência em ban list.",
         "sample_size": "Sample 30 participants",
         "frequency": "Quarterly"
       },
@@ -9115,7 +9668,7 @@
       "cluster": "HOMOLOGATION_PARTICIPANT",
       "severity": "BLOCK",
       "trigger": {
-        "event": "PRE_CARROT_SUBMIT",
+        "event": "PRE_REGISTRY_SUBMIT",
         "phase": "POST_RECYCLING",
         "conditions": []
       },
@@ -9127,7 +9680,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "INT (Carrot Network Integrator) é a porta de entrada do dMRV no ecossistema Carrot — quem assina o submission payload é sempre um INT. PURE §7.1.2 exige homologation prévia do INT (data quality + security audit) antes de qualquer ingestão valer. Se INT não está homologado (status != active) ou expirou, todo o payload é inválido — Carrot não consegue auditar a origem técnica dos dados. PG-05 é o gate de governance MAIS upstream do pipeline pré-Carrot: precede todos os outros checks porque sem INT válido nada faz sentido downstream.",
+      "purpose": "INT (Network Integrator) é a porta de entrada do dMRV no ecossistema do registry — quem assina o submission payload é sempre um INT. PURE §7.1.2 exige homologation prévia do INT (data quality + security audit) antes de qualquer ingestão valer. Se INT não está homologado (status != active) ou expirou, todo o payload é inválido — o registry não consegue auditar a origem técnica dos dados. PG-05 é o gate de governance MAIS upstream do pipeline pré-submissão: precede todos os outros checks porque sem INT válido nada faz sentido downstream.",
       "logic_human": "BLOCK se Participant.participantType='INT' AND (intHomologationStatus != 'active' OR intHomologationExpiry < submissionDate OR intHomologationStatus IS NULL). PASS caso contrário.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-05'>): Promise<RuleResult> {\n  const int = await ctx.db.participant.findById(ctx.input.intId);\n  if (!int || int.participantType !== 'INT') {\n    return ctx.fail({ ruleId: 'PG-05', severity: 'BLOCK',\n      message: 'Submitting actor is not an INT', field: 'participantType' });\n  }\n  if (int.intHomologationStatus !== 'active') {\n    return ctx.fail({ ruleId: 'PG-05', severity: 'BLOCK',\n      message: `INT homologation not active (status=${int.intHomologationStatus ?? 'null'})`,\n      field: 'intHomologationStatus' });\n  }\n  if (!int.intHomologationExpiry || int.intHomologationExpiry < ctx.input.submissionDate) {\n    return ctx.fail({ ruleId: 'PG-05', severity: 'BLOCK',\n      message: `INT homologation expired on ${int.intHomologationExpiry?.toISOString() ?? 'never set'}`,\n      field: 'intHomologationExpiry' });\n  }\n  return ctx.pass({ ruleId: 'PG-05' });\n}",
       "fields": {
@@ -9150,15 +9703,15 @@
         }
       ],
       "messages": {
-        "block_pt": "INT submetendo este payload não tem homologation ativa ou está expirada. Renove a homologation com a Carrot antes de submeter MassIDs.",
-        "block_en": "Submitting INT does not have an active or non-expired homologation. Renew the INT homologation with Carrot before submitting MassIDs."
+        "block_pt": "INT submetendo este payload não tem homologation ativa ou está expirada. Renove a homologation no registry antes de submeter MassIDs.",
+        "block_en": "Submitting INT does not have an active or non-expired homologation. Renew the INT homologation with the registry before submitting MassIDs."
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "BLOCK absoluto: rejeita o payload PRE_CARROT_SUBMIT inteiro; AuditLog com intId, status e expiry; notifica Tech owner + Compliance owner; INT recebe notificação automática.",
+        "on_fail": "BLOCK absoluto: rejeita o payload PRE_REGISTRY_SUBMIT inteiro; AuditLog com intId, status e expiry; notifica Tech owner + Compliance owner; INT recebe notificação automática.",
         "on_pass": "Silencioso; continua pipeline de validation downstream.",
-        "revalidation": "Re-roda a cada PRE_CARROT_SUBMIT (sempre fresh check) + monthly job pg05-rescan que escaneia INTs próximos do vencimento.",
-        "retry_window": "Tipicamente semanas — re-homologation envolve audit Carrot.",
+        "revalidation": "Re-roda a cada PRE_REGISTRY_SUBMIT (sempre fresh check) + monthly job pg05-rescan que escaneia INTs próximos do vencimento.",
+        "retry_window": "Tipicamente semanas — re-homologation envolve audit do registry.",
         "escalation": "INT expirado > 30 dias → suspension flag, escalado para PG-12 (PoA propagation aos MassIDs órfãos).",
         "performance": "Lookup O(1) via index (intId). Cache TTL 15min."
       },
@@ -9195,7 +9748,7 @@
         "INT recém-homologado (status='active' mas effectiveFrom > submissionDate): tratar como inativo até a data efetiva.",
         "Re-homologation in-flight (status='under_review'): BLOCK; INT deve usar última homologation válida até aprovação.",
         "INT sub-processor (INT delegando para outro INT): cada um precisa de homologation própria — checar todos da chain.",
-        "Time-skew entre INT server e Carrot server: usar Carrot server time como autoritativo via ctx.now."
+        "Time-skew entre INT server e registry server: usar registry server time como autoritativo via ctx.now."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -9256,7 +9809,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "PURE §7.1.1 exige que cada Recycler declare e documente o landfill/open dump específico que serve de baseline contrafactual — onde o plástico iria se NÃO entrasse no programa Carrot. Esse dado alimenta cálculos de co-benefícios e environmental accounting (§12: avoided methane, avoided pollution). Sem baseline declarado, todo o cálculo de impacto é arbitrário. PG-06 também captura flaring flag (mitiga metano em landfills com queima ativa) e dispara evidência obrigatória quando baseline é open_dump (cenário alto risco — PG-17 complementa).",
+      "purpose": "PURE §7.1.1 exige que cada Recycler declare e documente o landfill/open dump específico que serve de baseline contrafactual — onde o plástico iria se NÃO entrasse no programa do registry. Esse dado alimenta cálculos de co-benefícios e environmental accounting (§12: avoided methane, avoided pollution). Sem baseline declarado, todo o cálculo de impacto é arbitrário. PG-06 também captura flaring flag (mitiga metano em landfills com queima ativa) e dispara evidência obrigatória quando baseline é open_dump (cenário alto risco — PG-17 complementa).",
       "logic_human": "BLOCK se Recycler.baselineFacilityName for blank OR baselineType for blank OR baselineType NOT IN ['landfill_no_flaring','landfill_with_flaring','open_dump','incinerator']. FLAG se baselineType='landfill_no_flaring' OR 'landfill_with_flaring' e baselineFlaringFlag IS NULL. BLOCK se baselineType='open_dump' e baselineEvidenceRef blank.",
       "logic_pseudocode": "const APPROVED_BASELINE = ['landfill_no_flaring', 'landfill_with_flaring', 'open_dump', 'incinerator'];\n\nasync function evaluate(ctx: RuleContext<'PG-06'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  if (p.participantType !== 'R') return ctx.skip({ reason: 'Only applies to Recyclers.' });\n  if (!p.baselineFacilityName || p.baselineFacilityName.trim() === '') {\n    return ctx.fail({ ruleId: 'PG-06', severity: 'BLOCK',\n      message: 'Baseline facility name missing', field: 'baselineFacilityName' });\n  }\n  if (!APPROVED_BASELINE.includes(p.baselineType)) {\n    return ctx.fail({ ruleId: 'PG-06', severity: 'BLOCK',\n      message: `baselineType invalid (${p.baselineType}). Approved: ${APPROVED_BASELINE.join(', ')}`,\n      field: 'baselineType' });\n  }\n  if (['landfill_no_flaring', 'landfill_with_flaring'].includes(p.baselineType) && p.baselineFlaringFlag == null) {\n    return ctx.fail({ ruleId: 'PG-06', severity: 'FLAG',\n      message: 'baselineFlaringFlag not declared for landfill baseline', field: 'baselineFlaringFlag' });\n  }\n  if (p.baselineType === 'open_dump' && !p.baselineEvidenceRef) {\n    return ctx.fail({ ruleId: 'PG-06', severity: 'BLOCK',\n      message: 'Open-dump baseline requires evidence ref', field: 'baselineEvidenceRef' });\n  }\n  return ctx.pass({ ruleId: 'PG-06' });\n}",
       "fields": {
@@ -10022,7 +10575,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "PURE §8.7 (Proof-of-Authority) define que Bad Actors podem ser temporariamente suspended ou permanently removed do Carrot Network. P-67 implementa bad-actor propagation para participants da supply chain (G, B, H, P, R), mas NÃO cobre INTs. PG-12 é o mirror INT-side: quando INT é flagged por intDataQualityFlag=TRUE ou intSecurityBreachFlag=TRUE, todos os MassIDs vinculados ao INT vão para EXCEPTION state e o INT.intHomologationStatus = 'suspended'. Audit log distingue falhas supply-chain (P-67) de falhas INT-side (PG-12). Recovery path: INT remedia e passa re-assessment.",
+      "purpose": "PURE §8.7 (Proof-of-Authority) define que Bad Actors podem ser temporariamente suspended ou permanently removed do rede de registries. P-67 implementa bad-actor propagation para participants da supply chain (G, B, H, P, R), mas NÃO cobre INTs. PG-12 é o mirror INT-side: quando INT é flagged por intDataQualityFlag=TRUE ou intSecurityBreachFlag=TRUE, todos os MassIDs vinculados ao INT vão para EXCEPTION state e o INT.intHomologationStatus = 'suspended'. Audit log distingue falhas supply-chain (P-67) de falhas INT-side (PG-12). Recovery path: INT remedia e passa re-assessment.",
       "logic_human": "BLOCK e move para EXCEPTION todos os MassIDs do INT se Participant.intDataQualityFlag=TRUE OR Participant.intSecurityBreachFlag=TRUE. Adicionalmente seta intHomologationStatus='suspended'.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-12'>): Promise<RuleResult> {\n  const int = await ctx.db.participant.findById(ctx.input.intId);\n  if (int.participantType !== 'INT') return ctx.skip({ reason: 'Only applies to INTs.' });\n  if (!int.intDataQualityFlag && !int.intSecurityBreachFlag) {\n    return ctx.pass({ ruleId: 'PG-12' });\n  }\n  const linkedMassIds = await ctx.db.massID.findMany({\n    where: { submittedByIntId: int.id, status: { notIn: ['EXCEPTION', 'RECYCLED'] } }\n  });\n  await ctx.db.massID.updateMany({\n    where: { id: { in: linkedMassIds.map(m => m.id) } },\n    data: { exceptionState: 'INT_POA_PROPAGATION' }\n  });\n  await ctx.db.participant.update({\n    where: { id: int.id },\n    data: { intHomologationStatus: 'suspended' }\n  });\n  return ctx.fail({ ruleId: 'PG-12', severity: 'BLOCK',\n    message: `INT flagged (dataQuality=${int.intDataQualityFlag}, securityBreach=${int.intSecurityBreachFlag}); ${linkedMassIds.length} MassIDs moved to EXCEPTION; INT suspended`,\n    field: 'intHomologationStatus' });\n}",
       "fields": {
@@ -10050,10 +10603,10 @@
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "BLOCK + mass mutation: marca todos os MassIDs ativos do INT como exceptionState='INT_POA_PROPAGATION'; muda intHomologationStatus='suspended'; AuditLog detalhado com count + reasons; notifica Carrot Ops + Compliance owner.",
+        "on_fail": "BLOCK + mass mutation: marca todos os MassIDs ativos do INT como exceptionState='INT_POA_PROPAGATION'; muda intHomologationStatus='suspended'; AuditLog detalhado com count + reasons; notifica registry Ops + Compliance owner.",
         "on_pass": "Silencioso.",
         "revalidation": "Re-roda a cada toggle de intDataQualityFlag/intSecurityBreachFlag e em MASSID_INGEST. Recovery: Ops marca flags=false + intHomologationStatus='active' após re-assessment → MassIDs em EXCEPTION ficam para review individual.",
-        "retry_window": "Recovery é processo manual Carrot — pode levar semanas.",
+        "retry_window": "Recovery é processo manual do registry — pode levar semanas.",
         "escalation": "Reincidência (segundo flag em 12 meses) → permanent removal do INT.",
         "performance": "Bulk update transactional; index em (submittedByIntId, status)."
       },
@@ -10130,7 +10683,7 @@
       "cluster": "RECYCLER_OUTCOME",
       "severity": "BLOCK",
       "trigger": {
-        "event": "PRE_CARROT_SUBMIT",
+        "event": "PRE_REGISTRY_SUBMIT",
         "phase": "POST_RECYCLING",
         "conditions": []
       },
@@ -10160,9 +10713,9 @@
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "BLOCK PRE_CARROT_SUBMIT; MassID fica em estado INELIGIBLE_STALE; AuditLog; INT recebe rejection com lower bound atual.",
+        "on_fail": "BLOCK PRE_REGISTRY_SUBMIT; MassID fica em estado INELIGIBLE_STALE; AuditLog; INT recebe rejection com lower bound atual.",
         "on_pass": "Silencioso; continua pipeline.",
-        "revalidation": "Re-roda em cada PRE_CARROT_SUBMIT (lower bound é dinâmico, recalculado em runtime). Job auto-update em Jan 1.",
+        "revalidation": "Re-roda em cada PRE_REGISTRY_SUBMIT (lower bound é dinâmico, recalculado em runtime). Job auto-update em Jan 1.",
         "retry_window": "N/A — MassID stale não fica elegível novamente; INT precisa reprocessar via path histórico (se aplicável).",
         "escalation": "Quantidade alta de stale submissions → suspeita de back-dating intencional → Compliance review.",
         "performance": "O(1) date comparison."
@@ -10513,7 +11066,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "PURE §5.1.7 + GDPR (UE 2016/679) exigem que TODOS os participants reconheçam compliance com data privacy. Para INTs (que processam personal data de Waste Generators), exigência adicional de Data Processing Agreement (DPA) assinado com a Carrot. Sem DPA, INT está em violação direta da GDPR — expõe Carrot a multas até 4% do revenue global. PG-16 é o gate mais sensível em risco regulatório EU.",
+      "purpose": "PURE §5.1.7 + GDPR (UE 2016/679) exigem que TODOS os participants reconheçam compliance com data privacy. Para INTs (que processam personal data de Waste Generators), exigência adicional de Data Processing Agreement (DPA) assinado com o registry. Sem DPA, INT está em violação direta da GDPR — expõe o registry a multas até 4% do revenue global. PG-16 é o gate mais sensível em risco regulatório EU.",
       "logic_human": "FLAG se dataPrivacyAckFlag != TRUE. BLOCK se participantType=INT AND dpaRef ausente.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-16'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  if (p.dataPrivacyAckFlag !== true) {\n    return ctx.fail({ ruleId: 'PG-16', severity: 'FLAG',\n      message: 'Data privacy acknowledgement missing', field: 'dataPrivacyAckFlag' });\n  }\n  if (p.participantType === 'INT' && !p.dpaRef) {\n    return ctx.fail({ ruleId: 'PG-16', severity: 'BLOCK',\n      message: 'DPA (Data Processing Agreement) missing for INT', field: 'dpaRef' });\n  }\n  return ctx.pass({ ruleId: 'PG-16' });\n}",
       "fields": {
@@ -10535,14 +11088,14 @@
         }
       ],
       "messages": {
-        "block_pt": "INT precisa de Data Processing Agreement (DPA) assinado com a Carrot antes de processar dados de Waste Generators. Anexe o DPA para prosseguir.",
-        "block_en": "INT requires a Data Processing Agreement (DPA) signed with Carrot before processing Waste Generator personal data. Attach the DPA to proceed.",
+        "block_pt": "INT precisa de Data Processing Agreement (DPA) assinado com o registry antes de processar dados de Waste Generators. Anexe o DPA para prosseguir.",
+        "block_en": "INT requires a Data Processing Agreement (DPA) signed with the registry before processing Waste Generator personal data. Attach the DPA to proceed.",
         "flag_pt": "Aceite de privacidade de dados pendente. Confirme para reforçar compliance GDPR.",
         "flag_en": "Data privacy acknowledgement pending. Confirm to strengthen GDPR compliance."
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "INT sem DPA: bloqueia toda submissão de dados via API Carrot. Outros sem ack: FLAG.",
+        "on_fail": "INT sem DPA: bloqueia toda submissão de dados via API do registry. Outros sem ack: FLAG.",
         "on_pass": "Silencioso.",
         "revalidation": "Anual (renewal). Re-roda quando DPA versão é atualizada.",
         "retry_window": "Aceite UI imediato; DPA via legal team (pode levar semanas).",
@@ -10808,9 +11361,9 @@
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "Bloqueia RECYCLING_OUTCOME_WRITE e cascateia bloqueio pra PRE_CARROT_SUBMIT; AuditLog com snapshot do outcome + composição declarada; notifica Methodology.",
+        "on_fail": "Bloqueia RECYCLING_OUTCOME_WRITE e cascateia bloqueio pra PRE_REGISTRY_SUBMIT; AuditLog com snapshot do outcome + composição declarada; notifica Methodology.",
         "on_pass": "Continua pipeline; salva blend ID com cada percentage; gera audit pack pra Recyclass.",
-        "revalidation": "Re-roda a cada update de RecyclingOutcome.blendComposition; em PRE_CARROT_SUBMIT como gate final.",
+        "revalidation": "Re-roda a cada update de RecyclingOutcome.blendComposition; em PRE_REGISTRY_SUBMIT como gate final.",
         "retry_window": "Imediato; assim que operator corrigir composição, revalida automaticamente.",
         "escalation": "Se blend permanece inválido por > 30 dias, MassIDs upstream associadas ao outcome ficam em fila de revisão.",
         "performance": "JOIN com Ecoparque pra cada source — cachear lookups por outcomeId."
@@ -10899,7 +11452,7 @@
       "severity": "BLOCK",
       "gates_what": "TRC_ISSUANCE",
       "trigger": {
-        "event": "PRE_CARROT_SUBMIT",
+        "event": "PRE_REGISTRY_SUBMIT",
         "phase": "POST_RECYCLING",
         "conditions": []
       },
@@ -10912,7 +11465,7 @@
         ]
       },
       "purpose": "Antes da emissão do TRC sobre um lote produzido, exige documento de aprovação QC do output vinculado ao output batch ID. Hoje o catálogo cobre QC do INPUT (P-15..P-16 composition cluster), mas não cobre QC do OUTPUT (lote final pronto pra venda). Auditor BV/SGS vai pedir prova de aprovação física do produto reciclado antes de creditá-lo. Sem PG-19, audit pack fica incompleto e Recyclass cert vira frágil.",
-      "logic_human": "BLOCK em PRE_CARROT_SUBMIT se output_qc_approval document não existir, OR validade expirada, OR não vinculado ao outputBatchId, OR aprovador não identificado.",
+      "logic_human": "BLOCK em PRE_REGISTRY_SUBMIT se output_qc_approval document não existir, OR validade expirada, OR não vinculado ao outputBatchId, OR aprovador não identificado.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-19'>): Promise<RuleResult> {\n  const outcome = ctx.recyclingOutcome;\n  const qcDoc = await ctx.db.document.findOne({ where: {\n    type: 'output_qc_approval',\n    relatedOutputBatchId: outcome.outputBatchId\n  }});\n  if (!qcDoc) {\n    return ctx.fail({ ruleId: 'PG-19', severity: 'BLOCK',\n      message: `Output QC approval document missing for batch ${outcome.outputBatchId}`,\n      field: 'documents.output_qc_approval' });\n  }\n  if (!qcDoc.approverId || !qcDoc.approvalDate) {\n    return ctx.fail({ ruleId: 'PG-19', severity: 'BLOCK',\n      message: 'QC approval missing approver or approval date',\n      field: 'output_qc_approval.approverId' });\n  }\n  if (qcDoc.validUntil && qcDoc.validUntil < ctx.now) {\n    return ctx.fail({ ruleId: 'PG-19', severity: 'BLOCK',\n      message: `Output QC approval expired on ${qcDoc.validUntil.toISOString()}`,\n      field: 'output_qc_approval.validUntil' });\n  }\n  return ctx.pass({ ruleId: 'PG-19' });\n}",
       "fields": {
         "reads": [
@@ -10939,9 +11492,9 @@
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "Bloqueia PRE_CARROT_SUBMIT; audit log com snapshot do outcome; notifica Compliance.",
+        "on_fail": "Bloqueia PRE_REGISTRY_SUBMIT; audit log com snapshot do outcome; notifica Compliance.",
         "on_pass": "Continua pipeline; QC document hash entra no audit pack que Recyclass auditor consome.",
-        "revalidation": "Re-roda em upload de Document type='output_qc_approval'; em PRE_CARROT_SUBMIT como gate final.",
+        "revalidation": "Re-roda em upload de Document type='output_qc_approval'; em PRE_REGISTRY_SUBMIT como gate final.",
         "retry_window": "Imediato (upload do doc via UI).",
         "escalation": "Se QC approval permanece ausente por > 30 dias, output batch entra em fila de revisão Methodology e MassIDs upstream marcadas com FLAG.",
         "performance": "Lookup por outputBatchId indexado; doc validation O(1)."
@@ -10978,7 +11531,7 @@
       ],
       "bv_verification": {
         "bv_controls": [],
-        "procedure": "Auditor seleciona sample de outputs em READY_FOR_CARROT e verifica: (a) cada um tem output_qc_approval document anexado, (b) aprovador identificado e qualificado, (c) data + assinatura digital ou física registrada, (d) cadeia de custódia até este documento intacta.",
+        "procedure": "Auditor seleciona sample de outputs em READY_FOR_REGISTRY e verifica: (a) cada um tem output_qc_approval document anexado, (b) aprovador identificado e qualificado, (c) data + assinatura digital ou física registrada, (d) cadeia de custódia até este documento intacta.",
         "sample_size": "Sample 30 output batches",
         "frequency": "Monthly"
       },
@@ -11021,6 +11574,144 @@
       ],
       "is_new": true,
       "new_source": "Gian recycler flow mapping (WhatsApp 01/jun)"
+    },
+    {
+      "id": "PG-20",
+      "title": "Role-specific accreditation valid",
+      "pillar": "PURE_GAP",
+      "cluster": "KYC_GOVERNANCE",
+      "severity": "BLOCK",
+      "gates_what": "TRC_ISSUANCE",
+      "trigger": {
+        "event": "MASSID_INGEST",
+        "phase": "PRE_VALIDATION",
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "PARTICIPANT_CREATE",
+            "phase": "POST_CREATE"
+          },
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE"
+          }
+        ]
+      },
+      "applies_to": {
+        "participant_types": [
+          "H",
+          "P",
+          "R",
+          "INT"
+        ],
+        "regions": [
+          "GLOBAL"
+        ]
+      },
+      "purpose": "Complementa P-03 (que valida identidade base). PG-20 valida que o participant tem accreditation/licenca VALIDA por role: Hauler precisa de licenca de transporte de residuos; Recycler precisa de licenca de operacao ambiental + Recyclass cert (opcional); Processor similar; INT precisa de contrato Impactrakr/registry. Inspirado em rule \"Participant Accreditations & Verifications Requirements\" do BOLD Recycling (registry de referência) 'Participant Accreditations & Verifications Requirements' (rule #4) com granularidade adicional para o mercado EU/Recyclass.",
+      "logic_human": "BLOCK em prod (FLAG em sandbox) se accreditation_record do role do participant ausente OR accreditation_record.validUntil < now OR documentos requeridos por role ausentes.",
+      "logic_pseudocode": "// STUB — refinement L3 pending after P-03 baseline approval.\nasync function evaluate(ctx: RuleContext<'PG-20'>): Promise<RuleResult> {\n  const p = ctx.participant;\n  const role = p.role; // H | P | R | INT\n  const accred = await ctx.db.document.findOne({ where: {\n    type: `${role.toLowerCase()}_accreditation`, participantId: p.id\n  }});\n  // ... validacao por role + due date check\n}",
+      "fields": {
+        "reads": [
+          "Participant.role",
+          "Document.type",
+          "Document.validUntil"
+        ],
+        "writes": [
+          "ValidationResult"
+        ]
+      },
+      "evidence": [
+        {
+          "doc_type": "hauler_license",
+          "mandatory_if": "role=H",
+          "renewal_cycle_months": 24
+        },
+        {
+          "doc_type": "environmental_operation_license",
+          "mandatory_if": "role IN (R, P)",
+          "renewal_cycle_months": 12
+        },
+        {
+          "doc_type": "recyclass_certificate",
+          "mandatory_if": "role=R AND recyclassOptIn=true",
+          "renewal_cycle_months": 12
+        },
+        {
+          "doc_type": "integrator_contract",
+          "mandatory_if": "role=INT",
+          "renewal_cycle_months": 12
+        }
+      ],
+      "messages": {
+        "block_pt": "Accreditation do participante (licença / certificação por role) ausente ou expirada. Anexe o documento exigido pelo seu role antes de continuar.",
+        "block_en": "Participant role-specific accreditation (license/certification) missing or expired. Attach the required document for your role before continuing.",
+        "flag_sandbox_pt": "AVISO sandbox: accreditation do role ausente/expirada. Em produção bloqueia.",
+        "flag_sandbox_en": "Sandbox warning: role accreditation missing/expired. In production this blocks."
+      },
+      "behavior": {
+        "idempotent": true,
+        "environment_aware": true,
+        "environment_severity_map": {
+          "production": "BLOCK",
+          "sandbox": "FLAG"
+        },
+        "on_fail": "Bloqueia operação em prod; flag em sandbox.",
+        "on_pass": "Continua; doc hash entra no audit pack.",
+        "revalidation": "Re-roda em PARTICIPANT_UPDATE e PRE_VALIDATION."
+      },
+      "test_cases": {
+        "positive": {},
+        "negative": []
+      },
+      "edge_cases": [
+        "A refinar — pending L3 completion"
+      ],
+      "bv_verification": {
+        "bv_controls": [],
+        "procedure": "TBD",
+        "sample_size": "TBD",
+        "frequency": "Quarterly"
+      },
+      "related": [
+        "P-03",
+        "PG-09",
+        "BV-03"
+      ],
+      "references": [
+        {
+          "source": "PURE_DMRV_GAP_REGISTER_JUN2025",
+          "section": "PG-20 (gap identificado via Onda 1 review)"
+        },
+        {
+          "source": "CARROT_BOLD_RECYCLING_RULES",
+          "section": "Application Rules #4",
+          "url": "https://github.com/carrot-foundation/methodology-rules/blob/main/apps/methodologies/bold-recycling/rule-processors/mass-id/participant-accreditations-and-verifications-requirements/README.md"
+        },
+        {
+          "source": "WSR_2024_1157",
+          "section": "Art. 26 (carrier license)"
+        },
+        {
+          "source": "RECYCLASS_AUDIT_SCHEME_V1.1",
+          "section": "§3 Recycler accreditation"
+        }
+      ],
+      "methodology_quote": "Split de identity vs role-accreditation inspirado em Carrot BOLD Recycling, decidido na Onda 1 review (Rodrigo, 02/jun).",
+      "status": "DRAFT",
+      "owner": "Methodology",
+      "manual_review": false,
+      "source_type": "PURE_GAP",
+      "disposition": "New",
+      "odoo_objects": [],
+      "dmrv_output": "participant_accreditation_valid",
+      "domain": "Identity / Governance",
+      "subdomain": "Role-specific accreditation",
+      "version": "0.1.0",
+      "last_reviewed": "2026-06-02",
+      "audit_findings": [],
+      "is_new": true,
+      "new_source": "Onda 1 review (02/jun) — Carrot-inspired split"
     },
     {
       "id": "EU-01",
@@ -13010,7 +13701,7 @@
           "EU"
         ]
       },
-      "purpose": "Garante que a cadeia de custódia legal (Generator → [Processor] → Hauler → Recycler) está completa, sem gaps documentais. Cada transfer entre dois participants precisa de evento documentado (pickup, drop-off, receipt). Gap na chain = waste 'desapareceu' por algum período — clássico de waste dumping ou shipment ilegal disfarçado. WSR 2024/1157 Art. 18 e WFD Art. 35 exigem rastreabilidade contínua. PURE/Carrot exige também (P-27, P-28, P-65 FIFO).",
+      "purpose": "Garante que a cadeia de custódia legal (Generator → [Processor] → Hauler → Recycler) está completa, sem gaps documentais. Cada transfer entre dois participants precisa de evento documentado (pickup, drop-off, receipt). Gap na chain = waste 'desapareceu' por algum período — clássico de waste dumping ou shipment ilegal disfarçado. WSR 2024/1157 Art. 18 e WFD Art. 35 exigem rastreabilidade contínua. PURE/registry exige também (P-27, P-28, P-65 FIFO).",
       "logic_human": "BLOCK se a sequência de MassIDEvents não cobre todos transfers da chain (Generator→Hauler, Hauler→[Processor→Hauler]→Recycler) OR algum evento intermediário falta.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-16'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  const events = await ctx.db.massidEvent.findMany({\n    where: { massidId: massid.id }, orderBy: { occurredAt: 'asc' }\n  });\n  const chain = await ctx.db.getChainParticipants(massid.id); // [G, (P), H, R]\n  const expected = ctx.custody.expectedEvents(chain);\n  const actualKeys = events.map(e => `${e.fromParticipantId}->${e.toParticipantId}`);\n  const missing = expected.filter(k => !actualKeys.includes(k));\n  if (missing.length) {\n    return ctx.fail({ ruleId: 'EU-16', severity: 'BLOCK',\n      message: `Custody chain has ${missing.length} missing transfer(s): ${missing.join(', ')}`,\n      field: 'custodyEvents' });\n  }\n  for (let i = 1; i < events.length; i++) {\n    if (events[i-1].toParticipantId !== events[i].fromParticipantId) {\n      return ctx.fail({ ruleId: 'EU-16', severity: 'BLOCK',\n        message: `Custody discontinuity between events ${events[i-1].id} and ${events[i].id}`,\n        field: 'custodyEvents' });\n    }\n  }\n  return ctx.pass({ ruleId: 'EU-16' });\n}",
       "fields": {
@@ -14809,7 +15500,7 @@
           "EU"
         ]
       },
-      "purpose": "Garante que Recycler/Sorting Centre tem cobertura de seguro de responsabilidade civil válida para operação. RecyClass §1.8 lista como Category 1 (mandatório) para Recyclers; §1.6 Sorting exige público + employees' liability. Sem este seguro, qualquer acidente (incêndio em estoque, ferimento de operador, contaminação ambiental) cai sobre Carrot/MARE como rede certificadora — perda reputacional brutal + processo civil multimilionário. É um gate institucional de risk transfer obrigatório para certificação.",
+      "purpose": "Garante que Recycler/Sorting Centre tem cobertura de seguro de responsabilidade civil válida para operação. RecyClass §1.8 lista como Category 1 (mandatório) para Recyclers; §1.6 Sorting exige público + employees' liability. Sem este seguro, qualquer acidente (incêndio em estoque, ferimento de operador, contaminação ambiental) cai sobre o registry / MARE como rede certificadora — perda reputacional brutal + processo civil multimilionário. É um gate institucional de risk transfer obrigatório para certificação.",
       "logic_human": "BLOCK se Document.type='insurance_public_liability_cert' não existir para o Participant (R/P em EU), OR se Document.validUntil < now, OR se insurancePublicLiabilityRef estiver blank. Para Sorting Centres (type=P operando sorting), também checar employer_liability.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'RC-04'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  if (!p || !['R', 'P'].includes(p.type) || p.region !== 'EU') {\n    return ctx.skip({ reason: 'Not applicable.' });\n  }\n  if (!p.insurancePublicLiabilityRef || String(p.insurancePublicLiabilityRef).trim() === '') {\n    return ctx.fail({ ruleId: 'RC-04', severity: 'BLOCK',\n      message: 'insurance_public_liability_ref is required',\n      field: 'insurancePublicLiabilityRef' });\n  }\n  const doc = await ctx.db.document.findOne({ where: {\n    participantId: p.id, type: 'insurance_public_liability_cert' }});\n  if (!doc) {\n    return ctx.fail({ ruleId: 'RC-04', severity: 'BLOCK',\n      message: 'insurance_public_liability_cert document missing', field: 'documents' });\n  }\n  if (doc.validUntil && doc.validUntil < ctx.now) {\n    return ctx.fail({ ruleId: 'RC-04', severity: 'BLOCK',\n      message: 'insurance_public_liability_cert expired on ' + doc.validUntil.toISOString(),\n      field: 'documents.validUntil' });\n  }\n  // Sorting centres additionally need employer liability\n  if (p.subType === 'sorting_centre') {\n    const emp = await ctx.db.document.findOne({ where: {\n      participantId: p.id, type: 'insurance_employer_liability_cert' }});\n    if (!emp || (emp.validUntil && emp.validUntil < ctx.now)) {\n      return ctx.fail({ ruleId: 'RC-04', severity: 'BLOCK',\n        message: 'Sorting centre requires valid employer_liability insurance',\n        field: 'insuranceEmployerLiabilityRef' });\n    }\n  }\n  return ctx.pass({ ruleId: 'RC-04' });\n}",
       "fields": {
@@ -15562,7 +16253,7 @@
           "EU"
         ]
       },
-      "purpose": "RecyClass §5.1.6/5.1.7 exige reporte de energia (kWh/ton output) e água (l/ton output) por evaluation period. São KPIs ambientais (não credit integrity) que alimentam co-benefits section §12 da PURE methodology e o PPWR/ESPR reporting EU. Sem essas métricas, recycler não passa monitoring audit Recyclass e Carrot não consegue produzir relatórios de sustentabilidade para buyers. FLAG porque é completeness, mas valores fora da faixa guideline (HDPE 500-570 kWh/t, PET 220-360 kWh/t) viram red-flag para review qualitativo.",
+      "purpose": "RecyClass §5.1.6/5.1.7 exige reporte de energia (kWh/ton output) e água (l/ton output) por evaluation period. São KPIs ambientais (não credit integrity) que alimentam co-benefits section §12 da PURE methodology e o PPWR/ESPR reporting EU. Sem essas métricas, recycler não passa monitoring audit Recyclass e o registry não consegue produzir relatórios de sustentabilidade para buyers. FLAG porque é completeness, mas valores fora da faixa guideline (HDPE 500-570 kWh/t, PET 220-360 kWh/t) viram red-flag para review qualitativo.",
       "logic_human": "FLAG se RecyclingOutcome.energyKwhPerTonne for NULL OR RecyclingOutcome.waterLitresPerTonne for NULL. FLAG se valor estiver fora da faixa guideline do resin_type (RecyClass reference table).",
       "logic_pseudocode": "const RANGE: Record<string, { kwhMin: number, kwhMax: number }> = {\n  HDPE: { kwhMin: 500, kwhMax: 570 },\n  PET:  { kwhMin: 220, kwhMax: 360 },\n  // LDPE, PVC, PP marked 'To be assessed' — no range, skip range check\n};\n\nasync function evaluate(ctx: RuleContext<'RC-10'>): Promise<RuleResult> {\n  const out = await ctx.db.recyclingOutcome.findById(ctx.input.recyclingOutcomeId);\n  const missing = [];\n  if (out.energyKwhPerTonne == null) missing.push('energyKwhPerTonne');\n  if (out.waterLitresPerTonne == null) missing.push('waterLitresPerTonne');\n  if (missing.length > 0) {\n    return ctx.fail({ ruleId: 'RC-10', severity: 'FLAG',\n      message: `Energy/water tracking incomplete: ${missing.join(', ')}`,\n      field: missing[0] });\n  }\n  const range = RANGE[out.resinType];\n  if (range && (out.energyKwhPerTonne < range.kwhMin || out.energyKwhPerTonne > range.kwhMax)) {\n    return ctx.fail({ ruleId: 'RC-10', severity: 'FLAG',\n      message: `Energy ${out.energyKwhPerTonne} kWh/t for ${out.resinType} outside RecyClass range [${range.kwhMin}-${range.kwhMax}]`,\n      field: 'energyKwhPerTonne' });\n  }\n  return ctx.pass({ ruleId: 'RC-10' });\n}",
       "fields": {
@@ -15820,7 +16511,7 @@
           "EU"
         ]
       },
-      "purpose": "RecyClass §6.2 (Category 2) exige registro dos end-markets do Recycled Output: quem comprou, qual país, qual aplicação. Não bloqueia certificação inicial, mas é mandatório no monitoring audit (renewal). Suporta o chain of custody claim e recycled content accounting para brand owners (PPWR compliance). dMRV hoje rastreia até a emissão do TRC e submissão Carrot, mas não captura o destino físico do material — gap que aparece imediatamente quando buyer pede traceability até a embalagem final.",
+      "purpose": "RecyClass §6.2 (Category 2) exige registro dos end-markets do Recycled Output: quem comprou, qual país, qual aplicação. Não bloqueia certificação inicial, mas é mandatório no monitoring audit (renewal). Suporta o chain of custody claim e recycled content accounting para brand owners (PPWR compliance). dMRV hoje rastreia até a emissão do TRC e submissão ao registry, mas não captura o destino físico do material — gap que aparece imediatamente quando buyer pede traceability até a embalagem final.",
       "logic_human": "FLAG se contagem de RecyclingOutcome.endMarketRecords no evaluation period == 0 AND audit_type='monitoring'. PASS no audit_type='initial' (Category 2).",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'RC-12'>): Promise<RuleResult> {\n  const auditType = ctx.input.auditType ?? 'monitoring'; // default monitoring\n  if (auditType === 'initial') {\n    return ctx.pass({ ruleId: 'RC-12', reason: 'Category 2 — not required at initial certification' });\n  }\n  const windowStart = subPeriod(ctx.now, '12 months');\n  const records = await ctx.db.recyclingOutcome.findMany({ where: {\n    participantId: ctx.input.participantId,\n    createdAt: { gte: windowStart }}});\n  const missing = records.filter(r => !r.endMarketCustomerName || !r.endMarketCountry || !r.endMarketApplication);\n  if (missing.length === records.length && records.length > 0) {\n    return ctx.fail({ ruleId: 'RC-12', severity: 'FLAG',\n      message: `No end-market records for any of ${records.length} RecyclingOutcomes in last 12 months (Category 2 required at monitoring audit)`,\n      field: 'endMarketCustomerName' });\n  }\n  if (missing.length > 0) {\n    return ctx.fail({ ruleId: 'RC-12', severity: 'FLAG',\n      message: `${missing.length}/${records.length} RecyclingOutcomes missing end-market data`,\n      field: 'endMarketCustomerName' });\n  }\n  return ctx.pass({ ruleId: 'RC-12' });\n}",
       "fields": {
@@ -15944,7 +16635,7 @@
           "EU"
         ]
       },
-      "purpose": "RecyClass §7.5/7.6 exige procedimento documentado para prevenir vazamento de pellets, flakes e Recycled Output no meio ambiente — endereça diretamente leakage de microplásticos, uma das maiores preocupações regulatórias EU pós-PPWR. Este é o requisito MAIS DISTINTIVO do RecyClass sem equivalente em PURE. Category 1 = procedimento básico obrigatório (BLOCK). Inspeções nas áreas de risk (deballing, pellet production, drenagem) devem estar registradas. Sem esta regra, recyclers operam sem accountability de leakage e Carrot fica exposto a litigation ambiental.",
+      "purpose": "RecyClass §7.5/7.6 exige procedimento documentado para prevenir vazamento de pellets, flakes e Recycled Output no meio ambiente — endereça diretamente leakage de microplásticos, uma das maiores preocupações regulatórias EU pós-PPWR. Este é o requisito MAIS DISTINTIVO do RecyClass sem equivalente em PURE. Category 1 = procedimento básico obrigatório (BLOCK). Inspeções nas áreas de risk (deballing, pellet production, drenagem) devem estar registradas. Sem esta regra, recyclers operam sem accountability de leakage e o registry fica exposto a litigation ambiental.",
       "logic_human": "BLOCK se Participant.pelletLossProcedureRef estiver blank OR última pelletLossInspectionDate > 12 meses atrás. FLAG paralelo se drainage cleaning records ausentes (Category 2 enhanced).",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'RC-13'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  if (!p || p.type !== 'R' || p.region !== 'EU') {\n    return ctx.skip({ reason: 'Not applicable.' });\n  }\n  if (!p.pelletLossProcedureRef || String(p.pelletLossProcedureRef).trim() === '') {\n    return ctx.fail({ ruleId: 'RC-13', severity: 'BLOCK',\n      message: 'pellet_loss_procedure_ref required (Category 1 mandatory)',\n      field: 'pelletLossProcedureRef' });\n  }\n  if (!p.pelletLossInspectionDate) {\n    return ctx.fail({ ruleId: 'RC-13', severity: 'BLOCK',\n      message: 'pellet_loss_inspection_date required',\n      field: 'pelletLossInspectionDate' });\n  }\n  const twelveMonthsAgo = subPeriod(ctx.now, '12 months');\n  if (p.pelletLossInspectionDate < twelveMonthsAgo) {\n    return ctx.fail({ ruleId: 'RC-13', severity: 'BLOCK',\n      message: `Last pellet loss inspection ${p.pelletLossInspectionDate.toISOString()} > 12 months ago — re-inspect`,\n      field: 'pelletLossInspectionDate' });\n  }\n  return ctx.pass({ ruleId: 'RC-13' });\n}",
       "fields": {
@@ -16204,9 +16895,9 @@
           "EU"
         ]
       },
-      "purpose": "RecyClass §8.2 exige que TODO subcontracted recycling/sorting seja feito por empresa com certificação externa (RecyClass, EuCertPlast, ou esquema reconhecido por Plastics Recyclers Europe). Carrot homologation é NECESSÁRIA mas NÃO SUFICIENTE — gap crítico de subcontratação. Sem esta regra, um recycler certificado pode subcontratar processamento para sub não-certificado, contaminando toda a chain de custody Recyclass e invalidando o certificado emitido. BLOCK porque atinge integridade da chain.",
+      "purpose": "RecyClass §8.2 exige que TODO subcontracted recycling/sorting seja feito por empresa com certificação externa (RecyClass, EuCertPlast, ou esquema reconhecido por Plastics Recyclers Europe). Homologation no registry é NECESSÁRIA mas NÃO SUFICIENTE — gap crítico de subcontratação. Sem esta regra, um recycler certificado pode subcontratar processamento para sub não-certificado, contaminando toda a chain de custody Recyclass e invalidando o certificado emitido. BLOCK porque atinge integridade da chain.",
       "logic_human": "BLOCK se MassID.subcontractorId != null AND (SubcontractedRecycling.subcontractorExternalCertRef blank OR subcontractorCertExpiry < processingDate OR subcontractorCertScheme não em {RecyClass, EuCertPlast, PRE-recognised}).",
-      "logic_pseudocode": "const APPROVED_SCHEMES = ['RecyClass', 'EuCertPlast', 'PRE-recognised'];\n\nasync function evaluate(ctx: RuleContext<'RC-15'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  if (!massid.subcontractorId) {\n    return ctx.skip({ reason: 'No subcontractor — RC-15 not applicable.' });\n  }\n  const sub = await ctx.db.subcontractedRecycling.findFirst({ where: {\n    massidId: massid.id, subcontractorId: massid.subcontractorId }});\n  if (!sub) {\n    return ctx.fail({ ruleId: 'RC-15', severity: 'BLOCK',\n      message: 'SubcontractedRecycling record missing for declared subcontractor',\n      field: 'subcontractorId' });\n  }\n  if (!sub.subcontractorExternalCertRef || String(sub.subcontractorExternalCertRef).trim() === '') {\n    return ctx.fail({ ruleId: 'RC-15', severity: 'BLOCK',\n      message: 'subcontractor_external_cert_ref required (Carrot homologation alone is insufficient)',\n      field: 'subcontractorExternalCertRef' });\n  }\n  if (!APPROVED_SCHEMES.includes(sub.subcontractorCertScheme)) {\n    return ctx.fail({ ruleId: 'RC-15', severity: 'BLOCK',\n      message: `subcontractor_cert_scheme '${sub.subcontractorCertScheme}' not in approved [${APPROVED_SCHEMES.join(', ')}]`,\n      field: 'subcontractorCertScheme' });\n  }\n  const processingDate = massid.processingDate ?? massid.createdAt;\n  if (sub.subcontractorCertExpiry < processingDate) {\n    return ctx.fail({ ruleId: 'RC-15', severity: 'BLOCK',\n      message: `subcontractor cert expired ${sub.subcontractorCertExpiry.toISOString()} before processing date ${processingDate.toISOString()}`,\n      field: 'subcontractorCertExpiry' });\n  }\n  return ctx.pass({ ruleId: 'RC-15' });\n}",
+      "logic_pseudocode": "const APPROVED_SCHEMES = ['RecyClass', 'EuCertPlast', 'PRE-recognised'];\n\nasync function evaluate(ctx: RuleContext<'RC-15'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  if (!massid.subcontractorId) {\n    return ctx.skip({ reason: 'No subcontractor — RC-15 not applicable.' });\n  }\n  const sub = await ctx.db.subcontractedRecycling.findFirst({ where: {\n    massidId: massid.id, subcontractorId: massid.subcontractorId }});\n  if (!sub) {\n    return ctx.fail({ ruleId: 'RC-15', severity: 'BLOCK',\n      message: 'SubcontractedRecycling record missing for declared subcontractor',\n      field: 'subcontractorId' });\n  }\n  if (!sub.subcontractorExternalCertRef || String(sub.subcontractorExternalCertRef).trim() === '') {\n    return ctx.fail({ ruleId: 'RC-15', severity: 'BLOCK',\n      message: 'subcontractor_external_cert_ref required (registry homologation alone is insufficient)',\n      field: 'subcontractorExternalCertRef' });\n  }\n  if (!APPROVED_SCHEMES.includes(sub.subcontractorCertScheme)) {\n    return ctx.fail({ ruleId: 'RC-15', severity: 'BLOCK',\n      message: `subcontractor_cert_scheme '${sub.subcontractorCertScheme}' not in approved [${APPROVED_SCHEMES.join(', ')}]`,\n      field: 'subcontractorCertScheme' });\n  }\n  const processingDate = massid.processingDate ?? massid.createdAt;\n  if (sub.subcontractorCertExpiry < processingDate) {\n    return ctx.fail({ ruleId: 'RC-15', severity: 'BLOCK',\n      message: `subcontractor cert expired ${sub.subcontractorCertExpiry.toISOString()} before processing date ${processingDate.toISOString()}`,\n      field: 'subcontractorCertExpiry' });\n  }\n  return ctx.pass({ ruleId: 'RC-15' });\n}",
       "fields": {
         "reads": [
           "MassID.id",
@@ -16231,8 +16922,8 @@
         }
       ],
       "messages": {
-        "block_pt": "Subcontratado sem certificação externa válida (RecyClass / EuCertPlast / PRE-recognised). Homologação Carrot NÃO substitui certificação externa. Anexe o certificado do subcontratado antes de processar este MassID.",
-        "block_en": "Subcontractor without valid external certification (RecyClass / EuCertPlast / PRE-recognised). Carrot homologation does NOT substitute external certification. Attach subcontractor certificate before processing this MassID."
+        "block_pt": "Subcontratado sem certificação externa válida (RecyClass / EuCertPlast / PRE-recognised). Homologação no registry NÃO substitui certificação externa. Anexe o certificado do subcontratado antes de processar este MassID.",
+        "block_en": "Subcontractor without valid external certification (RecyClass / EuCertPlast / PRE-recognised). registry homologation does NOT substitute external certification. Attach subcontractor certificate before processing this MassID."
       },
       "behavior": {
         "idempotent": true,
@@ -16252,8 +16943,8 @@
         "negative": [
           {
             "name": "Subcontratado sem cert externa",
-            "given": "subcontractorExternalCertRef = NULL (apenas Carrot homologation).",
-            "expected": "BLOCK 'subcontractor_external_cert_ref required (Carrot homologation alone is insufficient)'."
+            "given": "subcontractorExternalCertRef = NULL (apenas registry homologation).",
+            "expected": "BLOCK 'subcontractor_external_cert_ref required (registry homologation alone is insufficient)'."
           },
           {
             "name": "Esquema não-aprovado",
@@ -16277,7 +16968,7 @@
         "Subcontratação em cadeia (sub do sub): regra aplica a TODOS os níveis — recursão via SubcontractedRecycling chain.",
         "Subcontratado em país não-EU mas processando waste EU: cert externa de qualquer scheme aprovado é aceita (RecyClass/EuCertPlast são globais).",
         "Renovação de cert do sub atrasada: 30-day grace period configurável (default 0 = estrito).",
-        "Sub é também um Recycler R no participants table: regra aplica via SubcontractedRecycling, independente da homologation Carrot do sub."
+        "Sub é também um Recycler R no participants table: regra aplica via SubcontractedRecycling, independente da homologation no registry do sub."
       ],
       "bv_verification": {
         "bv_controls": [],
