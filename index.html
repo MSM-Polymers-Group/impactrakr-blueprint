@@ -1516,12 +1516,12 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
   <button class="tab-btn tab-cnv" data-tab="convergence" role="tab" aria-selected="false">
     <span class="tab-icon">📋</span>
     <span lang="pt">Pendências &amp; Conflitos</span><span lang="en">Pending &amp; Conflicts</span>
-    <span class="tab-count" id="tab-count-convergence">47</span>
+    <span class="tab-count" id="tab-count-convergence">49</span>
   </button>
   <button class="tab-btn tab-aw" data-tab="approval" role="tab" aria-selected="false">
     <span class="tab-icon">✍️</span>
     <span lang="pt">Fila de Aprovação</span><span lang="en">Approval Queue</span>
-    <span class="tab-count" id="tab-count-approval">127</span>
+    <span class="tab-count" id="tab-count-approval">129</span>
   </button>
 </nav>
 
@@ -3819,6 +3819,11 @@ document.addEventListener('keydown', (e) => {
     const s = VR_DATA.stats;
     const reviewed = (s.by_status.REVIEWED || 0) + (s.by_status.APPROVED || 0) + (s.by_status.IMPLEMENTED || 0);
     const pct = ((reviewed / s.total) * 100).toFixed(0);
+    // Atualiza tab counters dinamicamente
+    const catTab = document.getElementById('tab-count-catalog');
+    if (catTab) catTab.textContent = s.total;
+    const appTab = document.getElementById('tab-count-approval');
+    if (appTab) appTab.textContent = s.total;
     vrEl('vr-stats').innerHTML =
       '<div class="vr-stat accent"><div class="vr-label">Total de regras</div><div class="vr-value">' + s.total + '</div><div class="vr-sub">' +
         Object.entries(s.by_pillar).map(([k,v]) => v + ' ' + k).join(' · ') + '</div></div>' +
