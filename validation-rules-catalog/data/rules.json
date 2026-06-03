@@ -1,8 +1,8 @@
 {
   "$schema": "./rules.schema.json",
-  "catalog_version": "0.6.2",
+  "catalog_version": "0.6.3",
   "catalog_last_updated": "2026-06-03",
-  "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr. | v0.5.1-proposed: bulk audit (2026-06-02) added MvF-compliance fields to AUTO_APPLY rules; NEEDS_REVIEW/REJECT rules tagged with _audit_status.",
+  "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr. | v0.6.3-proposed: Onda 2 refinement of HOMOLOGATION_PARTICIPANT cluster (14 rules: P-02, P-20..P-26, PG-05..PG-10). AUTO_APPLY rules bumped to v0.3.0 with Onda 1 patterns (secondary_triggers, environment_aware where appropriate, non_retroactive_revocation, expanded edge_cases). NEEDS_REVIEW: P-22 (environment_aware decision), PG-10 (severity & 0-vs-null semantics). PG-06 patch bump (0.2.1) — stale audit_notes archived.",
   "sources": [
     {
       "name": "PURE_dMRV_MASTER_FINAL.xlsx",
@@ -204,7 +204,26 @@
       "trigger": {
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "participant.homologationStatus changed",
+              "participant.homologationExpiry changed"
+            ],
+            "purpose": "Re-evaluate chain MassIDs when an R/P/INT homologation flips to expired/suspended without a full MASSID_INGEST cycle."
+          },
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "doc.type == 'homologation_record'"
+            ],
+            "purpose": "Pick up newly-uploaded homologation_record so previously-blocked MassIDs can clear without manual re-ingest."
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -242,16 +261,24 @@
       ],
       "messages": {
         "block_pt": "Um ou mais participantes da cadeia (Recycler/Processor/INT) estão sem homologação ativa ou com homologação expirada. Renove a homologação ou substitua o ator antes de prosseguir.",
-        "block_en": "One or more chain participants (Recycler/Processor/INT) lack an active homologation or it has expired. Renew the homologation or replace the actor before continuing."
+        "block_en": "One or more chain participants (Recycler/Processor/INT) lack an active homologation or it has expired. Renew the homologation or replace the actor before continuing.",
+        "flag_sandbox_pt": "[SANDBOX] Homologation ausente/expirada — em produção isto bloquearia o MASSID_INGEST.",
+        "flag_sandbox_en": "[SANDBOX] Homologation missing/expired — in production this would BLOCK MASSID_INGEST."
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "BLOCK MASSID_INGEST; lista participants com motivo (status/expiry/doc); AuditLog; notifica Compliance e cada participant via email.",
+        "on_fail": "Em produção: BLOCK MASSID_INGEST; lista participants com motivo (status/expiry/doc); AuditLog; notifica Compliance e cada participant via email. Em sandbox: FLAG visível, pipeline segue para permitir testes downstream.",
         "on_pass": "Silencioso; pipeline prossegue.",
         "revalidation": "Re-roda em cada MASSID_INGEST e em cada update de Participant.homologationStatus/Expiry. Daily job 'p02-expiry-scan' detecta vencimentos no dia.",
         "retry_window": "Renovação via UI; revalidação automática 1h após upload de novo homologation_record.",
         "escalation": "Homologação expirada > 30 dias → participant suspenso (status='suspended'); MassIDs dependentes vão para review queue Compliance (espelha §14 da metodologia).",
-        "performance": "Batch lookup via getChainParticipants (single query); Document lookup indexado por (participantId, type)."
+        "performance": "Batch lookup via getChainParticipants (single query); Document lookup indexado por (participantId, type).",
+        "environment_aware": true,
+        "environment_severity_map": {
+          "production": "BLOCK",
+          "sandbox": "FLAG"
+        },
+        "non_retroactive_revocation": "Validation usa MassID.pickupAt como evento-âncora: homologação que estava ativa no momento do pickup permanece válida mesmo se expirar depois. Suspensões prospectivas afetam apenas MassIDs com pickupAt >= suspensionEffectiveAt."
       },
       "test_cases": {
         "positive": {
@@ -274,6 +301,11 @@
             "name": "INT sem documento homologation_record",
             "given": "INT1.homologationStatus='active', expiry ok, mas nenhum Document type='homologation_record' associado.",
             "expected": "BLOCK message 'homologation_record missing'."
+          },
+          {
+            "name": "Sandbox: homologation expirada não bloqueia",
+            "given": "Mesmo cenário do BLOCK em prod, mas ctx.environment='sandbox'.",
+            "expected": "FLAG com mensagem flag_sandbox; pipeline segue."
           }
         ]
       },
@@ -281,7 +313,9 @@
         "Generator (G), Bin Custodian (B) e Hauler (H) NÃO entram nesta regra — Hauler tem checks específicos em P-25/P-35.",
         "homologationStatus NULL é tratado como ≠ active → BLOCK.",
         "Em INT, PG-05 (INT homologation validation) faz checks adicionais; P-02 cobre o gate básico.",
-        "homologationExpiry = NULL é tratado como sem expiração (válido indefinidamente) — Compliance precisa setar expiry para forçar renovação anual."
+        "homologationExpiry = NULL é tratado como sem expiração (válido indefinidamente) — Compliance precisa setar expiry para forçar renovação anual.",
+        "Suspensão de homologation com efeito futuro (suspensionEffectiveAt > now) NÃO afeta MassIDs com pickupAt anterior — segue princípio non-retroactive (P-05/PG-02).",
+        "Em sandbox a regra FLAG mas não bloqueia, para permitir tests E2E sem homologation real."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -320,8 +354,8 @@
       "dmrv_output": "eligibility_valid",
       "domain": "Eligibility",
       "subdomain": "Homologation",
-      "version": "0.2.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "HOMOLOGATION_APPROVAL",
       "event_ids": [
@@ -2879,7 +2913,18 @@
       "trigger": {
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "m.originKnownFlag changed",
+              "participant chain changed"
+            ],
+            "purpose": "Re-evaluate when an operator flips originKnownFlag or adds/removes a Generator post-ingest."
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -2953,7 +2998,9 @@
         "Pickup residencial agregado (drop-off de bairro) → originKnownFlag=FALSE; PG-11 calcula weight averaging; PG-17 anexa evidence pack.",
         "Generator declarado posteriormente (correção): re-roda a regra; se passou para conformidade, libera o pipeline.",
         "Múltiplos Generators é tratado por P-21 (count), não aqui.",
-        "Compliance pode forçar override via flag manual_override (com audit pesado) quando há disputa sobre origem."
+        "Compliance pode forçar override via flag manual_override (com audit pesado) quando há disputa sobre origem.",
+        "Edge: app de captura grava originKnownFlag=NULL por bug; PG-01 (format validation) deve interceptar antes, mas P-20 atua como segunda linha.",
+        "Edge: Compliance pode definir um GeneratorPlaceholder (role=G, type='aggregate_dropoff') para casos legítimos de drop-off agregado — neste caso originKnownFlag pode ser TRUE com Generator agregado."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -2990,8 +3037,8 @@
       "dmrv_output": "participant_valid",
       "domain": "Participants",
       "subdomain": "Origin Logic",
-      "version": "0.2.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -3012,6 +3059,17 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "origin_known_flag = TRUE"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "participant chain changed",
+              "m.originKnownFlag changed"
+            ],
+            "purpose": "Re-evaluate when a Generator is added/removed/soft-deleted post-ingest, or when originKnownFlag is flipped."
+          }
         ]
       },
       "applies_to": {
@@ -3077,7 +3135,9 @@
       "edge_cases": [
         "originKnownFlag=FALSE → regra é SKIP, não BLOCK; P-20 cobre a coerência do flag.",
         "Generator soft-deleted (deletedAt definido) é EXCLUÍDO do count.",
-        "Casos de pickup conjunto de 2 vizinhos: modelo correto é 1 MassID por Generator (split antes do ingest), não 1 MassID com 2 Generators."
+        "Casos de pickup conjunto de 2 vizinhos: modelo correto é 1 MassID por Generator (split antes do ingest), não 1 MassID com 2 Generators.",
+        "Edge: pickup conjunto de 2 vizinhos — modelo correto é 1 MassID por Generator (split antes do ingest). Não usar 1 MassID com 2 Generators.",
+        "Edge: Generator com múltiplas razões sociais (mesmo CNPJ raiz) — modelar como 1 Participant + N Address; não como 2 Participants."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -3113,8 +3173,8 @@
       "dmrv_output": "participant_valid",
       "domain": "Participants",
       "subdomain": "Generator Count",
-      "version": "0.2.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -3237,8 +3297,8 @@
       "dmrv_output": "participant_valid",
       "domain": "Participants",
       "subdomain": "First Participant",
-      "version": "0.2.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -3257,7 +3317,18 @@
       "trigger": {
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "m.primaryAddressId changed",
+              "m.firstPickupAddressId changed"
+            ],
+            "purpose": "Detect address-edit attempts (potential geo-spoof) without a full re-ingest."
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -3320,13 +3391,20 @@
             "name": "firstPickupAddressId ausente",
             "given": "MassID.firstPickupAddressId = NULL.",
             "expected": "BLOCK 'primary_address_id or first_pickup_address_id missing'."
+          },
+          {
+            "name": "Endereços com mesma rua mas IDs diferentes (dup)",
+            "given": "primaryAddressId='ADR-987' (rua X) e firstPickupAddressId='ADR-988' (rua X duplicada no cadastro).",
+            "expected": "BLOCK — labels iguais mas IDs diferentes; sinaliza dedup pendente."
           }
         ]
       },
       "edge_cases": [
         "Multi-site participants (Generator com 2 endereços ativos) precisam de Pivot table address_participant_link — Address.id da MassID deve apontar para o endereço escolhido no pickup.",
         "Mudança de endereço do Participant (atualização cadastral) não retroage para MassIDs históricas — IDs são imutáveis no MassID.",
-        "Endereço deletado (soft-delete) ainda passa no compare pois IDs persistem."
+        "Endereço deletado (soft-delete) ainda passa no compare pois IDs persistem.",
+        "Edge: addresses fisicamente próximos mas com IDs diferentes (duplicate addresses no cadastro) — Compliance precisa rodar dedup do Address antes de re-validar.",
+        "Edge: pickup itinerante (mobile collection point) — Address deve apontar para um GeoFence Address específico marcado como mobile=true; firstPickupAddressId carrega a posição GPS exata no momento."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -3364,8 +3442,8 @@
       "dmrv_output": "participant_valid",
       "domain": "Participants",
       "subdomain": "Primary Address",
-      "version": "0.2.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -3373,7 +3451,8 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Auditoria"
+      "rule_type": "Auditoria",
+      "_audit_linked_to": "P-22 NEEDS_REVIEW (environment_aware decision)"
     },
     {
       "id": "P-24",
@@ -3384,7 +3463,17 @@
       "trigger": {
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "participant chain changed (role=R)"
+            ],
+            "purpose": "Re-evaluate when Recycler is added/removed/soft-deleted post-ingest."
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -3449,7 +3538,9 @@
       "edge_cases": [
         "Soft-deleted Recycler é excluído do count.",
         "Split intencional do lote (e.g., parte vai pra mechanical, parte pra chemical recycling) requer SPLIT da MassID em N child-MassIDs antes do ingest — não 1 MassID com 2 Recyclers.",
-        "INT (Integrator) NÃO é Recycler; conta separadamente; P-26 cobre Processor."
+        "INT (Integrator) NÃO é Recycler; conta separadamente; P-26 cobre Processor.",
+        "Edge: cadeia que termina em 'pre-Recycler' (Processor que faz pelletizing mas vende para outro Recycler) — modelar Processor primeiro, Recycler downstream; cada Participant entra com seu role correto.",
+        "Edge: Recycler com toll-manufacturing (terceiriza recycling para outra planta) — o Recycler do contrato é o de registro; a planta operadora entra como sub-processor documentado (PG-15 cobre)."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -3485,8 +3576,8 @@
       "dmrv_output": "participant_valid",
       "domain": "Participants",
       "subdomain": "Recycler Count",
-      "version": "0.2.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -3507,6 +3598,18 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "Transport exists"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "transport leg added/removed",
+              "m.generatorAsHaulerFlag changed",
+              "participant chain changed (role=H)"
+            ],
+            "purpose": "Re-evaluate when transport is added or Hauler/flag is updated post-ingest."
+          }
         ]
       },
       "applies_to": {
@@ -3581,7 +3684,10 @@
       "edge_cases": [
         "Multi-leg: cada leg pode ter Hauler diferente; count agregado >= 1 já satisfaz P-25 (granularidade por leg é tratada em P-35).",
         "Drop-off com transport interno do Recycler: H pode ser o próprio R atuando como hauler — modelado como Participant role=H com vínculo ao R.",
-        "generator_as_hauler_flag exige Generator com licença mínima local (verificada em jurisdições EU via EU-04)."
+        "generator_as_hauler_flag exige Generator com licença mínima local (verificada em jurisdições EU via EU-04).",
+        "Edge: legitimate generator_as_hauler em EU exige licença local — cross-validation com EU-04 obrigatória.",
+        "Edge: hauler subcontratado (Hauler licenciado A subcontrata Hauler B) — chain deve registrar ambos; B aparece como secondary hauler.",
+        "Edge: multi-modal transport (road + rail) — cada leg pode ter Hauler distinto; count >= 1 satisfaz P-25 mas P-35 valida por leg."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -3618,8 +3724,8 @@
       "dmrv_output": "participant_valid",
       "domain": "Participants",
       "subdomain": "Hauler Logic",
-      "version": "0.2.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -3640,6 +3746,26 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "processor_step_exists = TRUE"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "m.processorStepExists changed",
+              "participant chain changed (role=P)"
+            ],
+            "purpose": "Re-evaluate when sorting step is added/removed or Processor list is edited."
+          },
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "participant.role == 'P'",
+              "participant.homologationStatus changed"
+            ],
+            "purpose": "Re-evaluate dependent MassIDs when a Processor's homologation flips."
+          }
         ]
       },
       "applies_to": {
@@ -3725,7 +3851,9 @@
         "processorStepExists=FALSE → SKIP; chain direta Gen→Recycler é válida.",
         "Múltiplos Processors em série (sort + decontaminate) é permitido; cada um precisa estar homologado.",
         "Processor que também é Recycler (P+R) precisa de 2 entries (uma por role) — não dá pra omitir um.",
-        "P-26 não duplica P-02; P-02 cobre TODOS roles R/P/INT, P-26 adiciona check de count + processor_permit específico."
+        "P-26 não duplica P-02; P-02 cobre TODOS roles R/P/INT, P-26 adiciona check de count + processor_permit específico.",
+        "Edge: 'sorting' aqui inclui qualquer transformação física-química NÃO terminal (lavagem, peletização, granulação, descontaminação). Não inclui mera baling (compactação sem mudança química/material).",
+        "Edge: jurisdições com 'micro-processor' (operadores informais sem licença) — esses NÃO satisfazem P-26; PURE não certifica MassIDs que passem por micro-processors não-homologados (mesmo se o resto da chain está limpo)."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -3763,8 +3891,8 @@
       "dmrv_output": "participant_valid",
       "domain": "Participants",
       "subdomain": "Processor Logic",
-      "version": "0.2.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -10079,7 +10207,27 @@
       "trigger": {
         "event": "PRE_REGISTRY_SUBMIT",
         "phase": "POST_RECYCLING",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "participant.participantType == 'INT'",
+              "participant.intHomologationStatus changed",
+              "participant.intHomologationExpiry changed"
+            ],
+            "purpose": "Re-evaluate pending submissions when INT homologation flips to suspended/expired without waiting for the next PRE_REGISTRY_SUBMIT."
+          },
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "doc.type == 'int_homologation_record'"
+            ],
+            "purpose": "Clear backlog automatically once a new int_homologation_record is uploaded."
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -10113,16 +10261,24 @@
       ],
       "messages": {
         "block_pt": "INT submetendo este payload não tem homologation ativa ou está expirada. Renove a homologation no registry antes de submeter MassIDs.",
-        "block_en": "Submitting INT does not have an active or non-expired homologation. Renew the INT homologation with the registry before submitting MassIDs."
+        "block_en": "Submitting INT does not have an active or non-expired homologation. Renew the INT homologation with the registry before submitting MassIDs.",
+        "flag_sandbox_pt": "[SANDBOX] INT sem homologation ativa — em produção isto bloquearia toda a submissão.",
+        "flag_sandbox_en": "[SANDBOX] INT lacks active homologation — in production this would BLOCK the entire submission."
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "BLOCK absoluto: rejeita o payload PRE_REGISTRY_SUBMIT inteiro; AuditLog com intId, status e expiry; notifica Tech owner + Compliance owner; INT recebe notificação automática.",
+        "on_fail": "Em produção: BLOCK absoluto — rejeita o payload PRE_REGISTRY_SUBMIT inteiro; AuditLog com intId, status e expiry; notifica Tech + Compliance; INT recebe email automático. Em sandbox: FLAG visível; pipeline segue para que time consiga rodar dryruns sem INT real.",
         "on_pass": "Silencioso; continua pipeline de validation downstream.",
         "revalidation": "Re-roda a cada PRE_REGISTRY_SUBMIT (sempre fresh check) + monthly job pg05-rescan que escaneia INTs próximos do vencimento.",
         "retry_window": "Tipicamente semanas — re-homologation envolve audit do registry.",
         "escalation": "INT expirado > 30 dias → suspension flag, escalado para PG-12 (PoA propagation aos MassIDs órfãos).",
-        "performance": "Lookup O(1) via index (intId). Cache TTL 15min."
+        "performance": "Lookup O(1) via index (intId). Cache TTL 15min.",
+        "environment_aware": true,
+        "environment_severity_map": {
+          "production": "BLOCK",
+          "sandbox": "FLAG"
+        },
+        "non_retroactive_revocation": "Submissões que foram aceitas com INT válido permanecem válidas; revogar a homologation do INT não invalida MassIDs já submetidos. Avaliação é por timestamp da submission (ctx.input.submissionDate)."
       },
       "test_cases": {
         "positive": {
@@ -10150,6 +10306,11 @@
             "name": "INT sem homologation registrada",
             "given": "intHomologationStatus IS NULL.",
             "expected": "BLOCK 'INT homologation not active (status=null)'."
+          },
+          {
+            "name": "Sandbox: INT expirado não bloqueia",
+            "given": "intHomologationStatus='active' mas expirou ontem; ctx.environment='sandbox'.",
+            "expected": "FLAG sandbox; pipeline segue."
           }
         ]
       },
@@ -10157,11 +10318,14 @@
         "INT recém-homologado (status='active' mas effectiveFrom > submissionDate): tratar como inativo até a data efetiva.",
         "Re-homologation in-flight (status='under_review'): BLOCK; INT deve usar última homologation válida até aprovação.",
         "INT sub-processor (INT delegando para outro INT): cada um precisa de homologation própria — checar todos da chain.",
-        "Time-skew entre INT server e registry server: usar registry server time como autoritativo via ctx.now."
+        "Time-skew entre INT server e registry server: usar registry server time como autoritativo via ctx.now.",
+        "INT de teste (test_account=true) em sandbox: a regra ainda FLAG mas mensagem indica natureza do account.",
+        "INT cuja intHomologationStatus mudou para 'suspended' entre 2 submissões do mesmo lote: a primeira aprovada permanece (non-retroactive), a segunda BLOCK.",
+        "Time-skew entre INT server e registry: usar registry server time (ctx.now) como autoritativo — INT pode ter clock errado por minutos."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-01"
+          "GOVERNANCE-INT-01"
         ],
         "procedure": "Auditor lista todos os INTs ativos no período audited, verifica que cada um tinha intHomologationStatus='active' e intHomologationExpiry > submissionDate para 100% dos MassIDs submetidos. Cross-check com homologation record arquivado.",
         "sample_size": "100% dos INTs ativos no período",
@@ -10194,8 +10358,8 @@
       "dmrv_output": "",
       "domain": "Homologation",
       "subdomain": "",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -10355,11 +10519,10 @@
       "dmrv_output": "",
       "domain": "Homologation",
       "subdomain": "",
-      "version": "0.2.0",
-      "last_reviewed": "2026-06-02",
+      "version": "0.2.1",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "HOMOLOGATION_APPROVAL",
-      "_audit_notes": "BOLD RESIDUE — 'methane', 'avoided methane', baselineFlaringFlag, purpose explicitly references §12 'avoided methane / avoided pollution' co-benefits. The whole concept of baseline=landfill_with_flaring is a carbon-of-organic-waste construct (CDM AMS-III.F). For plastic, the baseline framework needs reworking — recommend either rework as 'declare destination if not collected' (without flaring concept) OR deprecate until Phase 3 carbon work.",
       "event_ids": [
         "E0"
       ],
@@ -10376,7 +10539,27 @@
       "trigger": {
         "event": "PARTICIPANT_ONBOARDING",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "participant.participantType == 'R'",
+              "participant.recyclerCapacity changed",
+              "participant.recyclerCapacityEvidenceRef changed"
+            ],
+            "purpose": "Re-evaluate when Recycler updates capacity OR swaps the evidence doc; FLAG drift check triggers downstream."
+          },
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "doc.type IN ('business_plan', 'recycler_capacity_evidence')"
+            ],
+            "purpose": "Update evidence freshness without waiting for next onboarding cycle."
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -10453,6 +10636,11 @@
             "name": "Recycler novo sem histórico",
             "given": "Recycler recém-onboarded, prior=0, evidence presente.",
             "expected": "PASS (skip do drift check porque prior=0)."
+          },
+          {
+            "name": "Recycler com prior=0 e capacity razoável passa drift check",
+            "given": "Recycler novo: evidence set, capacity=200000kg, prior=0 (no certified period yet).",
+            "expected": "PASS — drift check é skip quando prior=0; PG-08 cobre validação de histórico separadamente."
           }
         ]
       },
@@ -10460,10 +10648,15 @@
         "Recycler expansão verificada (novo galpão): operations marca expansionFlag=true e drift check passa automaticamente após Compliance approval.",
         "Capacity = output do equipamento × horas operação × dias úteis: cálculo derivado conferido pelo auditor.",
         "Site multi-tenant: cada tenant declara sua fatia da capacity, somatório não pode exceder capacity total do site.",
-        "Sazonalidade: 12-meses smoothing amortiza picos sazonais — não usar janela < 6 meses."
+        "Sazonalidade: 12-meses smoothing amortiza picos sazonais — não usar janela < 6 meses.",
+        "Edge: capacity declarada em volume (m³) vs massa (kg) — sempre normalizar para kg/ano usando densidade média do polímero declarado.",
+        "Edge: Recycler com sazonalidade extrema (Christmas-driven PET volume) — usar média 12 meses para drift check; não pegar pico.",
+        "Edge: business plan datado > 24 meses no momento do onboarding — Compliance pode aceitar com FLAG e exigir atualização em 90 dias."
       ],
       "bv_verification": {
-        "bv_controls": [],
+        "bv_controls": [
+          "CAPACITY-01"
+        ],
         "procedure": "Auditor compara recyclerCapacity declarada com business plan anexado, lista de equipamentos, site area, e volume certificado dos últimos 12 meses. Sample 30 Recyclers, especial atenção a recyclers com drift > 20%.",
         "sample_size": "Sample 30 Recyclers",
         "frequency": "Annually + ad-hoc em FLAGs"
@@ -10494,8 +10687,8 @@
       "dmrv_output": "",
       "domain": "Homologation",
       "subdomain": "",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "HOMOLOGATION_APPROVAL",
       "event_ids": [
@@ -10516,6 +10709,26 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "certificationType == 'full'"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "participant.certificationType changed",
+              "participant.recyclerPriorVolumeEvidenceRef changed",
+              "participant.recyclerDeclaredAnnualVolumeKg changed"
+            ],
+            "purpose": "Re-evaluate when Recycler upgrades from provisional/pre_operational to full OR updates declared volume."
+          },
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "doc.type == 'recycler_prior_volume_evidence'"
+            ],
+            "purpose": "Pick up newly uploaded CDF/WDSR without waiting for next onboarding cycle."
+          }
         ]
       },
       "applies_to": {
@@ -10588,10 +10801,15 @@
         "Recycler com história em outro país: aceitar equivalent local (UK Duty of Care notes, Australia NPI report) com Methodology approval.",
         "CDF vencido (CDF tem validade): aceitar histórico mas registrar issuanceDate; FLAG se documento > 18 meses.",
         "Pre-operational: SKIP automático até primeiros 3 meses de operação, depois exige upgrade path.",
-        "Multi-site: cada site precisa do seu próprio CDF/WDSR — modelar como array."
+        "Multi-site: cada site precisa do seu próprio CDF/WDSR — modelar como array.",
+        "Edge: histórico vindo de operação consorciada — recycler precisa demonstrar a fatia atribuível a si (com proportional split documentado), não somar o total do consórcio.",
+        "Edge: equivalent local de país sem CDF/WDSR formal — Methodology mantém allow-list de documentos aceitos por jurisdição (UK Duty of Care notes, Australia NPI report, etc).",
+        "Edge: prior volume aparece dramatically diferente de recyclerDeclaredAnnualVolumeKg (factor > 2) — FLAG separado para Compliance investigar (não bloqueia mas eleva atenção)."
       ],
       "bv_verification": {
-        "bv_controls": [],
+        "bv_controls": [
+          "PRIOR-VOL-01"
+        ],
         "procedure": "Auditor abre o recyclerPriorVolumeEvidenceRef de sample 30 Full-cert Recyclers, valida autenticidade (hash, signature, emissor oficial), compara volume histórico com recyclerDeclaredAnnualVolumeKg para detectar overstatement.",
         "sample_size": "Sample 30 Recyclers Full",
         "frequency": "Annually + na primeira homologation"
@@ -10609,6 +10827,10 @@
         {
           "source": "PURE_METHODOLOGY_JUN2025",
           "section": "§7.1.1"
+        },
+        {
+          "source": "OTHER",
+          "section": "Geographical Adaptation Appendix — accepted prior-volume document list per jurisdiction (BR: CDF; EU: WDSR; UK: Duty of Care; AU: NPI)."
         }
       ],
       "methodology_quote": "Recyclers must declare current plastic waste recycling volumes and provide prior plastic volume records to support the declared plastic volume amount. In Brazil, provide CDFs.",
@@ -10621,8 +10843,8 @@
       "dmrv_output": "",
       "domain": "Homologation",
       "subdomain": "",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "HOMOLOGATION_APPROVAL",
       "event_ids": [
@@ -10641,7 +10863,18 @@
       "trigger": {
         "event": "MONTHLY_RECONCILIATION",
         "phase": "MONTHLY",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "participant.homologationExpiry changed",
+              "participant.intHomologationExpiry changed"
+            ],
+            "purpose": "Recompute renewal window immediately when Compliance edits expiry (e.g., after manual renewal approval)."
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -10707,6 +10940,11 @@
             "name": "Expiry não set",
             "given": "homologationExpiry = null, participantType='R'.",
             "expected": "FLAG 'homologationExpiry not set'."
+          },
+          {
+            "name": "INT com continuous_monitoring=true",
+            "given": "participantType='INT', intHomologationExpiry=null, continuous_monitoring=true.",
+            "expected": "PASS — INTs sob continuous monitoring não disparam FLAG mesmo sem expiry."
           }
         ]
       },
@@ -10714,10 +10952,15 @@
         "INT: §7.4.2 nota que INTs são monitorados continuously e não têm periodic recertification formal — adaptar: para INTs, intHomologationExpiry pode ser indefinido (NULL) sem disparar FLAG quando explicitamente marcado como 'continuous_monitoring=true'.",
         "Renewal in-flight (status='renewal_in_progress'): suprimir FLAG mesmo dentro dos 90 dias.",
         "Time-zone: usar UTC; armazenar expiry como Date sem hora.",
-        "Calendar misconfig (e.g., expiry no passado por bug de seed): registrar como dataQualityIssue e FLAG separado."
+        "Calendar misconfig (e.g., expiry no passado por bug de seed): registrar como dataQualityIssue e FLAG separado.",
+        "Edge: participant pausado (status='paused' por sazonalidade) — não disparar FLAG durante o pause window; retomar quando status volta para active.",
+        "Edge: holiday/blackout period (e.g., Q4) — Compliance pode adiar outreach mas FLAG continua aparecendo em queue (não suprimir).",
+        "Edge: ReviewQueue idempotency — se já existe entry RENEWAL_DUE aberto para o mesmo participant, NÃO criar duplicate; apenas atualizar timestamp e daysUntilExpiry."
       ],
       "bv_verification": {
-        "bv_controls": [],
+        "bv_controls": [
+          "RENEWAL-01"
+        ],
         "procedure": "Auditor revisa ReviewQueue.status='RENEWAL_DUE' para sample 20 participants, confirma que action foi tomada (email enviado, contato registrado). Verifica que FLAGs vencidos viraram BLOCK (P-02).",
         "sample_size": "Sample 20 review queue entries",
         "frequency": "Monthly"
@@ -10747,8 +10990,8 @@
       "dmrv_output": "",
       "domain": "Homologation / Renewal",
       "subdomain": "",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "HOMOLOGATION_APPROVAL",
       "event_ids": [
@@ -10778,8 +11021,8 @@
         ]
       },
       "purpose": "PURE §7.1.1 (Environmental, Social & Economic Accounting, §12) exige declaração de impacto social do workforce do Recycler — proporção de low-income, minorias, mulheres, LGBTQIA+, e benefícios para a comunidade local (job creation, education, waste management improvement). Esse dado não é BLOCK para credit issuance, mas é OBRIGATÓRIO no relatório PURE de co-benefícios — sem ele, certificate não pode reportar dimensões S e E do ESG. PG-10 captura como FLAG no onboarding e bloqueia relatório se faltarem dados na hora de reportar.",
-      "logic_human": "FLAG se TODOS os campos sociais (workforceLowIncomePct, workforceMinorityPct, workforceWomenPct, communityBenefitFlag) forem NULL no Recycler. PASS se pelo menos communityBenefitFlag está set (workforce_* podem ser zero válido).",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-10'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  if (p.participantType !== 'R') return ctx.skip({ reason: 'Only applies to Recyclers.' });\n  const socialFields = [\n    p.workforceLowIncomePct,\n    p.workforceMinorityPct,\n    p.workforceWomenPct,\n    p.communityBenefitFlag\n  ];\n  const allNull = socialFields.every(v => v == null);\n  if (allNull) {\n    return ctx.fail({ ruleId: 'PG-10', severity: 'FLAG',\n      message: 'Recycler social impact fields all null; required for PURE §12 reporting',\n      field: 'workforceLowIncomePct' });\n  }\n  if (p.communityBenefitFlag === true && (!p.communityBenefitDescription || p.communityBenefitDescription.trim() === '')) {\n    return ctx.fail({ ruleId: 'PG-10', severity: 'FLAG',\n      message: 'communityBenefitFlag=true but description missing',\n      field: 'communityBenefitDescription' });\n  }\n  return ctx.pass({ ruleId: 'PG-10' });\n}",
+      "logic_human": "FLAG se TODOS os campos sociais (workforceLowIncomePct, workforceMinorityPct, workforceWomenPct, communityBenefitFlag) forem NULL no Recycler — sinaliza falta de cadastro. PASS se pelo menos um campo preenchido. FLAG adicional 'suspicious_zero_pattern' se workforceTotalHeadcount > 1 AND todos os 4 campos == 0 (possível silenciamento da regra por bad actor).",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-10'>): Promise<RuleResult> {\n  if (ctx.participant.role !== 'R') return ctx.skip({ ruleId: 'PG-10', reason: 'Não-Recycler' });\n  const p = ctx.participant;\n\n  const fields = [\n    p.workforceLowIncomePct,\n    p.workforceMinorityPct,\n    p.workforceWomenPct,\n    p.communityBenefitFlag\n  ];\n\n  const allNull = fields.every(f => f === null || f === undefined);\n  if (allNull) {\n    return ctx.flag({ ruleId: 'PG-10', severity: 'FLAG',\n      message: 'Recycler sem dados sociais cadastrados (PURE §7.1.1 + §12)',\n      field: 'participant.workforceSocial.*' });\n  }\n\n  // Zero-pattern detection: bad actor pode preencher tudo com 0 pra silenciar regra\n  const headcount = p.workforceTotalHeadcount;\n  const allZero = fields.every(f => f === 0 || f === false);\n  if (headcount && headcount > 1 && allZero) {\n    return ctx.flag({ ruleId: 'PG-10', severity: 'FLAG',\n      message: 'Padrão suspeito: workforce > 1 mas todos os campos sociais = 0 (possível silenciamento da regra)',\n      field: 'participant.workforceSocial.*',\n      metadata: { suspicious_zero_pattern: true } });\n  }\n\n  return ctx.pass({ ruleId: 'PG-10' });\n}",
       "fields": {
         "reads": [
           "Participant.participantType",
@@ -10833,6 +11076,11 @@
             "name": "Apenas workforceLowIncomePct preenchido",
             "given": "workforceLowIncomePct=20, outros null.",
             "expected": "PASS (pelo menos 1 campo preenchido)."
+          },
+          {
+            "name": "Zero-pattern suspeito (bad actor silenciando regra)",
+            "given": "Recycler com workforceTotalHeadcount=50, workforceLowIncomePct=0, workforceMinorityPct=0, workforceWomenPct=0, communityBenefitFlag=false.",
+            "expected": "FLAG 'Padrão suspeito: workforce > 1 mas todos os campos sociais = 0 (possível silenciamento da regra)' com metadata.suspicious_zero_pattern=true."
           }
         ]
       },
@@ -10840,7 +11088,8 @@
         "Empresa unipessoal (workforce=1): valores podem ser 0% ou 100% — válido. Não tratar como null.",
         "Recycler sem dado sobre minorias por restrição legal local (ex.: França proíbe coleta de dados étnicos): aceitar null com flagExemption='legal_restriction' + jurisdiction.",
         "communityBenefitDescription deve ter mínimo 20 chars para evitar 'yes' como descrição inútil.",
-        "Update dos campos: registrar histórico em SocialImpactHistory para trend analysis."
+        "Update dos campos: registrar histórico em SocialImpactHistory para trend analysis.",
+        "Zero-pattern detection: workforce > 1 com todos campos sociais = 0 dispara FLAG separado de all-NULL. Compliance manual review pra distinguir cooperativa familiar legítima (1 pessoa, todos campos 0 = SKIP via headcount check) de tentativa de silenciamento."
       ],
       "bv_verification": {
         "bv_controls": [],
@@ -10877,8 +11126,8 @@
       "dmrv_output": "",
       "domain": "Homologation",
       "subdomain": "",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "HOMOLOGATION_APPROVAL",
       "event_ids": [
@@ -12265,7 +12514,6 @@
       "audit_findings": [],
       "is_new": true,
       "new_source": "Onda 1 review (02/jun) — Carrot-inspired split",
-      "_audit_notes": "Role-specific accreditation — DRAFT status, 0 negative test cases, logic_pseudocode minimal, only edge_case 'A refinar — pending L3 completion'. Materially under-specified.",
       "event_ids": [
         "E0"
       ],
