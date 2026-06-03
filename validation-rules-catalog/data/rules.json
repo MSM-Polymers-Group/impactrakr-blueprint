@@ -1,7 +1,7 @@
 {
   "$schema": "./rules.schema.json",
-  "catalog_version": "0.6.0",
-  "catalog_last_updated": "2026-06-02",
+  "catalog_version": "0.6.1",
+  "catalog_last_updated": "2026-06-03",
   "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr. | v0.5.1-proposed: bulk audit (2026-06-02) added MvF-compliance fields to AUTO_APPLY rules; NEEDS_REVIEW/REJECT rules tagged with _audit_status.",
   "sources": [
     {
@@ -2745,7 +2745,7 @@
       "cluster": "MATERIAL_COMPOSITION",
       "severity": "BLOCK",
       "trigger": {
-        "event": "POST_RECYCLING",
+        "event": "RECYCLING_OUTCOME_WRITE",
         "phase": "POST_RECYCLING",
         "conditions": []
       },
@@ -10668,9 +10668,7 @@
       "evidence": [],
       "messages": {
         "flag_pt": "Homologation vence em {daysUntilExpiry} dias. Inicie o processo de renewal agora para evitar interrupção do programa.",
-        "flag_en": "Homologation expires in {daysUntilExpiry} days. Start renewal process now to avoid program interruption.",
-        "block_pt": "",
-        "block_en": ""
+        "flag_en": "Homologation expires in {daysUntilExpiry} days. Start renewal process now to avoid program interruption."
       },
       "behavior": {
         "idempotent": true,
@@ -10801,9 +10799,7 @@
       ],
       "messages": {
         "flag_pt": "Dados de impacto social do workforce não preenchidos. São necessários para o relatório PURE de co-benefícios (§12). Complete no portal antes do próximo período de reporting.",
-        "flag_en": "Workforce social impact data not provided. Required for PURE co-benefits reporting (§12). Complete in the portal before the next reporting period.",
-        "block_pt": "",
-        "block_en": ""
+        "flag_en": "Workforce social impact data not provided. Required for PURE co-benefits reporting (§12). Complete in the portal before the next reporting period."
       },
       "behavior": {
         "idempotent": true,
@@ -11072,9 +11068,7 @@
       "evidence": [],
       "messages": {
         "block_pt": "INT marcado como bad actor (data quality ou security breach). Todos os MassIDs vinculados vão para EXCEPTION; INT está suspended até re-assessment.",
-        "block_en": "INT flagged as bad actor (data quality or security breach). All linked MassIDs moved to EXCEPTION; INT suspended pending re-assessment.",
-        "flag_pt": "",
-        "flag_en": ""
+        "block_en": "INT flagged as bad actor (data quality or security breach). All linked MassIDs moved to EXCEPTION; INT suspended pending re-assessment."
       },
       "behavior": {
         "idempotent": true,
@@ -11322,9 +11316,7 @@
       ],
       "messages": {
         "flag_pt": "Método de captura de peso {method} requer declaração de incerteza (%) + referência ao documento que suporta. Sem isso, eligible_kg sofre dedução conservadora.",
-        "flag_en": "Weight capture method {method} requires uncertainty declaration (%) + reference to supporting document. Without it, eligible_kg suffers conservative deduction.",
-        "block_pt": "",
-        "block_en": ""
+        "flag_en": "Weight capture method {method} requires uncertainty declaration (%) + reference to supporting document. Without it, eligible_kg suffers conservative deduction."
       },
       "behavior": {
         "idempotent": true,

@@ -178,21 +178,33 @@
     },
     "messages": {
       "type": "object",
-      "required": ["block_pt", "block_en"],
       "properties": {
         "block_pt": {
           "type": "string",
           "minLength": 20,
-          "description": "Message shown to user on BLOCK (Portuguese)."
+          "description": "Message shown to user on BLOCK (Portuguese). Required when severity=BLOCK."
         },
         "block_en": {
           "type": "string",
           "minLength": 20,
-          "description": "Message shown to user on BLOCK (English)."
+          "description": "Message shown to user on BLOCK (English). Required when severity=BLOCK."
         },
-        "flag_pt": {"type": "string", "description": "Message on FLAG (Portuguese). Only required if severity is FLAG."},
-        "flag_en": {"type": "string", "description": "Message on FLAG (English). Only required if severity is FLAG."}
-      }
+        "flag_pt": {
+          "type": "string",
+          "minLength": 20,
+          "description": "Message on FLAG (Portuguese). Required when severity=FLAG."
+        },
+        "flag_en": {
+          "type": "string",
+          "minLength": 20,
+          "description": "Message on FLAG (English). Required when severity=FLAG."
+        },
+        "flag_sandbox_pt": {"type": "string", "description": "Optional sandbox-only message (Portuguese) for environment-aware rules."},
+        "flag_sandbox_en": {"type": "string", "description": "Optional sandbox-only message (English) for environment-aware rules."},
+        "flag_pending_pt": {"type": "string"},
+        "flag_pending_en": {"type": "string"}
+      },
+      "description": "Per-severity messages. Validation is conditional via allOf at rule level — see 'allOf' below. Block messages required if severity=BLOCK; flag messages required if severity=FLAG."
     },
     "behavior": {
       "type": "object",
@@ -319,6 +331,10 @@
               "REACH_EC_1907_2006",
               "GDPR_EU_2016_679",
               "GDPR_2016_679",
+              "EU_PLASTIC_WASTE_TRANSPORT_DOCUMENTS",
+              "EIDAS_910_2014",
+              "ISO_9001_2015",
+              "POP_REGULATION_EU_2019_1021",
               "CARROT_WHITEPAPER",
               "CARROT_BOLD_RECYCLING_RULES",
               "CARROT_DMRV_HUB_V1.0",
@@ -347,9 +363,13 @@
       "type": "string",
       "enum": [
         "Compliance", "Methodology", "Tech", "Ops", "Reporting",
-        "Compliance/Tech", "Compliance/Ops", "Compliance / Ops", "Methodology/Tech"
+        "Compliance/Tech", "Compliance/Ops", "Compliance / Ops",
+        "Methodology/Tech",
+        "Tech/Compliance", "Compliance/Reporting",
+        "Ops/Compliance", "Ops / Compliance",
+        "Ops/Reporting", "Ops / Reporting"
       ],
-      "description": "Who owns the rule's content."
+      "description": "Who owns the rule's content. Accepts compound owners (multiple groups co-owning) with or without spaces around the slash."
     },
     "manual_review": {
       "type": "boolean",
@@ -433,5 +453,29 @@
       "description": "Optional. Documents per-field validators (regex, range, jurisdiction-specific checksums) for format/semantic validation rules like PG-01.",
       "additionalProperties": true
     }
-  }
+  },
+  "allOf": [
+    {
+      "comment": "If severity=BLOCK, require block_pt + block_en in messages.",
+      "if": {"properties": {"severity": {"const": "BLOCK"}}, "required": ["severity"]},
+      "then": {
+        "properties": {
+          "messages": {
+            "required": ["block_pt", "block_en"]
+          }
+        }
+      }
+    },
+    {
+      "comment": "If severity=FLAG, require flag_pt + flag_en in messages.",
+      "if": {"properties": {"severity": {"const": "FLAG"}}, "required": ["severity"]},
+      "then": {
+        "properties": {
+          "messages": {
+            "required": ["flag_pt", "flag_en"]
+          }
+        }
+      }
+    }
+  ]
 }
