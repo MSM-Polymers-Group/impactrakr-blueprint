@@ -1,6 +1,6 @@
 {
   "$schema": "./rules.schema.json",
-  "catalog_version": "0.6.5",
+  "catalog_version": "0.6.6",
   "catalog_last_updated": "2026-06-03",
   "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr. | v0.6.5-proposed: Onda 3 refinement of TRANSPORT cluster (12 rules: P-33..P-41, EU-04..EU-06). AUTO_APPLY (9) bumped to v0.3.0 with Onda 1 patterns (secondary_triggers on MASSID_UPDATE/DOCUMENT_UPDATE/PARTICIPANT_UPDATE; non_retroactive_revocation on EU-05; territorial scope reaffirmed for P-37/P-38/P-39 manifest sub-cluster). NEEDS_REVIEW (3): P-40 (global-vs-territorial required-set design decision), P-41 (wrong cluster — should be WEIGHING), EU-06 (bundled vehicle authorization + geo-fence — split recommended). REJECT (0). BOLD CH4 residue check: NEGATIVE — vehicle enum em P-33 já é plastic-appropriate (no sludge_pipes anywhere).",
   "sources": [
@@ -40,8 +40,8 @@
       "FLAG": 20
     },
     "by_status": {
-      "REVIEWED": 98,
-      "APPROVED": 33
+      "REVIEWED": 88,
+      "APPROVED": 43
     },
     "by_cluster": {
       "RECYCLER_OUTCOME": 19,
@@ -6135,7 +6135,23 @@
       "trigger": {
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate when weighEventCount or weightCaptureMethod changes (new weigh event registered, method changed).",
+            "conditions": [
+              "changed_fields ∩ {'weighEventCount', 'weightCaptureMethod'} ≠ ∅"
+            ]
+          },
+          {
+            "event": "MASSID_TRANSITION",
+            "phase": "RUNTIME",
+            "purpose": "Re-evaluate on any state transition (e.g., DRAFT→SUBMITTED) to catch late weigh event additions.",
+            "conditions": []
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -6150,7 +6166,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Todo MassID precisa de PELO MENOS uma evidência de peso: ou ≥1 weighing event (scale-based) ou weightCaptureMethod='manifest' (com fallback documentado em P-41). Sem nenhuma das duas, o MassID não tem peso autoritativo e não pode gerar crédito (peso é variável central). Esta é a regra-mãe do cluster WEIGHING.",
+      "purpose": "Todo MassID precisa de PELO MENOS uma evidência de peso: ou >=1 weighing event (scale-based) ou weightCaptureMethod='manifest' (com fallback documentado em P-41) ou weightCaptureMethod='residential_average' (documentado em PG-11). Sem nenhuma das três, o MassID não tem peso autoritativo e não pode gerar crédito (peso é variável central, alimenta TRC). Esta é a regra-mãe do cluster WEIGHING — todas as outras regras (P-43..P-48, PG-11, PG-14, RC-07) dependem de P-42 passar.",
       "logic_human": "BLOCK se MassID.weighEventCount < 1 AND weightCaptureMethod ≠ 'manifest'. PASS caso contrário.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-42'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  const count = massid.weighEventCount ?? 0;\n  const method = massid.weightCaptureMethod;\n  if (count < 1 && method !== 'manifest') {\n    return ctx.fail({ ruleId: 'P-42', severity: 'BLOCK',\n      message: 'At least one weighing event or manifest weight fallback required',\n      field: 'weighEventCount' });\n  }\n  return ctx.pass({ ruleId: 'P-42' });\n}",
       "fields": {
@@ -6212,14 +6228,16 @@
         ]
       },
       "edge_cases": [
-        "Multi-leg: count cumulativo de todos os legs (pickup, transit, drop-off).",
-        "Manifest fallback exige P-41 para document evidence.",
-        "Edge: count >0 mas todos os events com gross/tare=0 → falha P-06 (value > 0).",
-        "Method='residential_average' (PG-11) também conta como fallback aprovado."
+        "Multi-leg: weighEventCount cumulativo de todos os legs (pickup, transit, drop-off). Cada leg pode pesar separadamente.",
+        "Manifest fallback exige P-41 para document evidence; sem P-41 documento, manifest fallback é insuficiente.",
+        "Method='residential_average' (PG-11) também conta como fallback aprovado quando pickupSourceType='residential'.",
+        "Edge: weighEventCount > 0 mas todos com gross/tare = 0 → falha P-06 (value > 0), não P-42.",
+        "weighEventCount é contador agregado mantido pela aplicação ao criar WeighEvent; verifica trigger consistency com COUNT(WeighEvent WHERE massidId=...).",
+        "Tamper-detection: rule BLOCK em ambos environments (sandbox + prod). Não é environment_aware — sem peso = sem crédito é gate metodológico inegociável."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-01"
+          "WEIGHING-COUNT-01"
         ],
         "procedure": "Auditor sample 30 MassIDs, confirma pelo menos uma evidência de peso (digital weigh ou manifest).",
         "sample_size": "Sample 30",
@@ -6246,7 +6264,7 @@
         }
       ],
       "methodology_quote": "weigh_event_count >= 1 OR weight_capture_method = manifest.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "PURE",
@@ -6258,8 +6276,8 @@
       "dmrv_output": "calc_valid",
       "domain": "Mass",
       "subdomain": "Weight Existence",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -6267,7 +6285,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T18:00:00Z",
+        "approval_wave": "Onda 4 — WEIGHING",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda4-weighing-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-43",
@@ -6278,7 +6303,17 @@
       "trigger": {
         "event": "MASSID_INGEST",
         "phase": "PRE_VALIDATION",
-        "conditions": []
+        "conditions": [],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate when weightCaptureMethod is set or changed.",
+            "conditions": [
+              "changed_fields ∋ 'weightCaptureMethod'"
+            ]
+          }
+        ]
       },
       "applies_to": {
         "participant_types": [
@@ -6354,14 +6389,17 @@
         ]
       },
       "edge_cases": [
-        "Multi-leg pode ter methods diferentes por leg; campo no MassID é o canônico (geralmente do leg mais downstream).",
-        "Methods photo/manual exigem foto+assinatura evidência.",
-        "Residential_average é PG-11 specific (média por área/janela).",
-        "Visual_estimate só é aceitável em coletas pequenas (<10kg) ou emergências, com tolerância maior."
+        "Multi-leg pode ter methods diferentes por leg; campo no MassID é o canônico (geralmente do leg mais downstream / dropoff).",
+        "Methods 'photo' / 'manual' exigem foto + assinatura na evidência; PG-14 força uncertainty pct adicional.",
+        "Method 'residential_average' é PG-11 specific (média por área/janela aprovada); BLOCK se pickupSourceType≠'residential'.",
+        "Method 'visual_estimate' só é aceitável em coletas pequenas (<10 kg) ou emergências, com tolerância PG-14 maior.",
+        "Method 'manifest' triggera P-41 (manifest weight fallback).",
+        "Enum é case-sensitive lowercase; UI deve normalizar antes de persistir.",
+        "Tamper-detection: BLOCK em ambos environments. Não environment_aware — gate metodológico."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-01"
+          "WEIGHING-METHOD-01"
         ],
         "procedure": "Auditor sample 30 MassIDs, verifica method declarado bate com evidência (weigh_ticket vs manifest vs foto).",
         "sample_size": "Sample 30",
@@ -6385,7 +6423,7 @@
         }
       ],
       "methodology_quote": "Enum: digital | photo | manual | manifest | residential_average | visual_estimate.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "PURE/BOLD",
@@ -6396,8 +6434,8 @@
       "dmrv_output": "calc_valid",
       "domain": "Mass",
       "subdomain": "Capture Method",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -6405,11 +6443,18 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T18:00:00Z",
+        "approval_wave": "Onda 4 — WEIGHING",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda4-weighing-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-44",
-      "title": "Scale type declared",
+      "title": "Scale type declared (plastic-curated enum)",
       "pillar": "PURE",
       "cluster": "WEIGHING",
       "severity": "BLOCK",
@@ -6433,9 +6478,9 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Quando há weighing event físico, exige declaração do tipo de balança (enum: weighbridge, platform_scale, hanging_scale, axle_scale, portable_scale). Cada tipo tem precisão e regime de calibração diferentes (RC-07). Sem o tipo, é impossível avaliar a confiabilidade do peso ou agendar calibração apropriada.",
-      "logic_human": "BLOCK quando weighEventCount >= 1 se WeighEvent.scaleType NULL/blank ou fora do enum.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-44'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  if ((massid.weighEventCount ?? 0) < 1) {\n    return ctx.skip({ reason: 'No weigh event; rule does not apply.' });\n  }\n  const events = await ctx.db.weighEvent.findMany({ where: { massidId: massid.id } });\n  const APPROVED = ['weighbridge','platform_scale','hanging_scale','axle_scale','portable_scale'];\n  for (const ev of events) {\n    if (!ev.scaleType || String(ev.scaleType).trim() === '') {\n      return ctx.fail({ ruleId: 'P-44', severity: 'BLOCK',\n        message: `scale_type missing on weigh event ${ev.id}`,\n        field: 'scaleType' });\n    }\n    if (!APPROVED.includes(ev.scaleType)) {\n      return ctx.fail({ ruleId: 'P-44', severity: 'BLOCK',\n        message: `scale_type '${ev.scaleType}' not in approved enum on event ${ev.id}`,\n        field: 'scaleType' });\n    }\n  }\n  return ctx.pass({ ruleId: 'P-44' });\n}",
+      "purpose": "Garante que toda WeighEvent declara um tipo de balança (`scaleType`) reconhecido na enum plástico-curada — 10 valores cobrindo as modalidades operacionais reais de reciclagem de plástico (weighbridge para volumosos, intra-facility scales para sorting lines, precision_bench para lab samples, bin_scale para coleta informal). Cada `scaleType` tem políticas de calibração (RC-07), defaults de incerteza (PG-14) e procedimentos BV específicos. **ANTI-RESIDUE MARKER:** o valor `two_bin_lateral` do BOLD Carbon CH4 (organics/composting) NÃO deve aparecer em PURE — explicitamente excluído. Sem `scaleType` declarado ou com valor não-reconhecido, downstream rules (RC-07, PG-14, P-46, P-47) perdem capacidade de aplicar policy correta.",
+      "logic_human": "BLOCK se WeighEvent.scaleType NÃO ESTÁ EM ['weighbridge', 'floor_scale', 'pallet_scale', 'forklift_scale', 'conveyor_scale', 'hanging_crane_scale', 'onboard_truck_scale', 'precision_bench_scale', 'bin_scale', 'portable_scale', 'other']. Para `other`, exige `scaleTypeDescription` obrigatório (P-34 pattern).",
+      "logic_pseudocode": "const ACCEPTED_SCALE_TYPES = [\n  'weighbridge',             // grandes volumes — em entrada/saída de facility\n  'floor_scale',             // estática de chão, ~1m² plataforma\n  'pallet_scale',            // dedicada a pallets\n  'forklift_scale',          // integrada ao garfo do empilhador\n  'conveyor_scale',          // belt scale em sorting line\n  'hanging_crane_scale',     // ponte rolante / grua de talha\n  'onboard_truck_scale',     // axle + suspension load cells no caminhão\n  'precision_bench_scale',   // bancada lab pra composition sampling\n  'bin_scale',               // pequenas (coleta informal / catador)\n  'portable_scale',          // mão / wheel-mounted portátil\n  'other'                    // free-form requer scaleTypeDescription\n];\n\n// ANTI-RESIDUE: 'two_bin_lateral' is a BOLD Carbon CH4 (composting) leftover\n// and is intentionally NOT in the enum. If migrated data contains it, treat as 'other'\n// with admin alert pra correção.\n\nasync function evaluate(ctx: RuleContext<'P-44'>): Promise<RuleResult> {\n  const t = ctx.weighEvent.scaleType;\n  if (!t) {\n    return ctx.fail({ ruleId: 'P-44', severity: 'BLOCK',\n      message: 'scaleType ausente — declare o tipo de balança',\n      field: 'WeighEvent.scaleType' });\n  }\n  if (!ACCEPTED_SCALE_TYPES.includes(t)) {\n    const isBoldResidue = t === 'two_bin_lateral';\n    return ctx.fail({ ruleId: 'P-44', severity: 'BLOCK',\n      message: isBoldResidue\n        ? `scaleType '${t}' é resíduo BOLD CH4 (composting) — não aplicável a plástico. Migre pra valor da enum plástico-curada.`\n        : `scaleType '${t}' não está na enum aceita. Veja P-44 para os 11 valores válidos.`,\n      field: 'WeighEvent.scaleType',\n      metadata: { acceptedValues: ACCEPTED_SCALE_TYPES, providedValue: t, isBoldResidue } });\n  }\n  if (t === 'other' && !ctx.weighEvent.scaleTypeDescription) {\n    return ctx.fail({ ruleId: 'P-44', severity: 'BLOCK',\n      message: 'scaleType=other exige scaleTypeDescription preenchido',\n      field: 'WeighEvent.scaleTypeDescription' });\n  }\n  return ctx.pass({ ruleId: 'P-44' });\n}",
       "fields": {
         "reads": [
           "MassID.weighEventCount",
@@ -6467,33 +6512,45 @@
       },
       "test_cases": {
         "positive": {
-          "name": "Scale declarado",
+          "name": "Recycler declara weighbridge",
           "given": "WeighEvent.scaleType='weighbridge'.",
           "expected": "PASS."
         },
         "negative": [
           {
-            "name": "Scale NULL",
+            "name": "scaleType ausente",
             "given": "WeighEvent.scaleType=null.",
-            "expected": "BLOCK 'scale_type missing on weigh event ...'."
+            "expected": "BLOCK 'scaleType ausente'."
           },
           {
-            "name": "Scale fora do enum",
-            "given": "scaleType='balanca_caseira'.",
-            "expected": "BLOCK."
+            "name": "scaleType BOLD CH4 residue (anti-residue check)",
+            "given": "WeighEvent.scaleType='two_bin_lateral' (importado de BOLD Carbon CH4).",
+            "expected": "BLOCK com mensagem específica de resíduo BOLD CH4 + metadata.isBoldResidue=true."
           },
           {
-            "name": "Sem weigh events (não aplica)",
-            "given": "weighEventCount=0.",
-            "expected": "SKIP."
+            "name": "scaleType desconhecido",
+            "given": "WeighEvent.scaleType='moon_scale' (invento).",
+            "expected": "BLOCK 'scaleType não está na enum aceita'."
+          },
+          {
+            "name": "other sem description",
+            "given": "WeighEvent.scaleType='other', scaleTypeDescription=null.",
+            "expected": "BLOCK 'scaleType=other exige scaleTypeDescription preenchido'."
+          },
+          {
+            "name": "precision_bench_scale (novo lab-grade)",
+            "given": "WeighEvent.scaleType='precision_bench_scale' (sample composition).",
+            "expected": "PASS — supporta lab workflow."
           }
         ]
       },
       "edge_cases": [
-        "Multi-events com scaleTypes diferentes são válidos (pickup hanging_scale + recycler weighbridge).",
-        "Scale com calibração expirada → BLOCK separado via RC-07.",
-        "Portable_scale tem tolerância maior (PG-14).",
-        "Visual_estimate NÃO entra aqui (não é scale event)."
+        "Migração de dados existentes: WeighEvents com legacy `platform_scale` → mapear pra `floor_scale|pallet_scale|forklift_scale` conforme contexto (regex map executado por Gabriel em maintenance window).",
+        "Migração de `axle_scale` → mapear pra `onboard_truck_scale`.",
+        "ANTI-RESIDUE: registros com `two_bin_lateral` (BOLD CH4) devem ser auto-migrados pra `other` + scaleTypeDescription='LEGACY_BOLD_TWO_BIN_LATERAL — requer revisão Methodology' (sinaliza pra Compliance pegar).",
+        "Cada `scaleType` tem políticas downstream específicas: RC-07 cert categories diferentes; PG-14 uncertainty pct defaults; BV procedure pode amostrar diferente.",
+        "`bin_scale` é o único caso de 'baixa precisão por design' — útil pra coleta informal (informal sector BR). Não invalidar; documentar uncertainty maior em PG-14.",
+        "`other` é última opção — Methodology revisa periodicamente se algum padrão emergente justifica criar valor novo na enum."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -6504,12 +6561,12 @@
         "frequency": "Monthly"
       },
       "related": [
-        "P-42",
         "P-43",
         "P-45",
         "P-46",
         "PG-14",
-        "RC-07"
+        "RC-07",
+        "PG-20"
       ],
       "references": [
         {
@@ -6522,7 +6579,7 @@
         }
       ],
       "methodology_quote": "Scale type must be declared on each weighing event.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "BOLD/PURE",
@@ -6533,8 +6590,8 @@
       "dmrv_output": "calc_valid",
       "domain": "Mass",
       "subdomain": "Scale Type",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -6542,7 +6599,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T18:00:00Z",
+        "approval_wave": "Onda 4 — WEIGHING",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda4-weighing-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-45",
@@ -6555,6 +6619,16 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "weigh_event_count >= 1"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate when WeighEvent fields (gross, tare, net, container*) are added/changed.",
+            "conditions": [
+              "changed_fields ∩ {'grossKg', 'tareKg', 'netKg', 'containerUsed', 'containerWeight', 'containerType'} ≠ ∅"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -6631,14 +6705,16 @@
         ]
       },
       "edge_cases": [
-        "Tare=0 é permitido (peso direto sem container).",
-        "Container_type enum: bag, drum, bin, big_bag, container20ft, container40ft, other.",
-        "Net pode ser calculado pelo sistema (gross-tare) ou input manual — campo é obrigatório de qualquer forma.",
-        "Negative values caem em P-06 (value > 0)."
+        "Tare=0 é permitido (peso direto sem container; pickup a granel).",
+        "Container_type enum: bag, drum, bin, big_bag, container20ft, container40ft, other. Esse enum espelha PG-18 (Blend composition) e EVENTS_PICKUP container inventory.",
+        "Net pode ser calculado pelo sistema (gross-tare) ou input manual — campo é obrigatório de qualquer forma para P-46 validar consistency.",
+        "Negative values caem em P-06 (value > 0), não P-45.",
+        "Container_used=true com containerType='other' exige container_description (separate rule candidate, ver _audit_notes future).",
+        "Multi-events: cada event validado independentemente; um event incompleto bloqueia o MassID inteiro (no partial pass)."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-01"
+          "WEIGHING-FIELDS-01"
         ],
         "procedure": "Auditor sample 30 weigh events, valida ticket físico bate com fields no DB.",
         "sample_size": "Sample 30",
@@ -6662,7 +6738,7 @@
         }
       ],
       "methodology_quote": "gross_kg | tare_kg | net_kg | container_fields complete.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "BOLD/PURE",
@@ -6673,8 +6749,8 @@
       "dmrv_output": "calc_valid",
       "domain": "Mass",
       "subdomain": "Weigh Fields",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -6682,7 +6758,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T18:00:00Z",
+        "approval_wave": "Onda 4 — WEIGHING",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda4-weighing-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-46",
@@ -6695,6 +6778,16 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "weigh_event_count >= 1"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate when gross/tare/net are updated (manual correction or re-weighing).",
+            "conditions": [
+              "changed_fields ∩ {'grossKg', 'tareKg', 'netKg'} ≠ ∅"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -6768,14 +6861,16 @@
         ]
       },
       "edge_cases": [
-        "Float precision: usar Number EPSILON para evitar false positives em casos exatos.",
-        "Tolerância configurable por config; default 0.5% é industry standard para weighbridge.",
-        "Drift NEGATIVO (net > gross-tare) é sinal claro de fraude ou bug — mesma rule pega.",
-        "Multi-events: cada um validado independentemente."
+        "Float precision: usar Number.EPSILON ou aritmética decimal para evitar false positives em casos exatos.",
+        "Tolerância configurable por config; default 0.5% é industry standard para weighbridge (ISO/OIML R76).",
+        "Drift NEGATIVO (net > gross-tare) é sinal claro de fraude ou bug — mesma rule pega, mas log severity escalado (potential tamper).",
+        "Multi-events: cada event validado independentemente; mas drift consistent em multiple events sugere weighbridge mis-calibrated → trigger RC-07 review.",
+        "Tolerance NÃO é environment_aware (tamper-detection precisa BLOCK em sandbox também).",
+        "Inter-leg consistency (e.g., pickup_net vs dropoff_net no mesmo MassID) é cross-check separado, não P-46."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-16"
+          "WEIGHING-FORMULA-01"
         ],
         "procedure": "Auditor recalcula manualmente net = gross - tare em sample 20 events, confirma todos passam tolerância.",
         "sample_size": "Sample 20 events",
@@ -6800,7 +6895,7 @@
         }
       ],
       "methodology_quote": "net_kg = gross_kg - tare_kg.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "PURE",
@@ -6811,8 +6906,8 @@
       "dmrv_output": "calc_valid",
       "domain": "Mass",
       "subdomain": "Net Formula",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -6820,7 +6915,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Auditoria"
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T18:00:00Z",
+        "approval_wave": "Onda 4 — WEIGHING",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda4-weighing-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-47",
@@ -6833,6 +6935,22 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "P-15 triggered"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate when netKg, plasticContentFactor, eligibleKg, or P-15 trigger fields change.",
+            "conditions": [
+              "changed_fields ∩ {'netKg', 'plasticContentFactor', 'eligibleKg', 'isComposite', 'mixedWithDebris'} ≠ ∅"
+            ]
+          },
+          {
+            "event": "RECYCLING_OUTCOME_WRITE",
+            "phase": "POST_RECYCLING",
+            "purpose": "Re-evaluate when RecyclingOutcome ties eligible_kg to a blend (PG-18) or output batch (PG-19); ensures eligible_kg used downstream is consistent with PG-18 composition fractions.",
+            "conditions": []
+          }
         ]
       },
       "applies_to": {
@@ -6848,7 +6966,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Quando P-15 dispara (composite/debris), o sistema deve aplicar plasticContentFactor para calcular eligible_kg = net_kg * factor (apenas a fração de plástico real é elegível para crédito). Esta regra verifica que o cálculo foi feito e está dentro de tolerância. Sem isso, créditos seriam emitidos sobre massa bruta — overstatement clássico que reprova auditoria.",
+      "purpose": "Quando P-15 dispara (composite/debris), o sistema deve aplicar plasticContentFactor para calcular eligible_kg = net_kg * factor (apenas a fração de plástico real é elegível para crédito). Esta regra verifica que o cálculo foi feito e está dentro de tolerância. Sem isso, créditos seriam emitidos sobre massa bruta — overstatement clássico que reprova auditoria Recyclass/BV. P-47 é plástico-específica (yield/contamination discount); para outputs reciclados que vêm de blend de múltiplos lotes, ver PG-18 (blend composition). Para validação QC do output batch produzido, ver PG-19.",
       "logic_human": "BLOCK quando P-15 triggered se |eligible_kg - (net_kg * plastic_content_factor)| > 0.5% tolerância.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-47'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  const p15Triggered = massid.isComposite || massid.mixedWithDebris;\n  if (!p15Triggered) {\n    return ctx.skip({ reason: 'P-15 not triggered; rule does not apply.' });\n  }\n  const net = massid.netKg;\n  const factor = massid.plasticContentFactor;\n  const eligible = massid.eligibleKg;\n  if (net == null || factor == null || eligible == null) {\n    return ctx.fail({ ruleId: 'P-47', severity: 'BLOCK',\n      message: 'net_kg, plastic_content_factor and eligible_kg all required',\n      field: 'eligibleKg' });\n  }\n  const expected = net * factor;\n  const diff = Math.abs(eligible - expected);\n  const TOLERANCE = ctx.config.eligibleWeightTolerance ?? 0.005;\n  const tol = Math.abs(expected) * TOLERANCE;\n  if (diff > tol) {\n    return ctx.fail({ ruleId: 'P-47', severity: 'BLOCK',\n      message: `eligible_kg (${eligible}) != net_kg * factor (${expected.toFixed(3)}); drift ${(diff/expected*100).toFixed(3)}% > tolerance ${TOLERANCE*100}%`,\n      field: 'eligibleKg' });\n  }\n  return ctx.pass({ ruleId: 'P-47' });\n}",
       "fields": {
@@ -6908,14 +7026,17 @@
         ]
       },
       "edge_cases": [
-        "Float precision: 0.75 * 1000 = 749.9999 em alguns casos; tolerância 0.5% absorve.",
-        "Sistema pode auto-calcular eligible — esta regra valida assim mesmo (defense in depth).",
-        "Factor=1 → eligible deve igualar net exatamente (sem desconto).",
-        "Multi-batch: cada MassID validado individualmente."
+        "Float precision: 0.75 * 1000 = 749.9999 em alguns runtimes; tolerância 0.5% absorve.",
+        "Sistema pode auto-calcular eligible — esta regra valida assim mesmo (defense-in-depth).",
+        "Factor=1 → eligible deve igualar net exatamente (sem desconto, baseline plástico puro).",
+        "Multi-batch: cada MassID validado individualmente. Para outputs de blend (PG-18), eligible_kg agregado deve ser sum(eligible_kg_i * fração_i).",
+        "Factor vem de lab_composition_report (P-15/P-16); se factor stale (cert > 6m), trigger re-test antes de aplicar.",
+        "PG-19 (Output QC) é gate posterior: P-47 valida fórmula; PG-19 valida que o lote produzido foi QC-aprovado antes de TRC issuance.",
+        "Plastic-specific: 'methane_factor', 'organic_content_factor' (BOLD CH4 legacy) NÃO se aplicam — só plastic_content_factor."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-19"
+          "WEIGHING-ADJUST-01"
         ],
         "procedure": "Auditor recomputa eligible_kg para sample 30 composite MassIDs, confirma cálculo bate.",
         "sample_size": "Sample 30",
@@ -6926,7 +7047,9 @@
         "P-15",
         "P-16",
         "P-45",
-        "P-46"
+        "P-46",
+        "PG-18",
+        "PG-19"
       ],
       "references": [
         {
@@ -6940,7 +7063,7 @@
         }
       ],
       "methodology_quote": "eligible_kg = net_kg * plastic_content_factor.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Tech",
       "manual_review": false,
       "source_type": "PURE",
@@ -6951,8 +7074,8 @@
       "dmrv_output": "calc_valid",
       "domain": "Mass",
       "subdomain": "Adjusted Plastic Weight",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -6961,11 +7084,18 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T18:00:00Z",
+        "approval_wave": "Onda 4 — WEIGHING",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda4-weighing-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-48",
-      "title": "Qualified personnel role attribution for measurements",
+      "title": "Scale operator + validator segregation of duties (WEIGHING-specific)",
       "pillar": "PURE",
       "cluster": "WEIGHING",
       "severity": "BLOCK",
@@ -6987,9 +7117,9 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Exige identificação dos atores humanos responsáveis pelas medições: measuredBy (quem mediu) e validatedBy (quem revisou/aprovou). Os dois devem ser pessoas DIFERENTES (segregation of duties). Sem isso, medições viram anônimas e impedem accountability + violam padrões de qualidade (ISO 9001, RC-06 staff qualifications).",
-      "logic_human": "BLOCK se MassID.measuredBy NULL/blank, OR validatedBy NULL/blank, OR measuredBy == validatedBy (mesma pessoa não pode medir e validar).",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-48'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  const measuredBy = massid.measuredBy;\n  const validatedBy = massid.validatedBy;\n  if (measuredBy == null || String(measuredBy).trim() === '') {\n    return ctx.fail({ ruleId: 'P-48', severity: 'BLOCK',\n      message: 'measured_by is required', field: 'measuredBy' });\n  }\n  if (validatedBy == null || String(validatedBy).trim() === '') {\n    return ctx.fail({ ruleId: 'P-48', severity: 'BLOCK',\n      message: 'validated_by is required', field: 'validatedBy' });\n  }\n  if (measuredBy === validatedBy) {\n    return ctx.fail({ ruleId: 'P-48', severity: 'BLOCK',\n      message: 'measured_by and validated_by must be different persons (segregation of duties)',\n      field: 'validatedBy' });\n  }\n  return ctx.pass({ ruleId: 'P-48' });\n}",
+      "purpose": "Enforce segregação de funções (segregation of duties) nas operações de pesagem: `measuredBy` (quem executou a leitura da balança) e `validatedBy` (quem revisou/atestou) devem ser pessoas DISTINTAS. P-48 é estritamente sobre segregação — NÃO duplica PG-20 (que valida credencial/accreditation dos roles). Pra atender P-48 + PG-20, o auditor BV vê 2 controles limpos: P-48 (organizational — segregação) + PG-20 (individual — accreditation including `scale_operator` sub-role). Sem segregação, uma única pessoa pode fabricar leitura E validar — risco de fraude clássico de pesagem.",
+      "logic_human": "BLOCK se WeighEvent.measuredBy IS NULL OR WeighEvent.validatedBy IS NULL OR WeighEvent.measuredBy == WeighEvent.validatedBy. PG-20 valida credencial separadamente.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-48'>): Promise<RuleResult> {\n  const we = ctx.weighEvent;\n  if (!we.measuredBy) {\n    return ctx.fail({ ruleId: 'P-48', severity: 'BLOCK',\n      message: 'WeighEvent.measuredBy ausente — quem executou a leitura?',\n      field: 'WeighEvent.measuredBy' });\n  }\n  if (!we.validatedBy) {\n    return ctx.fail({ ruleId: 'P-48', severity: 'BLOCK',\n      message: 'WeighEvent.validatedBy ausente — quem revisou/atestou?',\n      field: 'WeighEvent.validatedBy' });\n  }\n  if (we.measuredBy === we.validatedBy) {\n    return ctx.fail({ ruleId: 'P-48', severity: 'BLOCK',\n      message: 'Segregação de funções violada: scale operator e validator devem ser pessoas distintas',\n      field: 'WeighEvent.measuredBy ↔ WeighEvent.validatedBy' });\n  }\n  // Credencial dos 2 IDs é validada por PG-20 — não duplicar aqui.\n  return ctx.pass({ ruleId: 'P-48' });\n}",
       "fields": {
         "reads": [
           "MassID.measuredBy",
@@ -7044,10 +7174,11 @@
         ]
       },
       "edge_cases": [
-        "Em coletas pequenas com 1 só operador, validação remota (supervisor approval por app) cumpre a segregação.",
-        "Sistemas automatizados: measuredBy='SYSTEM-WB', validatedBy=human supervisor.",
-        "Privacy: IDs são PII, encrypted at rest (link com PG-16).",
-        "Qualificação dos atores é cross-checked com RC-06 separadamente (esta regra só checa presença + distinção)."
+        "Decisão Rodrigo 2026-06-03 (Option A): P-48 narrowed pra segregação WEIGHING-specific. Credencial dos operadores (incl. `scale_operator` sub-role) é responsabilidade de PG-20 — atualizada na mesma onda.",
+        "Cooperativa familiar pequena (1 pessoa por turno): NÃO recebe exceção. Solução: contratar 2ª pessoa por turno OU operar com validação assíncrona (validatedBy de outro turno/dia).",
+        "Emergency hot-fix (falha de scale + necessidade urgente): exceção via Compliance manual override com AuditLog tag 'emergency_override'.",
+        "P-48 é independente de fluxo (não env-aware): segregação em sandbox = mesma regra (não pode soft).",
+        "BV cross-check: amostra MassIDs e verifica que measuredBy.uid ≠ validatedBy.uid + que ambos passam por PG-20 separadamente (atomic controls)."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -7058,11 +7189,10 @@
         "frequency": "Quarterly"
       },
       "related": [
-        "P-32",
-        "P-36",
-        "PG-16",
-        "RC-05",
-        "RC-06"
+        "PG-20",
+        "P-44",
+        "P-45",
+        "RC-07"
       ],
       "references": [
         {
@@ -7080,7 +7210,7 @@
         }
       ],
       "methodology_quote": "Qualified personnel roles required for measurements (measured_by + validated_by).",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "PURE",
@@ -7092,8 +7222,8 @@
       "dmrv_output": "calc_valid",
       "domain": "Mass",
       "subdomain": "Qualified Measurement",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -7101,7 +7231,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T18:00:00Z",
+        "approval_wave": "Onda 4 — WEIGHING",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda4-weighing-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-49",
@@ -11459,6 +11596,24 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "weightCaptureMethod == 'residential_average'"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate when residentialAvgRef, geoEvidenceRef, pickupSourceType or weightCaptureMethod change.",
+            "conditions": [
+              "changed_fields ∩ {'weightCaptureMethod', 'pickupSourceType', 'residentialAvgRef', 'geoEvidenceRef', 'pickupCount'} ≠ ∅"
+            ]
+          },
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate when approved_averages_table config doc is updated (new region added, value re-calibrated).",
+            "conditions": [
+              "doc.type IN ('approved_averages_table', 'residential_avg_calibration_doc')"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -11538,13 +11693,17 @@
         ]
       },
       "edge_cases": [
-        "Approved averages table varia por geografia (e.g., Malta vs Spain household). Lookup por região derivada do geo.",
-        "Versionamento da tabela: residentialAvgRef inclui versão (ex.: 'MT-household-2.5kg@v2'). Mudança de versão re-valida MassIDs futuras.",
-        "pickupCount obrigatório quando residential_average: total = count × avg. Sem count, BLOCK adicional via P-42.",
-        "Apartments vs houses: pode ter duas entries na tabela; INT escolhe o ref apropriado."
+        "Approved averages table varia por geografia (e.g., Malta vs Spain vs Brasil household). Lookup por região derivada do geo.",
+        "Versionamento da tabela: residentialAvgRef inclui versão (ex.: 'MT-household-2.5kg@v2'). Mudança de versão NÃO re-valida MassIDs passados (apply non-retroactive principle: valor da época do pickup permanece).",
+        "pickupCount obrigatório quando residential_average: totalMass = pickupCount × avg. Sem count, BLOCK adicional via P-42.",
+        "Apartments vs houses: pode ter duas entries na tabela; INT escolhe o ref apropriado.",
+        "geographic_scope=Universal porque a LÓGICA é universal (residential-only + table-lookup + geo), mas a APLICAÇÃO é heavily territorial (médias residenciais são BR-específicas, Malta-específicas, etc.). Referencia Geographical Adaptation Appendix para approved_averages_table per region.",
+        "Use case dominante: informal/residential collection no BR (e.g., catador comunitário) onde balança não é viável; informal collection in Malta sandbox; expansion para LATAM esperada."
       ],
       "bv_verification": {
-        "bv_controls": [],
+        "bv_controls": [
+          "WEIGHING-RESIDENTIAL-01"
+        ],
         "procedure": "Auditor seleciona sample 30 MassIDs com weightCaptureMethod='residential_average'; verifica geo + ref na tabela versionada + pickupCount × avg = totalMass; visita on-site amostra para validar bin sizes.",
         "sample_size": "Sample 30 MassIDs",
         "frequency": "Monthly"
@@ -11566,7 +11725,7 @@
         }
       ],
       "methodology_quote": "Plastic waste pickup at residences (households and apartments) will require digitally captured, georeferenced data. If a pickup is conducted without weighing at a residence, then a conservative average can be utilised.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Methodology",
       "manual_review": false,
       "source_type": "PURE_GAP",
@@ -11575,8 +11734,8 @@
       "dmrv_output": "",
       "domain": "Mass / Measurement",
       "subdomain": "",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -11585,7 +11744,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T18:00:00Z",
+        "approval_wave": "Onda 4 — WEIGHING",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda4-weighing-audit-2026-06-03.md"
+      }
     },
     {
       "id": "PG-12",
@@ -11843,6 +12009,16 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "weightCaptureMethod in ['manual', 'residential_average', 'visual_estimate']"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate when weightCaptureMethod or uncertainty fields change.",
+            "conditions": [
+              "changed_fields ∩ {'weightCaptureMethod', 'measurementUncertaintyPct', 'measurementUncertaintyRef'} ≠ ∅"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -11856,7 +12032,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "PURE §8.1 exige procedures de qualidade que account for uncertainty em data e parameters. Captura via scale tem calibration cert (RecyClass RC-07); métodos não-scale (manual, residential_average, visual_estimate) precisam declarar measurement_uncertainty_pct e reference doc. Sem PG-14, INT pode reportar weight com método estimativo sem qualificar a margem de erro — alimenta downstream o eligible_kg como se fosse medida precisa. PG-14 força declaração explícita, permitindo conservative deduction no cálculo de credits.",
+      "purpose": "PURE §8.1 exige procedures de qualidade que account for uncertainty em data e parameters. Captura via scale tem calibration cert (Recyclass RC-07 cobre); métodos não-scale (manual, residential_average, visual_estimate) precisam declarar measurement_uncertainty_pct e reference doc. Sem PG-14, INT pode reportar weight com método estimativo sem qualificar a margem de erro — alimenta downstream o eligible_kg como se fosse medida precisa, gerando overstatement. PG-14 força declaração explícita, permitindo conservative deduction no cálculo de credits. Complementar a RC-07 (scale path).",
       "logic_human": "FLAG se MassID.weightCaptureMethod IN ['manual','residential_average','visual_estimate'] AND (measurementUncertaintyPct IS NULL OR measurementUncertaintyRef blank). PASS para métodos scale (têm calibration cert via RC-07).",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-14'>): Promise<RuleResult> {\n  const m = await ctx.db.massID.findById(ctx.input.massidId);\n  const UNCERTAINTY_METHODS = ['manual', 'residential_average', 'visual_estimate'];\n  if (!UNCERTAINTY_METHODS.includes(m.weightCaptureMethod)) {\n    return ctx.skip({ reason: `Method ${m.weightCaptureMethod} uses calibration cert path.` });\n  }\n  if (m.measurementUncertaintyPct == null) {\n    return ctx.fail({ ruleId: 'PG-14', severity: 'FLAG',\n      message: `measurementUncertaintyPct required for ${m.weightCaptureMethod}`,\n      field: 'measurementUncertaintyPct' });\n  }\n  if (m.measurementUncertaintyPct < 0 || m.measurementUncertaintyPct > 100) {\n    return ctx.fail({ ruleId: 'PG-14', severity: 'FLAG',\n      message: `measurementUncertaintyPct out of range (${m.measurementUncertaintyPct}); expected 0-100`,\n      field: 'measurementUncertaintyPct' });\n  }\n  if (!m.measurementUncertaintyRef || m.measurementUncertaintyRef.trim() === '') {\n    return ctx.fail({ ruleId: 'PG-14', severity: 'FLAG',\n      message: 'measurementUncertaintyRef (supporting doc) missing',\n      field: 'measurementUncertaintyRef' });\n  }\n  return ctx.pass({ ruleId: 'PG-14' });\n}",
       "fields": {
@@ -11919,13 +12095,17 @@
         ]
       },
       "edge_cases": [
-        "Uncertainty pct = 0 é inválido na prática (estimativa sempre tem margem) — FLAG se pct=0 com extra warning.",
-        "Doc ref pode ser study/paper externo (Methodology team aprova) ou statement do Recycler com metodologia interna.",
+        "Uncertainty pct = 0 é inválido na prática (estimativa sempre tem margem) — FLAG se pct=0 com extra warning no AuditLog.",
+        "Doc ref pode ser study/paper externo (Methodology team aprova) ou statement do Recycler com metodologia interna documentada.",
         "Múltiplos métodos no mesmo MassID (e.g., mixed pickup): registrar como method='mixed' + uncertainty agregada via weighted average.",
-        "Calibration cert (RC-07) supera PG-14: scale sempre passa sem precisar de uncertainty pct manual."
+        "Calibration cert (RC-07) supera PG-14: scale sempre passa sem precisar de uncertainty pct manual (cert é a evidência).",
+        "PURE §8.1 (quality procedures for data + parameters uncertainty) e Recyclass §3.6 (calibration) são as fontes — PG-14 cobre o non-scale path; RC-07 cobre o scale path. Complementares, não redundantes.",
+        "Uncertainty default deduction (-15%) pode ser ajustada via config; valor conservador alinha com IPCC GHG inventory principles (conservativeness)."
       ],
       "bv_verification": {
-        "bv_controls": [],
+        "bv_controls": [
+          "WEIGHING-UNCERT-01"
+        ],
         "procedure": "Auditor revisa sample 30 MassIDs com método não-scale; valida que uncertainty pct é razoável vs literatura (e.g., visual estimate < 30%, manual < 15%) e que doc ref é verificável.",
         "sample_size": "Sample 30 MassIDs (não-scale)",
         "frequency": "Quarterly"
@@ -11946,7 +12126,7 @@
         }
       ],
       "methodology_quote": "Quality procedures to acquire and manage data must be established, including to account for uncertainty in data and parameters, where applicable.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Methodology/Tech",
       "manual_review": false,
       "source_type": "PURE_GAP",
@@ -11955,8 +12135,8 @@
       "dmrv_output": "",
       "domain": "Data Quality",
       "subdomain": "",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -11964,7 +12144,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Sinalização",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T18:00:00Z",
+        "approval_wave": "Onda 4 — WEIGHING",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda4-weighing-audit-2026-06-03.md"
+      }
     },
     {
       "id": "PG-15",
@@ -12686,7 +12873,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Complementa P-03 (que valida identidade base). PG-20 valida que o participant tem accreditation/licenca VALIDA por role: Hauler precisa de licenca de transporte de residuos; Recycler precisa de licenca de operacao ambiental + Recyclass cert (opcional); Processor similar; INT precisa de contrato Impactrakr/registry. Inspirado em rule \"Participant Accreditations & Verifications Requirements\" do BOLD Recycling (registry de referência) 'Participant Accreditations & Verifications Requirements' (rule #4) com granularidade adicional para o mercado EU/Recyclass.",
+      "purpose": "Complementa P-03 (que valida identidade base). PG-20 valida que o participant tem accreditation/licenca VALIDA por role: Hauler precisa de licenca de transporte de residuos; Recycler precisa de licenca de operacao ambiental + Recyclass cert (opcional); Processor similar; INT precisa de contrato Impactrakr/registry. Inspirado em rule \"Participant Accreditations & Verifications Requirements\" do BOLD Recycling (registry de referência) 'Participant Accreditations & Verifications Requirements' (rule #4) com granularidade adicional para o mercado EU/Recyclass. **Sub-roles dentro de Recycler**: além do role principal, PG-20 valida credenciais de sub-roles específicos quando relevantes — `scale_operator` (operador certificado pra operar balança calibrada — exigido por P-48 segregação de WEIGHING) é o primeiro sub-role formalizado (adicionado na Onda 4 / decisão Rodrigo 2026-06-03 Option A). Outros sub-roles podem ser adicionados conforme refinamento.",
       "logic_human": "BLOCK em prod (FLAG em sandbox) se accreditation_record do role do participant ausente OR accreditation_record.validUntil < now OR documentos requeridos por role ausentes.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-20'>): Promise<RuleResult> {\n  const p = ctx.participant;\n  const isProd = ctx.environment === 'production';\n  const sev: 'BLOCK' | 'FLAG' = isProd ? 'BLOCK' : 'FLAG';\n  const role = p.role;\n\n  // Mapeamento role → doc_type esperado\n  const REQUIRED_DOCS: Record<string, { type: string; renewalMonths: number; optional?: boolean }[]> = {\n    'H': [{ type: 'hauler_license', renewalMonths: 24 }],\n    'P': [{ type: 'environmental_operation_license', renewalMonths: 12 }],\n    'R': [\n      { type: 'environmental_operation_license', renewalMonths: 12 },\n      { type: 'recyclass_certificate', renewalMonths: 12, optional: !p.recyclassOptIn }\n    ],\n    'INT': [{ type: 'integrator_contract', renewalMonths: 12 }]\n  };\n\n  const required = REQUIRED_DOCS[role] || [];\n  if (required.length === 0) return ctx.skip({ ruleId: 'PG-20', reason: `Role ${role} sem accreditation requirement` });\n\n  const missing: { docType: string; reason: string }[] = [];\n  for (const req of required) {\n    if (req.optional) continue;\n    const doc = await ctx.db.document.findOne({ where: {\n      type: req.type, participantId: p.id\n    }});\n    if (!doc) {\n      missing.push({ docType: req.type, reason: 'missing' });\n      continue;\n    }\n    if (doc.validUntil && doc.validUntil < ctx.now) {\n      missing.push({ docType: req.type, reason: `expired on ${doc.validUntil.toISOString()}` });\n    }\n  }\n\n  if (missing.length > 0) {\n    return ctx.fail({ ruleId: 'PG-20', severity: sev,\n      message: `${missing.length} accreditation doc(s) ausente(s) ou expirado(s): ${missing.map(m=>m.docType).join(', ')}`,\n      field: 'documents.accreditation',\n      metadata: { missing } });\n  }\n  return ctx.pass({ ruleId: 'PG-20' });\n}",
       "fields": {
@@ -12778,7 +12965,8 @@
         "Recyclass cert opcional via flag recyclassOptIn=false — útil pra Recyclers fora da EU ou em onboarding pré-Recyclass.",
         "Multi-document support: alguns roles podem ter documentos equivalentes (e.g., EuCertPlast em vez de Recyclass) — atualmente não suportado, marcado pra Onda 2.",
         "validUntil null = doc válido indefinidamente (raro mas aceito).",
-        "Auditor sample manual pode encontrar documento físico que não foi digitalizado — fallback: Compliance pode marcar accreditation_verified=true override."
+        "Auditor sample manual pode encontrar documento físico que não foi digitalizado — fallback: Compliance pode marcar accreditation_verified=true override.",
+        "Onda 4 (2026-06-03): adicionada validação de sub-role `scale_operator` dentro de Recycler. WeighEvent.measuredBy.uid + validatedBy.uid devem ambos ter scale_operator_certificate válido. Amended_by: Onda 4 WEIGHING decision (P-48 → PG-20 split)."
       ],
       "bv_verification": {
         "bv_controls": [],
@@ -12820,8 +13008,8 @@
       "dmrv_output": "participant_accreditation_valid",
       "domain": "Identity / Governance",
       "subdomain": "Role-specific accreditation",
-      "version": "0.2.0",
-      "last_reviewed": "2026-06-02",
+      "version": "0.3.1",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "is_new": true,
       "new_source": "Onda 1 review (02/jun) — Carrot-inspired split",
@@ -12837,7 +13025,16 @@
         "approval_wave": "Onda 1 — KYC/Governance",
         "approval_method": "interactive_review",
         "audit_report": "docs/audits/bulk-rule-audit-2026-06-02.md"
-      }
+      },
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T18:00:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "Onda 4 — WEIGHING (collateral)",
+          "change": "Added 'scale_operator' as Recycler sub-role; complements P-48 narrowing (Option A).",
+          "audit_report": "docs/audits/onda4-weighing-audit-2026-06-03.md"
+        }
+      ]
     },
     {
       "id": "EU-01",
@@ -17409,6 +17606,24 @@
         "conditions": [
           "Participant.pursuingRecyclassCertification == TRUE",
           "WeightRecord.scaleType contains 'bridge_scale'"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate when calibration cert validUntil is extended (renewal), shortened (early revocation), or new cert uploaded.",
+            "conditions": [
+              "doc.type == 'weighbridge_calibration_cert'"
+            ]
+          },
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate when WeightRecord.scaleType, weighbridgeCalibrationRef, or eventDate change.",
+            "conditions": [
+              "changed_fields ∩ {'scaleType', 'weighbridgeCalibrationRef', 'eventDate'} ≠ ∅"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -17456,7 +17671,8 @@
         "revalidation": "Re-roda em cada upload de novo cert, update de ref/expiry, e em cada MASSID_INGEST que envolva o weighbridge. Job noturno marca FLAG 60 dias antes do expiry.",
         "retry_window": "Upload imediato + recalibração se vencido (recalibração típica leva 1-3 dias).",
         "escalation": "Cert vencido > 30 dias = suspensão temporária do weighbridge + Compliance review. Múltiplos BLOCKs em sequência → P-67 (bad actor) flag.",
-        "performance": "Lookup O(1) via index (ref, type)."
+        "performance": "Lookup O(1) via index (ref, type).",
+        "non_retroactive_revocation": "Validação usa WeightRecord.eventDate como evento-âncora: calibration cert que estava válido no momento da pesagem permanece válido para o MassID mesmo se for revogado/expirado depois (princípio non-retroactive). Implementação atual já usa wr.eventDate corretamente (NÃO usa now()) — esse princípio fica explícito aqui para prevenir regression se alguém refatorar o pseudocode usando ctx.now. Alinhado com P-02 (homologation), P-05 (consent), EU-05 (carrier license) — decisão Rodrigo 02-03/jun. Nota: revogação retroativa por motivo grave (fraude detectada na calibração) é gerenciada via INCIDENT_TRIGGERED separadamente, NÃO via expiry update."
       },
       "test_cases": {
         "positive": {
@@ -17492,12 +17708,14 @@
         "Weighbridge público (off-site, usado por hauler) também aplicável — usa weighbridgeId externo.",
         "Sample test record: usar massa conhecida (e.g., 1000kg referência) para validar drift no audit, não in-rule.",
         "Múltiplos weighbridges no site: cada um com cert próprio, indexado por weighbridgeId.",
-        "Calibração emergencial após drift (re-cert anterior ao expiry): novo doc com expiry estendido destrava revalidation."
+        "Calibração emergencial após drift (re-cert anterior ao expiry): novo doc com expiry estendido destrava revalidation futura, mas não invalida MassIDs passados (non-retroactive).",
+        "Authority enum: ISO 17025 labs, INMETRO (BR), EA accredited bodies (EU), MS Maltese standards (MT). Authority não-acreditada → BLOCK.",
+        "Edge: cert encontrado mas com calibrationAuthority blank → BLOCK específico (rule já cobre)."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-16",
-          "BV-17"
+          "WEIGHING-CALCERT-01",
+          "WEIGHING-CALCERT-02"
         ],
         "procedure": "Auditor solicita lista de weighbridges em uso, verifica cert vigente para cada um, faz spot-check com massa de referência (1000kg padrão calibrado) para confirmar drift < 0.5%. Cross-check com sample 30 MassIDs.",
         "sample_size": "100% weighbridges + 30 MassIDs",
@@ -17519,7 +17737,7 @@
         }
       ],
       "methodology_quote": "Where there is a weighbridge on site used for purchase of Input Plastic Waste or sale of Recycled Output, there must be a valid certificate showing it has been inspected and calibrated. The certificate must be issued by a suitably qualified and authorised organisation. Category 1.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops / Compliance",
       "manual_review": false,
       "source_type": "RECYCLASS",
@@ -17528,8 +17746,8 @@
       "dmrv_output": "",
       "domain": "Incoming Material",
       "subdomain": "",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "RECYCLASS_CERTIFICATION",
       "event_ids": [
@@ -17537,7 +17755,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T18:00:00Z",
+        "approval_wave": "Onda 4 — WEIGHING",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda4-weighing-audit-2026-06-03.md"
+      }
     },
     {
       "id": "RC-08",

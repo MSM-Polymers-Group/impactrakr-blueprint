@@ -689,6 +689,37 @@
         "approved_at",
         "approval_wave"
       ]
+    },
+    "amendments": {
+      "type": "array",
+      "description": "Optional amendment log when an APPROVED rule is patched (e.g., sub-role added) without changing the core approval. Each entry: {amended_at, amended_by, wave, change, audit_report}.",
+      "items": {
+        "type": "object",
+        "required": [
+          "amended_at",
+          "amended_by",
+          "wave",
+          "change"
+        ],
+        "properties": {
+          "amended_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "amended_by": {
+            "type": "string"
+          },
+          "wave": {
+            "type": "string"
+          },
+          "change": {
+            "type": "string"
+          },
+          "audit_report": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "allOf": [
