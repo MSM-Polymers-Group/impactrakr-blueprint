@@ -5,11 +5,26 @@
   "description": "Specification schema for every validation rule in the Impactrakr Validation Engine. L3 = ready for implementation + BV audit. Schema v0.2 adds the 4 MvF-compliance fields per Carrot dMRV Hub §3.4.6 + §3.5: event_ids, geographic_scope, action_on_failure, rule_type. These are OPTIONAL during migration (catalog v0.4.x → v0.5.x); will become required in v0.6+. Each rule must satisfy this contract.",
   "type": "object",
   "required": [
-    "id", "title", "pillar", "severity", "trigger", "applies_to",
-    "purpose", "logic_human", "logic_pseudocode",
-    "fields", "evidence", "messages", "behavior",
-    "test_cases", "bv_verification", "references",
-    "status", "owner", "version", "last_reviewed"
+    "id",
+    "title",
+    "pillar",
+    "severity",
+    "trigger",
+    "applies_to",
+    "purpose",
+    "logic_human",
+    "logic_pseudocode",
+    "fields",
+    "evidence",
+    "messages",
+    "behavior",
+    "test_cases",
+    "bv_verification",
+    "references",
+    "status",
+    "owner",
+    "version",
+    "last_reviewed"
   ],
   "properties": {
     "id": {
@@ -24,34 +39,63 @@
     },
     "pillar": {
       "type": "string",
-      "enum": ["PURE", "PURE_GAP", "EU", "RECYCLASS"],
+      "enum": [
+        "PURE",
+        "PURE_GAP",
+        "EU",
+        "RECYCLASS"
+      ],
       "description": "Which catalog this rule belongs to."
     },
     "cluster": {
       "type": "string",
       "enum": [
-        "KYC_GOVERNANCE", "WEIGHING", "HOMOLOGATION_PARTICIPANT",
-        "MATERIAL_COMPOSITION", "EVENTS_PICKUP", "TRANSPORT",
-        "RECYCLER_OUTCOME", "QUALITY_ANTIFRAUD",
-        "WASTE_CLASSIFICATION", "CHAIN_OF_CUSTODY", "DOC_INTEGRITY", "CROSS_BORDER",
-        "ADMINISTRATION_LICENSING", "STAFF_ORG", "PROCESS_CAPACITY",
-        "ENVIRONMENTAL", "SUBCONTRACTING", "OTHER"
+        "KYC_GOVERNANCE",
+        "WEIGHING",
+        "HOMOLOGATION_PARTICIPANT",
+        "MATERIAL_COMPOSITION",
+        "EVENTS_PICKUP",
+        "TRANSPORT",
+        "RECYCLER_OUTCOME",
+        "QUALITY_ANTIFRAUD",
+        "WASTE_CLASSIFICATION",
+        "CHAIN_OF_CUSTODY",
+        "DOC_INTEGRITY",
+        "CROSS_BORDER",
+        "ADMINISTRATION_LICENSING",
+        "STAFF_ORG",
+        "PROCESS_CAPACITY",
+        "ENVIRONMENTAL",
+        "SUBCONTRACTING",
+        "OTHER"
       ],
       "description": "Functional cluster (used for filtering in HTML view). OTHER = not yet categorized; should migrate to specific cluster over time."
     },
     "severity": {
       "type": "string",
-      "enum": ["BLOCK", "FLAG"],
+      "enum": [
+        "BLOCK",
+        "FLAG"
+      ],
       "description": "Mirrors enum RuleSeverity in schema.prisma. BLOCK halts the flow; FLAG flags for manual review."
     },
     "gates_what": {
       "type": "string",
-      "enum": ["TRC_ISSUANCE", "RECYCLASS_CERTIFICATION", "LEGAL_OPERATION", "HOMOLOGATION_APPROVAL", "REWARD_DISTRIBUTION"],
+      "enum": [
+        "TRC_ISSUANCE",
+        "RECYCLASS_CERTIFICATION",
+        "LEGAL_OPERATION",
+        "HOMOLOGATION_APPROVAL",
+        "REWARD_DISTRIBUTION"
+      ],
       "description": "When the rule fails (BLOCK), what specifically is blocked? TRC_ISSUANCE = emission of Tokenized Recycling Credit (PURE/PG). LEGAL_OPERATION = transport/ingest in EU legal scope (EU). RECYCLASS_CERTIFICATION = RecyClass annual certification (RC). HOMOLOGATION_APPROVAL = participant onboarding/renewal. REWARD_DISTRIBUTION = on-chain reward split. Critical to clarify scope of BLOCK for non-technical reviewers."
     },
     "trigger": {
       "type": "object",
-      "required": ["event", "phase"],
+      "required": [
+        "event",
+        "phase"
+      ],
       "properties": {
         "event": {
           "type": "string",
@@ -77,15 +121,22 @@
         "phase": {
           "type": "string",
           "enum": [
-            "PRE_VALIDATION", "RUNTIME",
-            "POST_CREATE", "POST_UPDATE", "POST_PUBLISH", "POST_RECYCLING",
-            "MONTHLY", "ENFORCEMENT"
+            "PRE_VALIDATION",
+            "RUNTIME",
+            "POST_CREATE",
+            "POST_UPDATE",
+            "POST_PUBLISH",
+            "POST_RECYCLING",
+            "MONTHLY",
+            "ENFORCEMENT"
           ],
           "description": "Phase within the event lifecycle. POST_CREATE/POST_UPDATE/POST_PUBLISH added in v0.2 to support PARTICIPANT_CREATE/UPDATE and TERMS_VERSION_PUBLISHED triggers."
         },
         "conditions": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": {
+            "type": "string"
+          },
           "description": "Pre-conditions for the rule to fire (skip otherwise). Format: 'Model.field == value'. Empty array = always fires for the event."
         },
         "secondary_triggers": {
@@ -93,12 +144,26 @@
           "description": "Additional trigger events that fire the same rule. Used when a rule must re-evaluate on multiple lifecycle points (e.g., PARTICIPANT_CREATE + PARTICIPANT_UPDATE).",
           "items": {
             "type": "object",
-            "required": ["event", "phase"],
+            "required": [
+              "event",
+              "phase"
+            ],
             "properties": {
-              "event": {"type": "string"},
-              "phase": {"type": "string"},
-              "purpose": {"type": "string"},
-              "conditions": {"type": "array", "items": {"type": "string"}}
+              "event": {
+                "type": "string"
+              },
+              "phase": {
+                "type": "string"
+              },
+              "purpose": {
+                "type": "string"
+              },
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
             }
           }
         }
@@ -106,13 +171,25 @@
     },
     "applies_to": {
       "type": "object",
-      "required": ["participant_types", "regions"],
+      "required": [
+        "participant_types",
+        "regions"
+      ],
       "properties": {
         "participant_types": {
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["G", "B", "H", "P", "R", "INT", "NGO_BENEF", "BUYER"]
+            "enum": [
+              "G",
+              "B",
+              "H",
+              "P",
+              "R",
+              "INT",
+              "NGO_BENEF",
+              "BUYER"
+            ]
           },
           "description": "Participant types impacted. G=Generator, B=Bin Custodian, H=Hauler, P=Processor, R=Recycler, INT=Integrator, NGO_BENEF=NGO Beneficiary, BUYER=Credit Buyer."
         },
@@ -120,7 +197,14 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["GLOBAL", "EU", "MALTA", "BR", "LATAM", "ASIA"]
+            "enum": [
+              "GLOBAL",
+              "EU",
+              "MALTA",
+              "BR",
+              "LATAM",
+              "ASIA"
+            ]
           },
           "description": "Where the rule applies. GLOBAL = anywhere; MALTA is a subset of EU."
         }
@@ -143,16 +227,23 @@
     },
     "fields": {
       "type": "object",
-      "required": ["reads", "writes"],
+      "required": [
+        "reads",
+        "writes"
+      ],
       "properties": {
         "reads": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": {
+            "type": "string"
+          },
           "description": "Schema fields read. Format: 'Model.field'. E.g. 'Participant.kycStatus'."
         },
         "writes": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": {
+            "type": "string"
+          },
           "description": "Schema fields written. Always includes 'ValidationResult'."
         }
       }
@@ -161,13 +252,18 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["doc_type", "mandatory"],
+        "required": [
+          "doc_type",
+          "mandatory"
+        ],
         "properties": {
           "doc_type": {
             "type": "string",
             "description": "DOCUMENT_REGISTER.doc_type (e.g. 'kyc_kyb_record', 'waste_permit')."
           },
-          "mandatory": {"type": "boolean"},
+          "mandatory": {
+            "type": "boolean"
+          },
           "when": {
             "type": "string",
             "description": "Optional condition for when this evidence is required."
@@ -199,16 +295,31 @@
           "minLength": 20,
           "description": "Message on FLAG (English). Required when severity=FLAG."
         },
-        "flag_sandbox_pt": {"type": "string", "description": "Optional sandbox-only message (Portuguese) for environment-aware rules."},
-        "flag_sandbox_en": {"type": "string", "description": "Optional sandbox-only message (English) for environment-aware rules."},
-        "flag_pending_pt": {"type": "string"},
-        "flag_pending_en": {"type": "string"}
+        "flag_sandbox_pt": {
+          "type": "string",
+          "description": "Optional sandbox-only message (Portuguese) for environment-aware rules."
+        },
+        "flag_sandbox_en": {
+          "type": "string",
+          "description": "Optional sandbox-only message (English) for environment-aware rules."
+        },
+        "flag_pending_pt": {
+          "type": "string"
+        },
+        "flag_pending_en": {
+          "type": "string"
+        }
       },
       "description": "Per-severity messages. Validation is conditional via allOf at rule level — see 'allOf' below. Block messages required if severity=BLOCK; flag messages required if severity=FLAG."
     },
     "behavior": {
       "type": "object",
-      "required": ["idempotent", "on_fail", "on_pass", "revalidation"],
+      "required": [
+        "idempotent",
+        "on_fail",
+        "on_pass",
+        "revalidation"
+      ],
       "properties": {
         "idempotent": {
           "type": "boolean",
@@ -242,15 +353,30 @@
     },
     "test_cases": {
       "type": "object",
-      "required": ["positive", "negative"],
+      "required": [
+        "positive",
+        "negative"
+      ],
       "properties": {
         "positive": {
           "type": "object",
-          "required": ["name", "given", "expected"],
+          "required": [
+            "name",
+            "given",
+            "expected"
+          ],
           "properties": {
-            "name": {"type": "string"},
-            "given": {"type": "string", "description": "Plain-language scenario / fixture description."},
-            "expected": {"type": "string", "description": "Expected ValidationResult: passed=true, no message."}
+            "name": {
+              "type": "string"
+            },
+            "given": {
+              "type": "string",
+              "description": "Plain-language scenario / fixture description."
+            },
+            "expected": {
+              "type": "string",
+              "description": "Expected ValidationResult: passed=true, no message."
+            }
           }
         },
         "negative": {
@@ -259,11 +385,22 @@
           "maxItems": 10,
           "items": {
             "type": "object",
-            "required": ["name", "given", "expected"],
+            "required": [
+              "name",
+              "given",
+              "expected"
+            ],
             "properties": {
-              "name": {"type": "string"},
-              "given": {"type": "string"},
-              "expected": {"type": "string", "description": "Expected result on failure: passed=false, message, field."}
+              "name": {
+                "type": "string"
+              },
+              "given": {
+                "type": "string"
+              },
+              "expected": {
+                "type": "string",
+                "description": "Expected result on failure: passed=false, message, field."
+              }
             }
           },
           "description": "2-5 negative test cases covering distinct failure modes."
@@ -272,12 +409,19 @@
     },
     "edge_cases": {
       "type": "array",
-      "items": {"type": "string"},
+      "items": {
+        "type": "string"
+      },
       "description": "Known edge cases and how the rule handles them. E.g. 'Null kyc_status treated as incomplete.'"
     },
     "bv_verification": {
       "type": "object",
-      "required": ["bv_controls", "procedure", "sample_size", "frequency"],
+      "required": [
+        "bv_controls",
+        "procedure",
+        "sample_size",
+        "frequency"
+      ],
       "properties": {
         "bv_controls": {
           "type": "array",
@@ -303,14 +447,20 @@
     },
     "related": {
       "type": "array",
-      "items": {"type": "string", "pattern": "^(P|PG|EU|RC|BV)-[0-9]{2}$"},
+      "items": {
+        "type": "string",
+        "pattern": "^(P|PG|EU|RC|BV)-[0-9]{2}$"
+      },
       "description": "Cross-references to other rules or BV controls with overlap or dependency."
     },
     "references": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["source", "section"],
+        "required": [
+          "source",
+          "section"
+        ],
         "properties": {
           "source": {
             "type": "string",
@@ -344,8 +494,14 @@
               "OTHER"
             ]
           },
-          "section": {"type": "string", "description": "Section or article reference. E.g. '§5.1.1', 'Article 18'."},
-          "quote": {"type": "string", "description": "Optional verbatim quote (≤ 15 words to respect copyright)."}
+          "section": {
+            "type": "string",
+            "description": "Section or article reference. E.g. '§5.1.1', 'Article 18'."
+          },
+          "quote": {
+            "type": "string",
+            "description": "Optional verbatim quote (≤ 15 words to respect copyright)."
+          }
         }
       },
       "description": "Normative references that sustain the rule."
@@ -356,18 +512,33 @@
     },
     "status": {
       "type": "string",
-      "enum": ["DRAFT", "REVIEWED", "APPROVED", "IMPLEMENTED", "DEPRECATED"],
+      "enum": [
+        "DRAFT",
+        "REVIEWED",
+        "APPROVED",
+        "IMPLEMENTED",
+        "DEPRECATED"
+      ],
       "description": "Refinement lifecycle status."
     },
     "owner": {
       "type": "string",
       "enum": [
-        "Compliance", "Methodology", "Tech", "Ops", "Reporting",
-        "Compliance/Tech", "Compliance/Ops", "Compliance / Ops",
+        "Compliance",
+        "Methodology",
+        "Tech",
+        "Ops",
+        "Reporting",
+        "Compliance/Tech",
+        "Compliance/Ops",
+        "Compliance / Ops",
         "Methodology/Tech",
-        "Tech/Compliance", "Compliance/Reporting",
-        "Ops/Compliance", "Ops / Compliance",
-        "Ops/Reporting", "Ops / Reporting"
+        "Tech/Compliance",
+        "Compliance/Reporting",
+        "Ops/Compliance",
+        "Ops / Compliance",
+        "Ops/Reporting",
+        "Ops / Reporting"
       ],
       "description": "Who owns the rule's content. Accepts compound owners (multiple groups co-owning) with or without spaces around the slash."
     },
@@ -377,17 +548,34 @@
     },
     "source_type": {
       "type": "string",
-      "enum": ["PURE", "PURE/BOLD", "BOLD/PURE", "BOLD", "EU", "EU/PURE", "RECYCLASS", "PURE_GAP"],
+      "enum": [
+        "PURE",
+        "PURE/BOLD",
+        "BOLD/PURE",
+        "BOLD",
+        "EU",
+        "EU/PURE",
+        "RECYCLASS",
+        "PURE_GAP"
+      ],
       "description": "Source attribution (from RULE_REGISTER.Source Type column when applicable)."
     },
     "disposition": {
       "type": "string",
-      "enum": ["Keep", "Modify", "Keep/Modify", "New", "Deprecated"],
+      "enum": [
+        "Keep",
+        "Modify",
+        "Keep/Modify",
+        "New",
+        "Deprecated"
+      ],
       "description": "Disposition for the rule (from RULE_REGISTER when applicable)."
     },
     "odoo_objects": {
       "type": "array",
-      "items": {"type": "string"},
+      "items": {
+        "type": "string"
+      },
       "description": "Odoo objects involved (from RULE_REGISTER when applicable). Informational only."
     },
     "dmrv_output": {
@@ -414,7 +602,9 @@
     },
     "audit_findings": {
       "type": "array",
-      "items": {"type": "string"},
+      "items": {
+        "type": "string"
+      },
       "description": "Audit findings IDs from audit-pure-methodology-consistency.md that affect this rule (e.g. ['B-04', 'E-01'])."
     },
     "event_ids": {
@@ -427,17 +617,29 @@
     },
     "geographic_scope": {
       "type": "string",
-      "enum": ["Universal", "Territorial"],
+      "enum": [
+        "Universal",
+        "Territorial"
+      ],
       "description": "MvF-compliance field per Carrot dMRV Hub §3.5. Universal = rule applies regardless of territory. Territorial = rule has territory-specific parameters (e.g., manifest type BR=MTR vs EU=Annex VII). Territorial rules need a Geographical Adaptation Appendix entry. Empty during migration."
     },
     "action_on_failure": {
       "type": "string",
-      "enum": ["Rejeição", "Bloqueio", "Sinalização", "Escalonamento"],
+      "enum": [
+        "Rejeição",
+        "Bloqueio",
+        "Sinalização",
+        "Escalonamento"
+      ],
       "description": "MvF-compliance field per Carrot dMRV Hub §3.4.6. Finer-grained than the legacy `severity` (BLOCK/FLAG). Rejeição = data rejected at intake; Bloqueio = downstream operation blocked until regularization; Sinalização = flag for human review without blocking; Escalonamento = escalate to Compliance after retry window. During migration, derive from `severity` + `behavior.on_fail` semantics."
     },
     "rule_type": {
       "type": "string",
-      "enum": ["Estrutura", "Metodologia", "Auditoria"],
+      "enum": [
+        "Estrutura",
+        "Metodologia",
+        "Auditoria"
+      ],
       "description": "MvF-compliance field per Carrot dMRV Hub §3.4.6. Orthogonal to `pillar`. Estrutura = integrity of form/completeness (independent of methodology content); Metodologia = conformity with PURE-specific criteria and parameters; Auditoria = consistency, cross-referencing, pattern-based checks requiring deeper analysis. During migration this is derived from current rule semantics."
     },
     "is_new": {
@@ -452,27 +654,86 @@
       "type": "object",
       "description": "Optional. Documents per-field validators (regex, range, jurisdiction-specific checksums) for format/semantic validation rules like PG-01.",
       "additionalProperties": true
+    },
+    "approval": {
+      "type": "object",
+      "description": "Formal approval record. Present when status=APPROVED. Source of truth in git (vs Approval Wizard localStorage which is per-browser).",
+      "properties": {
+        "approved_by": {
+          "type": "string"
+        },
+        "approved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "approval_wave": {
+          "type": "string",
+          "description": "E.g., 'Onda 1 — KYC/Governance', 'Onda 2 — HOMOLOGATION_PARTICIPANT'"
+        },
+        "approval_method": {
+          "type": "string",
+          "enum": [
+            "interactive_review",
+            "agent_assisted_review",
+            "subagent_audit",
+            "bulk_migration"
+          ]
+        },
+        "audit_report": {
+          "type": "string",
+          "description": "Optional path to audit report MD"
+        }
+      },
+      "required": [
+        "approved_by",
+        "approved_at",
+        "approval_wave"
+      ]
     }
   },
   "allOf": [
     {
       "comment": "If severity=BLOCK, require block_pt + block_en in messages.",
-      "if": {"properties": {"severity": {"const": "BLOCK"}}, "required": ["severity"]},
+      "if": {
+        "properties": {
+          "severity": {
+            "const": "BLOCK"
+          }
+        },
+        "required": [
+          "severity"
+        ]
+      },
       "then": {
         "properties": {
           "messages": {
-            "required": ["block_pt", "block_en"]
+            "required": [
+              "block_pt",
+              "block_en"
+            ]
           }
         }
       }
     },
     {
       "comment": "If severity=FLAG, require flag_pt + flag_en in messages.",
-      "if": {"properties": {"severity": {"const": "FLAG"}}, "required": ["severity"]},
+      "if": {
+        "properties": {
+          "severity": {
+            "const": "FLAG"
+          }
+        },
+        "required": [
+          "severity"
+        ]
+      },
       "then": {
         "properties": {
           "messages": {
-            "required": ["flag_pt", "flag_en"]
+            "required": [
+              "flag_pt",
+              "flag_en"
+            ]
           }
         }
       }

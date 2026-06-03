@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Impactrakr · Product Blueprint v0.3.8</title>
+<title>Impactrakr · Product Blueprint v0.3.9</title>
 <meta name="description" content="Plataforma dMRV para validação de créditos de reciclagem de plástico. Cliente: MARE Foundation / MSM Polymers (Malta).">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1375,7 +1375,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
         <span class="search-btn-label" lang="en">Search...</span>
         <kbd>⌘K</kbd>
       </button>
-      <span class="version-pill">v0.3.8 · 3 Jun 2026</span>
+      <span class="version-pill">v0.3.9 · 3 Jun 2026</span>
       <div class="lang-toggle" role="group" aria-label="Language">
         <button data-lang="pt" class="active" aria-label="Português">PT</button>
         <button data-lang="en" aria-label="English">EN</button>
@@ -1532,7 +1532,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
 
 <!-- ============ HERO ============ -->
 <section class="hero">
-  <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.3.8</div>
+  <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.3.9</div>
   <h1>
     <span lang="pt">Plataforma dMRV para créditos de reciclagem de plástico</span>
     <span lang="en">dMRV platform for plastic recycling credits</span>
@@ -3100,7 +3100,7 @@ flowchart LR
       <p style="margin: 4px 0 0; font-size: 12.5px;" lang="en">Last update: <span id="footer-last-updated-en">May 28, 2026</span> · <span id="footer-relative-en">today</span>. Owner: Rodrigo Moraes (Finder Consultoria).</p>
     </div>
     <div style="font-size: 12.5px; text-align: right;">
-      <div class="mono" id="footer-version-pill">v0.3.8 · 2026-06-03</div>
+      <div class="mono" id="footer-version-pill">v0.3.9 · 2026-06-03</div>
       <div class="mono" style="color: var(--accent); margin-top:4px;" id="footer-days-to-golive">— days to go-live</div>
     </div>
   </div>
@@ -4059,8 +4059,32 @@ document.addEventListener('keydown', (e) => {
     fetch('validation-rules-catalog/data/rules.json').then(r => r.json()).then(d => { RULES = d.rules; cb(); });
   }
 
-  function isApproved(ruleId) { return !!loadApprovals()[ruleId]; }
-  function getApproval(ruleId) { return loadApprovals()[ruleId]; }
+  function isApproved(ruleId) {
+    // Source of truth #1: rules.json — status=APPROVED (formal aprovação metodológica, persistido em git)
+    if (RULES) {
+      const rule = RULES.find(r => r.id === ruleId);
+      if (rule && rule.status === 'APPROVED') return true;
+    }
+    // Source of truth #2: localStorage — Approval Wizard interactive approvals (per-browser, ad-hoc)
+    return !!loadApprovals()[ruleId];
+  }
+  function getApproval(ruleId) {
+    // Prefer git-persisted approval block over localStorage
+    if (RULES) {
+      const rule = RULES.find(r => r.id === ruleId);
+      if (rule && rule.status === 'APPROVED' && rule.approval) {
+        return {
+          approved_by: rule.approval.approved_by,
+          approved_at: rule.approval.approved_at,
+          approval_wave: rule.approval.approval_wave,
+          approval_method: rule.approval.approval_method,
+          audit_report: rule.approval.audit_report,
+          source: 'rules.json'
+        };
+      }
+    }
+    return loadApprovals()[ruleId];
+  }
   function setApproval(ruleId, data) {
     const a = loadApprovals();
     a[ruleId] = data;
@@ -4251,19 +4275,24 @@ document.addEventListener('keydown', (e) => {
     if (!RULES) return { total: 0, approved: 0, pending: 0, pct: 0 };
     const approvals = loadApprovals();
     const total = RULES.length;
-    const approved = Object.keys(approvals).length;
-    const pending = total - approved;
-    return { total, approved, pending, pct: total ? Math.round(approved / total * 100) : 0 };
+    // Approved = rules with formal approval in rules.json (status='APPROVED') OR Approval Wizard localStorage entry
+    const approvedCount = RULES.filter(r => r.status === 'APPROVED' || approvals[r.id]).length;
+    const pending = total - approvedCount;
+    return { total, approved: approvedCount, pending, pct: total ? Math.round((approvedCount / total) * 100) : 0 };
   }
 
   function updateQueueStats(s) {
     const el = document.getElementById('aw-queue-stats');
     if (!el) return;
+    // Count git vs localStorage approvals separately for transparency
+    const localApprovals = loadApprovals();
+    const gitApproved = RULES ? RULES.filter(r => r.status === 'APPROVED').length : 0;
+    const localOnly = RULES ? RULES.filter(r => localApprovals[r.id] && r.status !== 'APPROVED').length : 0;
     el.innerHTML =
       '<div class="aw-queue-stat green"><div class="aw-qs-label">Aprovadas</div><div class="aw-qs-value" style="color:#10b981;">' + s.approved + '</div><div class="aw-qs-sub">de ' + s.total + ' (' + s.pct + '%)</div></div>' +
       '<div class="aw-queue-stat"><div class="aw-qs-label">Pendentes</div><div class="aw-qs-value" style="color:#f59e0b;">' + s.pending + '</div><div class="aw-qs-sub">aguardando revisão</div></div>' +
-      '<div class="aw-queue-stat"><div class="aw-qs-label">Approver ativo</div><div class="aw-qs-value" style="font-size:18px;">' + APPROVER + '</div><div class="aw-qs-sub">solo approver</div></div>' +
-      '<div class="aw-queue-stat"><div class="aw-qs-label">Persistência</div><div class="aw-qs-value" style="font-size:18px;">localStorage</div><div class="aw-qs-sub">exporte para versionar</div></div>';
+      '<div class="aw-queue-stat"><div class="aw-qs-label">Formais (git)</div><div class="aw-qs-value" style="font-size:18px; color:#10b981;">' + gitApproved + '</div><div class="aw-qs-sub">rules.json status=APPROVED</div></div>' +
+      '<div class="aw-queue-stat"><div class="aw-qs-label">Ad-hoc (browser)</div><div class="aw-qs-value" style="font-size:18px; color:#f59e0b;">' + localOnly + '</div><div class="aw-qs-sub">localStorage — exporte para versionar</div></div>';
     const fill = document.getElementById('aw-progress-fill');
     if (fill) fill.style.width = s.pct + '%';
   }

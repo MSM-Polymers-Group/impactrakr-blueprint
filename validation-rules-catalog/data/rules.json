@@ -1,6 +1,6 @@
 {
   "$schema": "./rules.schema.json",
-  "catalog_version": "0.6.3",
+  "catalog_version": "0.6.4",
   "catalog_last_updated": "2026-06-03",
   "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr. | v0.6.3-proposed: Onda 2 refinement of HOMOLOGATION_PARTICIPANT cluster (14 rules: P-02, P-20..P-26, PG-05..PG-10). AUTO_APPLY rules bumped to v0.3.0 with Onda 1 patterns (secondary_triggers, environment_aware where appropriate, non_retroactive_revocation, expanded edge_cases). NEEDS_REVIEW: P-22 (environment_aware decision), PG-10 (severity & 0-vs-null semantics). PG-06 patch bump (0.2.1) — stale audit_notes archived.",
   "sources": [
@@ -40,7 +40,8 @@
       "FLAG": 20
     },
     "by_status": {
-      "REVIEWED": 130
+      "REVIEWED": 110,
+      "APPROVED": 20
     },
     "by_cluster": {
       "RECYCLER_OUTCOME": 19,
@@ -342,7 +343,7 @@
         }
       ],
       "methodology_quote": "Recycler, Processor and INT homologation must be active and not expired.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "PURE",
@@ -363,7 +364,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-03",
@@ -585,7 +593,7 @@
         }
       ],
       "methodology_quote": "All Participants are KYC'd (Know Your Customer), including Waste Generators and PURE Plastic Credit Buyers as part of the Participation Requirements.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "PURE",
@@ -605,7 +613,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-02T20:00:00Z",
+        "approval_wave": "Onda 1 — KYC/Governance",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/audits/bulk-rule-audit-2026-06-02.md"
+      }
     },
     {
       "id": "P-04",
@@ -957,7 +972,7 @@
         }
       ],
       "methodology_quote": "Participants cannot request other certifications using the same data submitted to the Carrot Network.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "PURE",
@@ -978,7 +993,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-02T20:00:00Z",
+        "approval_wave": "Onda 1 — KYC/Governance",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/audits/bulk-rule-audit-2026-06-02.md"
+      }
     },
     {
       "id": "P-06",
@@ -3026,7 +3048,7 @@
         }
       ],
       "methodology_quote": "If source is unknown it must be explicitly flagged otherwise source must be identified.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "BOLD/PURE",
@@ -3046,7 +3068,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-21",
@@ -3162,7 +3191,7 @@
         }
       ],
       "methodology_quote": "If source is identified there must be exactly one Waste Generator actor.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "BOLD/PURE",
@@ -3182,7 +3211,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-22",
@@ -3286,7 +3322,7 @@
         }
       ],
       "methodology_quote": "Primary participant must match first registered participant at pickup.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "BOLD",
@@ -3306,7 +3342,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Auditoria"
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-23",
@@ -3430,7 +3473,7 @@
         }
       ],
       "methodology_quote": "Primary address must match first identified participant address.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "BOLD",
@@ -3452,7 +3495,14 @@
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
       "rule_type": "Auditoria",
-      "_audit_linked_to": "P-22 NEEDS_REVIEW (environment_aware decision)"
+      "_audit_linked_to": "P-22 NEEDS_REVIEW (environment_aware decision)",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-24",
@@ -3565,7 +3615,7 @@
         }
       ],
       "methodology_quote": "There must be exactly one final recycler for certification.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "BOLD/PURE",
@@ -3585,7 +3635,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-25",
@@ -3713,7 +3770,7 @@
         }
       ],
       "methodology_quote": "At least one Hauler required unless route invokes generator as hauler substitution.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "PURE",
@@ -3733,7 +3790,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-26",
@@ -3879,7 +3943,7 @@
         }
       ],
       "methodology_quote": "If route includes intermediate sorting at least one Processor must be declared and approved.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "PURE",
@@ -3900,7 +3964,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-27",
@@ -9273,7 +9344,7 @@
         }
       ],
       "methodology_quote": "If such activities are discovered, the participant will be penalized, along with, potentially, all of those who are associated with the bad actor.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "PURE",
@@ -9294,7 +9365,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Auditoria"
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-02T20:00:00Z",
+        "approval_wave": "Onda 1 — KYC/Governance",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/audits/bulk-rule-audit-2026-06-02.md"
+      }
     },
     {
       "id": "P-67",
@@ -9598,7 +9676,7 @@
         }
       ],
       "methodology_quote": "All Participants must provide: full name, mobile number, birthdate, email, residential address.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "PURE_GAP",
@@ -9658,7 +9736,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Rejeição",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-02T20:00:00Z",
+        "approval_wave": "Onda 1 — KYC/Governance",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/audits/bulk-rule-audit-2026-06-02.md"
+      }
     },
     {
       "id": "PG-02",
@@ -9928,7 +10013,7 @@
         }
       ],
       "methodology_quote": "Participants cannot request other certifications.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance/Tech",
       "manual_review": false,
       "source_type": "PURE_GAP",
@@ -9947,7 +10032,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-02T20:00:00Z",
+        "approval_wave": "Onda 1 — KYC/Governance",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/audits/bulk-rule-audit-2026-06-02.md"
+      }
     },
     {
       "id": "PG-03",
@@ -10349,7 +10441,7 @@
         }
       ],
       "methodology_quote": "INTs must be homologated by Carrot for data integration to ensure quality. The homologation process involves thorough analysis of data quality and security. Poor data quality or security breaches may lead to penalties and/or permanent removal from the Carrot Network.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Tech",
       "manual_review": false,
       "source_type": "PURE_GAP",
@@ -10368,7 +10460,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "PG-06",
@@ -10510,7 +10609,7 @@
           "section": "Rework 2026-06-02 — remoção de BOLD/CH4 residue (avoided methane → counterfactual destination genérico)"
         }
       ],
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Methodology",
       "manual_review": false,
       "source_type": "PURE_GAP",
@@ -10528,7 +10627,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "PG-07",
@@ -10678,7 +10784,7 @@
         }
       ],
       "methodology_quote": "Recyclers must provide a project or business plan demonstrating the facility capacity presented. Information such as facility site area, infrastructure, equipment, personnel, and technologies can be utilised.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "PURE_GAP",
@@ -10696,7 +10802,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "PG-08",
@@ -10834,7 +10947,7 @@
         }
       ],
       "methodology_quote": "Recyclers must declare current plastic waste recycling volumes and provide prior plastic volume records to support the declared plastic volume amount. In Brazil, provide CDFs.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "PURE_GAP",
@@ -10852,7 +10965,14 @@
       ],
       "geographic_scope": "Territorial",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "PG-09",
@@ -10981,7 +11101,7 @@
         }
       ],
       "methodology_quote": "Homologated Participants must renew their homologation before the completion of 24 months from their last homologation date. Carrot recommends that Participants reach out at least 3 months prior to expiry.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "PURE_GAP",
@@ -10999,7 +11119,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Sinalização",
-      "rule_type": "Auditoria"
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "PG-10",
@@ -11117,7 +11244,7 @@
         }
       ],
       "methodology_quote": "Recyclers must indicate whether low-income individuals are involved, the number involved, and their proportion of total workforce. Similarly for minorities, women, LGBTQIA+. Must indicate if local communities benefit directly (job creation, education, waste management improvement).",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance/Reporting",
       "manual_review": false,
       "source_type": "PURE_GAP",
@@ -11135,7 +11262,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Sinalização",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T14:00:00Z",
+        "approval_wave": "Onda 2 — HOMOLOGATION_PARTICIPANT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda2-homologation-participant-audit-2026-06-03.md"
+      }
     },
     {
       "id": "PG-11",
@@ -12500,7 +12634,7 @@
         }
       ],
       "methodology_quote": "Split de identity vs role-accreditation inspirado em Carrot BOLD Recycling, decidido na Onda 1 review (Rodrigo, 02/jun).",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Methodology",
       "manual_review": false,
       "source_type": "PURE_GAP",
@@ -12519,7 +12653,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-02T20:00:00Z",
+        "approval_wave": "Onda 1 — KYC/Governance",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/audits/bulk-rule-audit-2026-06-02.md"
+      }
     },
     {
       "id": "EU-01",
