@@ -1,8 +1,8 @@
 {
   "$schema": "./rules.schema.json",
-  "catalog_version": "0.5.0",
+  "catalog_version": "0.6.0",
   "catalog_last_updated": "2026-06-02",
-  "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr.",
+  "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr. | v0.5.1-proposed: bulk audit (2026-06-02) added MvF-compliance fields to AUTO_APPLY rules; NEEDS_REVIEW/REJECT rules tagged with _audit_status.",
   "sources": [
     {
       "name": "PURE_dMRV_MASTER_FINAL.xlsx",
@@ -40,8 +40,7 @@
       "FLAG": 20
     },
     "by_status": {
-      "REVIEWED": 129,
-      "DRAFT": 1
+      "REVIEWED": 130
     },
     "by_cluster": {
       "RECYCLER_OUTCOME": 18,
@@ -185,7 +184,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E0",
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-02",
@@ -315,7 +321,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-03",
@@ -689,7 +701,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-05",
@@ -1052,7 +1070,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Rejeição",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-07",
@@ -1179,7 +1203,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Rejeição",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-08",
@@ -1298,7 +1328,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Rejeição",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-09",
@@ -1424,7 +1460,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Rejeição",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-10",
@@ -1556,7 +1598,14 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E1",
+        "E3"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-11",
@@ -1683,7 +1732,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E3"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-12",
@@ -1808,7 +1863,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E3"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-13",
@@ -1948,7 +2009,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E3"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-14",
@@ -2082,7 +2149,14 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E3",
+        "E5"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-15",
@@ -2218,7 +2292,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E3"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-16",
@@ -2363,7 +2443,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E3"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-17",
@@ -2499,7 +2585,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E3"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-18",
@@ -2638,7 +2730,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-19",
@@ -2762,7 +2860,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-20",
@@ -2887,7 +2991,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E1"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-21",
@@ -3004,7 +3114,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E1"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-22",
@@ -3122,7 +3238,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E1"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-23",
@@ -3243,7 +3365,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E1"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-24",
@@ -3358,7 +3486,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-25",
@@ -3485,7 +3619,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-26",
@@ -3624,7 +3764,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-27",
@@ -3750,7 +3896,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E1"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-28",
@@ -3878,7 +4030,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-29",
@@ -4006,7 +4164,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E1"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-30",
@@ -4129,7 +4293,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-31",
@@ -4257,7 +4427,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-32",
@@ -4377,7 +4553,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-33",
@@ -4499,7 +4681,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-34",
@@ -4619,7 +4807,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-35",
@@ -4748,7 +4942,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-36",
@@ -4872,7 +5072,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-37",
@@ -4997,7 +5203,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-38",
@@ -5124,7 +5336,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-39",
@@ -5247,7 +5465,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-40",
@@ -5375,7 +5599,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-41",
@@ -5509,7 +5739,14 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E2",
+        "E4"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-42",
@@ -5646,7 +5883,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-43",
@@ -5778,7 +6021,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-44",
@@ -5909,7 +6158,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-45",
@@ -6043,7 +6298,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-46",
@@ -6175,7 +6436,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-47",
@@ -6309,7 +6576,14 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E3",
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-48",
@@ -6443,7 +6717,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-49",
@@ -6579,7 +6859,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "event_ids": [
+        "E0",
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-50",
@@ -6701,7 +6988,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E6"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-51",
@@ -6824,7 +7117,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E6"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-52",
@@ -6942,7 +7241,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E6",
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-53",
@@ -7065,7 +7371,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E6",
+        "E7"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-54",
@@ -7176,7 +7489,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E6",
+        "E7"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "P-55",
@@ -7302,7 +7622,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E6",
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-56",
@@ -7421,7 +7748,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E6",
+        "E7"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-57",
@@ -7551,7 +7885,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-58",
@@ -7668,7 +8008,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E6",
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-59",
@@ -7790,7 +8137,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "P-60",
@@ -7922,7 +8275,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-61",
@@ -8046,7 +8405,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E1"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-62",
@@ -8174,7 +8539,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E6"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-63",
@@ -8304,7 +8675,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-64",
@@ -8424,7 +8801,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-65",
@@ -8554,7 +8937,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "P-66",
@@ -8914,7 +9303,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Escalonamento",
+      "rule_type": "Auditoria"
     },
     {
       "id": "PG-01",
@@ -9534,7 +9929,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-04",
@@ -9659,7 +10060,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "REWARD_DISTRIBUTION"
+      "gates_what": "REWARD_DISTRIBUTION",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-05",
@@ -9788,11 +10195,18 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E0",
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "PG-06",
-      "title": "Recycler baseline (landfill/dump) documentation",
+      "title": "Recycler counterfactual destination documentation",
       "pillar": "PURE_GAP",
       "cluster": "HOMOLOGATION_PARTICIPANT",
       "severity": "BLOCK",
@@ -9809,16 +10223,15 @@
           "GLOBAL"
         ]
       },
-      "purpose": "PURE §7.1.1 exige que cada Recycler declare e documente o landfill/open dump específico que serve de baseline contrafactual — onde o plástico iria se NÃO entrasse no programa do registry. Esse dado alimenta cálculos de co-benefícios e environmental accounting (§12: avoided methane, avoided pollution). Sem baseline declarado, todo o cálculo de impacto é arbitrário. PG-06 também captura flaring flag (mitiga metano em landfills com queima ativa) e dispara evidência obrigatória quando baseline é open_dump (cenário alto risco — PG-17 complementa).",
-      "logic_human": "BLOCK se Recycler.baselineFacilityName for blank OR baselineType for blank OR baselineType NOT IN ['landfill_no_flaring','landfill_with_flaring','open_dump','incinerator']. FLAG se baselineType='landfill_no_flaring' OR 'landfill_with_flaring' e baselineFlaringFlag IS NULL. BLOCK se baselineType='open_dump' e baselineEvidenceRef blank.",
-      "logic_pseudocode": "const APPROVED_BASELINE = ['landfill_no_flaring', 'landfill_with_flaring', 'open_dump', 'incinerator'];\n\nasync function evaluate(ctx: RuleContext<'PG-06'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  if (p.participantType !== 'R') return ctx.skip({ reason: 'Only applies to Recyclers.' });\n  if (!p.baselineFacilityName || p.baselineFacilityName.trim() === '') {\n    return ctx.fail({ ruleId: 'PG-06', severity: 'BLOCK',\n      message: 'Baseline facility name missing', field: 'baselineFacilityName' });\n  }\n  if (!APPROVED_BASELINE.includes(p.baselineType)) {\n    return ctx.fail({ ruleId: 'PG-06', severity: 'BLOCK',\n      message: `baselineType invalid (${p.baselineType}). Approved: ${APPROVED_BASELINE.join(', ')}`,\n      field: 'baselineType' });\n  }\n  if (['landfill_no_flaring', 'landfill_with_flaring'].includes(p.baselineType) && p.baselineFlaringFlag == null) {\n    return ctx.fail({ ruleId: 'PG-06', severity: 'FLAG',\n      message: 'baselineFlaringFlag not declared for landfill baseline', field: 'baselineFlaringFlag' });\n  }\n  if (p.baselineType === 'open_dump' && !p.baselineEvidenceRef) {\n    return ctx.fail({ ruleId: 'PG-06', severity: 'BLOCK',\n      message: 'Open-dump baseline requires evidence ref', field: 'baselineEvidenceRef' });\n  }\n  return ctx.pass({ ruleId: 'PG-06' });\n}",
+      "purpose": "PURE exige que cada Recycler declare e documente o cenário CONTRAFACTUAL de destinação — para onde o plástico iria fisicamente se NÃO entrasse no programa do registry. Categorias aceitas: landfill (aterro sanitário regular), open_dump (descarte irregular / lixão), incineration_no_recovery (incineração sem aproveitamento), incineration_w_energy_recovery (incineração com recuperação energética). Esse dado fundamenta a tese de adicionalidade — sem baseline declarado, é impossível argumentar que o programa redirecionou volume real que de outra forma teria ido pra esses destinos. Recyclass §1 + auditor BV/SGS exigem essa declaração na homologação. Categorias específicas de baseline geram tratamento diferenciado em Phase 3 (cálculo de carbono associado à reciclagem).",
+      "logic_human": "BLOCK se Recycler.counterfactualDestination for blank OR não estiver em ['landfill', 'open_dump', 'incineration_no_recovery', 'incineration_w_energy_recovery']. FLAG quando counterfactualDestination='open_dump' (exige documentação adicional fotográfica/geo + visita auditor) OR quando counterfactualDestination='incineration_*' (exige documentação da instalação receptora).",
+      "logic_pseudocode": "const ACCEPTED_DESTINATIONS = [\n  'landfill',\n  'open_dump',\n  'incineration_no_recovery',\n  'incineration_w_energy_recovery'\n];\n\nasync function evaluate(ctx: RuleContext<'PG-06'>): Promise<RuleResult> {\n  if (ctx.participant.role !== 'R') return ctx.skip({ ruleId: 'PG-06', reason: 'Não-Recycler' });\n\n  const dest = ctx.participant.counterfactualDestination;\n  const facilityName = ctx.participant.counterfactualFacilityName;\n\n  if (!dest || !ACCEPTED_DESTINATIONS.includes(dest)) {\n    return ctx.fail({ ruleId: 'PG-06', severity: 'BLOCK',\n      message: 'counterfactualDestination ausente ou inválido (aceitos: landfill, open_dump, incineration_no_recovery, incineration_w_energy_recovery)',\n      field: 'participant.counterfactualDestination' });\n  }\n  if (!facilityName) {\n    return ctx.fail({ ruleId: 'PG-06', severity: 'BLOCK',\n      message: 'Nome da instalação de destinação contrafactual ausente',\n      field: 'participant.counterfactualFacilityName' });\n  }\n\n  // Open dump exige evidência adicional (foto geo-tagged + auditor visit) per PG-17\n  if (dest === 'open_dump') {\n    const dumpEvidence = await ctx.db.document.findOne({ where: {\n      type: 'open_dump_evidence', participantId: ctx.participant.id\n    }});\n    if (!dumpEvidence) {\n      return ctx.flag({ ruleId: 'PG-06', severity: 'FLAG',\n        message: 'Open dump declarado mas open_dump_evidence ausente (fotografia geo-tagged + relatório auditor exigidos)',\n        field: 'documents.open_dump_evidence' });\n    }\n  }\n\n  // Incineração exige documentação da instalação receptora\n  if (dest === 'incineration_no_recovery' || dest === 'incineration_w_energy_recovery') {\n    const incinDoc = await ctx.db.document.findOne({ where: {\n      type: 'incineration_facility_doc', participantId: ctx.participant.id\n    }});\n    if (!incinDoc) {\n      return ctx.flag({ ruleId: 'PG-06', severity: 'FLAG',\n        message: 'Incineração declarada mas incineration_facility_doc ausente',\n        field: 'documents.incineration_facility_doc' });\n    }\n  }\n\n  return ctx.pass({ ruleId: 'PG-06' });\n}",
       "fields": {
         "reads": [
-          "Participant.participantType",
-          "Participant.baselineFacilityName",
-          "Participant.baselineType",
-          "Participant.baselineFlaringFlag",
-          "Participant.baselineEvidenceRef"
+          "Participant.role",
+          "Participant.counterfactualDestination",
+          "Participant.counterfactualFacilityName",
+          "Document.type"
         ],
         "writes": [
           "ValidationResult"
@@ -9826,87 +10239,111 @@
       },
       "evidence": [
         {
-          "doc_type": "baseline_facility_doc",
-          "mandatory": true
+          "doc_type": "counterfactual_destination_doc",
+          "mandatory": true,
+          "note": "Declaração do Recycler nomeando a instalação contrafactual + tipo de destinação."
         },
         {
           "doc_type": "open_dump_evidence",
           "mandatory": false,
-          "when": "baselineType='open_dump'"
+          "when": "counterfactualDestination='open_dump'",
+          "note": "Fotografia geo-tagged + relatório de visita do auditor (PG-17 complementa)."
+        },
+        {
+          "doc_type": "incineration_facility_doc",
+          "mandatory": false,
+          "when": "counterfactualDestination IN ('incineration_no_recovery', 'incineration_w_energy_recovery')",
+          "note": "Documentação da instalação de incineração (licença, capacidade, localização)."
         }
       ],
       "messages": {
-        "block_pt": "Recycler deve declarar facility baseline (landfill ou open dump) onde o resíduo iria sem o programa. Para open dump, evidência fotográfica/registro também é obrigatória.",
-        "block_en": "Recycler must declare baseline facility (landfill or open dump) where waste would go without the program. For open dump, photographic/registry evidence is also required.",
-        "flag_pt": "Tipo de baseline declarado mas flaring flag (queima de metano) não informado. Confirme para cálculo correto de co-benefícios.",
-        "flag_en": "Baseline type declared but flaring flag (methane burn) not informed. Confirm for correct co-benefits calculation."
+        "block_pt": "Recycler deve declarar o destino contrafactual do plástico (para onde iria sem o programa): landfill, open_dump, incineration_no_recovery ou incineration_w_energy_recovery. Para open_dump, evidência fotográfica geo-tagged + relatório de auditor também são exigidos. Para incineração, documentação da instalação receptora.",
+        "block_en": "Recycler must declare the plastic's counterfactual destination (where it would go without the program): landfill, open_dump, incineration_no_recovery or incineration_w_energy_recovery. For open_dump, geo-tagged photographic evidence + auditor report are required. For incineration, receiving facility documentation.",
+        "flag_pt": "Documentação adicional pendente para o tipo de destinação contrafactual declarado.",
+        "flag_en": "Additional documentation pending for the declared counterfactual destination type."
       },
       "behavior": {
         "idempotent": true,
-        "on_fail": "BLOCK: bloqueia homologation approval; AuditLog. FLAG: permite mas marca para Methodology review.",
-        "on_pass": "Silencioso; baseline data alimenta cálculo de co-benefits no relatório PURE §12.",
-        "revalidation": "Re-roda a cada homologation renewal (anual via PG-09) e a cada update dos campos baseline*.",
-        "retry_window": "Upload imediato via homologation form.",
-        "escalation": "Recycler sem baseline 30 dias após onboarding → Methodology review queue, bloqueio total de MASSID_INGEST do recycler.",
-        "performance": "Lookup O(1)."
+        "on_fail": "Bloqueia homologação do Recycler. Sem counterfactualDestination declarado, qualquer TRC emitido fica em fila de revisão Compliance até regularizar.",
+        "on_pass": "Pipeline continua; baseline declarado entra no audit pack do participant + alimenta cálculos Phase 3.",
+        "revalidation": "Re-roda em PARTICIPANT_UPDATE (counterfactualDestination ou counterfactualFacilityName change). Em PRE_REGISTRY_SUBMIT como gate final.",
+        "retry_window": "Imediato — Recycler pode atualizar via UI / homologação manual.",
+        "escalation": "Se permanece sem declaração por > 30 dias após cadastro, Compliance escala pra Methodology pra contato direto.",
+        "performance": "Lookup Document por participantId + type indexado, O(1)."
       },
       "test_cases": {
         "positive": {
-          "name": "Recycler com baseline landfill_with_flaring completo",
-          "given": "baselineFacilityName='Aterro Sanitário São Paulo', baselineType='landfill_with_flaring', baselineFlaringFlag=true.",
+          "name": "Recycler com baseline landfill regular declarado",
+          "given": "Recycler.counterfactualDestination='landfill', counterfactualFacilityName='Aterro Municipal Caieiras', sem necessidade de evidence adicional.",
           "expected": "PASS."
         },
         "negative": [
           {
-            "name": "Sem facility name",
-            "given": "baselineFacilityName=null, baselineType='landfill_no_flaring'.",
-            "expected": "BLOCK 'Baseline facility name missing'."
+            "name": "Recycler sem destination declarada",
+            "given": "Recycler.counterfactualDestination=null.",
+            "expected": "BLOCK 'counterfactualDestination ausente ou inválido'."
           },
           {
-            "name": "Tipo fora do enum",
-            "given": "baselineType='compost'.",
-            "expected": "BLOCK 'baselineType invalid (compost). Approved: ...'."
+            "name": "Recycler com destination inválida",
+            "given": "Recycler.counterfactualDestination='compost' (vocabulário BOLD inválido pra plástico).",
+            "expected": "BLOCK 'counterfactualDestination ausente ou inválido'."
           },
           {
-            "name": "Open dump sem evidência",
-            "given": "baselineType='open_dump', baselineEvidenceRef=null.",
-            "expected": "BLOCK 'Open-dump baseline requires evidence ref'."
+            "name": "Open dump declarado sem evidence",
+            "given": "counterfactualDestination='open_dump', counterfactualFacilityName='Lixão de Estrutural-DF', sem open_dump_evidence document.",
+            "expected": "FLAG 'Open dump declarado mas open_dump_evidence ausente'."
           },
           {
-            "name": "Landfill sem flaring flag declarado",
-            "given": "baselineType='landfill_no_flaring', baselineFlaringFlag=null.",
-            "expected": "FLAG 'baselineFlaringFlag not declared for landfill baseline'."
+            "name": "Incineração sem facility doc",
+            "given": "counterfactualDestination='incineration_w_energy_recovery', sem incineration_facility_doc.",
+            "expected": "FLAG 'Incineração declarada mas incineration_facility_doc ausente'."
+          },
+          {
+            "name": "Não-Recycler (SKIP)",
+            "given": "Generator (role=G).",
+            "expected": "SKIP — regra aplica apenas a Recyclers."
           }
         ]
       },
       "edge_cases": [
-        "Recycler com múltiplos sites: baseline pode variar por site — modelar como BaselineDeclaration[] em vez de campo único. Versão atual assume baseline primary site.",
-        "Mudança de baseline mid-period (ex.: landfill cidade fechou): exige novo baselineEvidenceRef + dataInicio.",
-        "incinerator como baseline é cenário raro mas válido em alguns países da UE — Methodology valida case by case.",
-        "Open dump em país sem registro oficial: evidência aceita inclui geo-tagged photos + auditor site visit report (PG-17 complementa)."
+        "Recycler com múltiplos sites operacionais pode declarar baseline diferente por site — modelar como counterfactualDestinationBySite[] em iteração futura. Versão atual assume baseline primary site.",
+        "Mudança de destino contrafactual mid-period (ex.: landfill municipal foi desativado e plástico passou a ir pra incineração): exige nova declaração + dataInicio.",
+        "Incineration com recuperação energética é cenário válido mas exige cuidado em Phase 3 (cálculo de carbono — não é counterfactual neutro como landfill).",
+        "Open dump em país sem registro oficial: evidência aceita inclui geo-tagged photos + auditor site visit report (PG-17 complementa com evidência de dump específico).",
+        "counterfactualDestination='landfill' em país com PPWR vigente: regulação local pode obrigar mass-balance de reciclagem — verificar geographical-adaptation appendix."
       ],
       "bv_verification": {
-        "bv_controls": [],
-        "procedure": "Auditor seleciona sample 30 Recyclers, verifica que cada um tem baseline declarado, tipo dentro do enum, evidence pack válido quando aplicável. Para open_dump, confirma evidence é geo-stamped e auditor-validated.",
-        "sample_size": "Sample 30 Recyclers",
-        "frequency": "Annually (homologation renewal cycle)"
+        "bv_controls": [
+          "BASELINE-01"
+        ],
+        "procedure": "Auditor confirma counterfactualDestination declarado + counterfactualFacilityName + evidência adicional conforme tipo. Para open_dump: visita site (ou validação remota geo-tagged) + cross-check com PG-17. Para incineration: validação da instalação receptora (capacidade, licenças, distância).",
+        "sample_size": "100% de Recyclers homologados",
+        "frequency": "Annual"
       },
       "related": [
-        "PG-07",
-        "PG-08",
+        "P-02",
+        "PG-05",
+        "PG-09",
         "PG-17"
       ],
       "references": [
         {
           "source": "PURE_DMRV_GAP_REGISTER_JUN2025",
-          "section": "PG-06"
+          "section": "PG-06 (Recycler baseline declaration)"
         },
         {
           "source": "PURE_METHODOLOGY_JUN2025",
-          "section": "§7.1.1"
+          "section": "§7.1.1 — adicionalidade contrafactual"
+        },
+        {
+          "source": "RECYCLASS_AUDIT_SCHEME_V1.1",
+          "section": "§1 — pre-requisitos de homologação"
+        },
+        {
+          "source": "OTHER",
+          "section": "Rework 2026-06-02 — remoção de BOLD/CH4 residue (avoided methane → counterfactual destination genérico)"
         }
       ],
-      "methodology_quote": "The Recycler must provide the name of the landfill where its waste is ordinarily sent by traditional public waste hauling and the technology baseline (landfill, landfill with flaring, or dump). If waste is sourced from an open-air dump, evidence must be provided.",
       "status": "REVIEWED",
       "owner": "Methodology",
       "manual_review": false,
@@ -9916,10 +10353,17 @@
       "dmrv_output": "",
       "domain": "Homologation",
       "subdomain": "",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.2.0",
+      "last_reviewed": "2026-06-02",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "_audit_notes": "BOLD RESIDUE — 'methane', 'avoided methane', baselineFlaringFlag, purpose explicitly references §12 'avoided methane / avoided pollution' co-benefits. The whole concept of baseline=landfill_with_flaring is a carbon-of-organic-waste construct (CDM AMS-III.F). For plastic, the baseline framework needs reworking — recommend either rework as 'declare destination if not collected' (without flaring concept) OR deprecate until Phase 3 carbon work.",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "PG-07",
@@ -10051,7 +10495,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-08",
@@ -10172,7 +10622,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-09",
@@ -10294,7 +10750,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria"
     },
     {
       "id": "PG-10",
@@ -10420,7 +10882,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-11",
@@ -10552,7 +11020,14 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E1",
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-12",
@@ -10674,7 +11149,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Escalonamento",
+      "rule_type": "Auditoria"
     },
     {
       "id": "PG-13",
@@ -10787,7 +11268,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-14",
@@ -10917,7 +11404,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-15",
@@ -11039,7 +11532,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-16",
@@ -11170,7 +11669,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-29",
       "audit_findings": [],
-      "gates_what": "HOMOLOGATION_APPROVAL"
+      "gates_what": "HOMOLOGATION_APPROVAL",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-17",
@@ -11305,7 +11810,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "TRC_ISSUANCE"
+      "gates_what": "TRC_ISSUANCE",
+      "event_ids": [
+        "E1"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-18",
@@ -11442,7 +11953,13 @@
         "G-08"
       ],
       "is_new": true,
-      "new_source": "Gian recycler flow mapping (WhatsApp 01/jun)"
+      "new_source": "Gian recycler flow mapping (WhatsApp 01/jun)",
+      "event_ids": [
+        "E5"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "PG-19",
@@ -11573,7 +12090,14 @@
         "G-09"
       ],
       "is_new": true,
-      "new_source": "Gian recycler flow mapping (WhatsApp 01/jun)"
+      "new_source": "Gian recycler flow mapping (WhatsApp 01/jun)",
+      "event_ids": [
+        "E8",
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "PG-20",
@@ -11610,7 +12134,7 @@
       },
       "purpose": "Complementa P-03 (que valida identidade base). PG-20 valida que o participant tem accreditation/licenca VALIDA por role: Hauler precisa de licenca de transporte de residuos; Recycler precisa de licenca de operacao ambiental + Recyclass cert (opcional); Processor similar; INT precisa de contrato Impactrakr/registry. Inspirado em rule \"Participant Accreditations & Verifications Requirements\" do BOLD Recycling (registry de referência) 'Participant Accreditations & Verifications Requirements' (rule #4) com granularidade adicional para o mercado EU/Recyclass.",
       "logic_human": "BLOCK em prod (FLAG em sandbox) se accreditation_record do role do participant ausente OR accreditation_record.validUntil < now OR documentos requeridos por role ausentes.",
-      "logic_pseudocode": "// STUB — refinement L3 pending after P-03 baseline approval.\nasync function evaluate(ctx: RuleContext<'PG-20'>): Promise<RuleResult> {\n  const p = ctx.participant;\n  const role = p.role; // H | P | R | INT\n  const accred = await ctx.db.document.findOne({ where: {\n    type: `${role.toLowerCase()}_accreditation`, participantId: p.id\n  }});\n  // ... validacao por role + due date check\n}",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-20'>): Promise<RuleResult> {\n  const p = ctx.participant;\n  const isProd = ctx.environment === 'production';\n  const sev: 'BLOCK' | 'FLAG' = isProd ? 'BLOCK' : 'FLAG';\n  const role = p.role;\n\n  // Mapeamento role → doc_type esperado\n  const REQUIRED_DOCS: Record<string, { type: string; renewalMonths: number; optional?: boolean }[]> = {\n    'H': [{ type: 'hauler_license', renewalMonths: 24 }],\n    'P': [{ type: 'environmental_operation_license', renewalMonths: 12 }],\n    'R': [\n      { type: 'environmental_operation_license', renewalMonths: 12 },\n      { type: 'recyclass_certificate', renewalMonths: 12, optional: !p.recyclassOptIn }\n    ],\n    'INT': [{ type: 'integrator_contract', renewalMonths: 12 }]\n  };\n\n  const required = REQUIRED_DOCS[role] || [];\n  if (required.length === 0) return ctx.skip({ ruleId: 'PG-20', reason: `Role ${role} sem accreditation requirement` });\n\n  const missing: { docType: string; reason: string }[] = [];\n  for (const req of required) {\n    if (req.optional) continue;\n    const doc = await ctx.db.document.findOne({ where: {\n      type: req.type, participantId: p.id\n    }});\n    if (!doc) {\n      missing.push({ docType: req.type, reason: 'missing' });\n      continue;\n    }\n    if (doc.validUntil && doc.validUntil < ctx.now) {\n      missing.push({ docType: req.type, reason: `expired on ${doc.validUntil.toISOString()}` });\n    }\n  }\n\n  if (missing.length > 0) {\n    return ctx.fail({ ruleId: 'PG-20', severity: sev,\n      message: `${missing.length} accreditation doc(s) ausente(s) ou expirado(s): ${missing.map(m=>m.docType).join(', ')}`,\n      field: 'documents.accreditation',\n      metadata: { missing } });\n  }\n  return ctx.pass({ ruleId: 'PG-20' });\n}",
       "fields": {
         "reads": [
           "Participant.role",
@@ -11624,23 +12148,23 @@
       "evidence": [
         {
           "doc_type": "hauler_license",
-          "mandatory_if": "role=H",
-          "renewal_cycle_months": 24
+          "mandatory": true,
+          "when": "role=H — renewal_cycle_months=24"
         },
         {
           "doc_type": "environmental_operation_license",
-          "mandatory_if": "role IN (R, P)",
-          "renewal_cycle_months": 12
+          "mandatory": true,
+          "when": "role IN (R, P) — renewal_cycle_months=12"
         },
         {
           "doc_type": "recyclass_certificate",
-          "mandatory_if": "role=R AND recyclassOptIn=true",
-          "renewal_cycle_months": 12
+          "mandatory": false,
+          "when": "role=R AND recyclassOptIn=true — renewal_cycle_months=12"
         },
         {
           "doc_type": "integrator_contract",
-          "mandatory_if": "role=INT",
-          "renewal_cycle_months": 12
+          "mandatory": true,
+          "when": "role=INT — renewal_cycle_months=12"
         }
       ],
       "messages": {
@@ -11661,11 +12185,46 @@
         "revalidation": "Re-roda em PARTICIPANT_UPDATE e PRE_VALIDATION."
       },
       "test_cases": {
-        "positive": {},
-        "negative": []
+        "positive": {
+          "name": "Recycler com licença ambiental + Recyclass cert válidos",
+          "given": "role=R, recyclassOptIn=true; environmental_operation_license validUntil=2027-01-01; recyclass_certificate validUntil=2027-03-01; ctx.now=2026-06-02.",
+          "expected": "PASS."
+        },
+        "negative": [
+          {
+            "name": "Hauler sem hauler_license",
+            "given": "role=H, nenhum Document type='hauler_license' associado ao participantId.",
+            "expected": "BLOCK em prod / FLAG em sandbox: '1 accreditation doc(s) ausente(s) ou expirado(s): hauler_license'."
+          },
+          {
+            "name": "Recycler com licença ambiental expirada",
+            "given": "role=R, environmental_operation_license.validUntil=2026-05-01, ctx.now=2026-06-02.",
+            "expected": "BLOCK 'environmental_operation_license expired on 2026-05-01'."
+          },
+          {
+            "name": "INT sem integrator_contract",
+            "given": "role=INT, nenhum integrator_contract.",
+            "expected": "BLOCK 'integrator_contract missing'."
+          },
+          {
+            "name": "Recycler sem Recyclass cert mas opt-out — passa",
+            "given": "role=R, recyclassOptIn=false, environmental_operation_license válido. Não tem recyclass_certificate.",
+            "expected": "PASS (recyclass_certificate é optional quando opt-out)."
+          },
+          {
+            "name": "Sandbox com role acreditation ausente",
+            "given": "role=R, environment=sandbox, sem accreditation.",
+            "expected": "FLAG (não bloqueia em sandbox)."
+          }
+        ]
       },
       "edge_cases": [
-        "A refinar — pending L3 completion"
+        "Generator (G) e Brand Owner (B) NÃO têm accreditation requirement nesta regra — KYC base (P-03) é suficiente. PG-20 SKIPa para esses roles.",
+        "Mudança de role do participant (ex: Recycler vira também Processor) requer re-validação automática — re-roda em PARTICIPANT_UPDATE.",
+        "Recyclass cert opcional via flag recyclassOptIn=false — útil pra Recyclers fora da EU ou em onboarding pré-Recyclass.",
+        "Multi-document support: alguns roles podem ter documentos equivalentes (e.g., EuCertPlast em vez de Recyclass) — atualmente não suportado, marcado pra Onda 2.",
+        "validUntil null = doc válido indefinidamente (raro mas aceito).",
+        "Auditor sample manual pode encontrar documento físico que não foi digitalizado — fallback: Compliance pode marcar accreditation_verified=true override."
       ],
       "bv_verification": {
         "bv_controls": [],
@@ -11698,7 +12257,7 @@
         }
       ],
       "methodology_quote": "Split de identity vs role-accreditation inspirado em Carrot BOLD Recycling, decidido na Onda 1 review (Rodrigo, 02/jun).",
-      "status": "DRAFT",
+      "status": "REVIEWED",
       "owner": "Methodology",
       "manual_review": false,
       "source_type": "PURE_GAP",
@@ -11707,11 +12266,18 @@
       "dmrv_output": "participant_accreditation_valid",
       "domain": "Identity / Governance",
       "subdomain": "Role-specific accreditation",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "last_reviewed": "2026-06-02",
       "audit_findings": [],
       "is_new": true,
-      "new_source": "Onda 1 review (02/jun) — Carrot-inspired split"
+      "new_source": "Onda 1 review (02/jun) — Carrot-inspired split",
+      "_audit_notes": "Role-specific accreditation — DRAFT status, 0 negative test cases, logic_pseudocode minimal, only edge_case 'A refinar — pending L3 completion'. Materially under-specified.",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "EU-01",
@@ -11837,7 +12403,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E1",
+        "E3"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "EU-02",
@@ -11971,7 +12544,15 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E1",
+        "E3",
+        "E6"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-03",
@@ -12095,7 +12676,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E3"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "EU-04",
@@ -12230,7 +12817,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "EU-05",
@@ -12359,7 +12952,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-06",
@@ -12490,7 +13089,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-07",
@@ -12630,7 +13235,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "EU-08",
@@ -12762,7 +13373,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "EU-09",
@@ -12892,7 +13509,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-10",
@@ -13027,7 +13650,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E2",
+        "E9"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "EU-11",
@@ -13156,7 +13786,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E6",
+        "E7"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "EU-12",
@@ -13300,7 +13937,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E2",
+        "E9"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "EU-13",
@@ -13431,7 +14075,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E0",
+        "E7"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "EU-14",
@@ -13549,7 +14200,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E0",
+        "E7"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "EU-15",
@@ -13676,7 +14334,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E0",
+        "E4"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "EU-16",
@@ -13814,7 +14479,16 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E1",
+        "E2",
+        "E4",
+        "E7"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-17",
@@ -13954,7 +14628,15 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E2",
+        "E4",
+        "E6"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-18",
@@ -14068,7 +14750,15 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E1",
+        "E2",
+        "E4"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-19",
@@ -14196,7 +14886,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E1",
+        "E4"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-20",
@@ -14321,7 +15018,14 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E2",
+        "E11"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "EU-21",
@@ -14452,7 +15156,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-22",
@@ -14595,7 +15305,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-23",
@@ -14725,7 +15441,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-24",
@@ -14841,7 +15563,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E11"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-25",
@@ -14954,7 +15682,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E2"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria"
     },
     {
       "id": "EU-26",
@@ -15081,7 +15815,13 @@
       "version": "0.2.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "LEGAL_OPERATION"
+      "gates_what": "LEGAL_OPERATION",
+      "event_ids": [
+        "E6"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria"
     },
     {
       "id": "RC-01",
@@ -15209,7 +15949,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "RC-02",
@@ -15347,7 +16093,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E6"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "RC-03",
@@ -15476,7 +16228,14 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E6",
+        "E7"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "RC-04",
@@ -15606,7 +16365,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "RC-05",
@@ -15733,7 +16498,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Estrutura"
     },
     {
       "id": "RC-06",
@@ -15853,7 +16624,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Estrutura"
     },
     {
       "id": "RC-07",
@@ -15989,7 +16766,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E4"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura"
     },
     {
       "id": "RC-08",
@@ -16106,7 +16889,14 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E1",
+        "E3"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Metodologia"
     },
     {
       "id": "RC-09",
@@ -16230,7 +17020,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E6"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria"
     },
     {
       "id": "RC-10",
@@ -16353,7 +17149,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E6"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Metodologia"
     },
     {
       "id": "RC-11",
@@ -16488,7 +17290,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "RC-12",
@@ -16612,7 +17420,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E9"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria"
     },
     {
       "id": "RC-13",
@@ -16737,7 +17551,14 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E0",
+        "E6"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "RC-14",
@@ -16870,7 +17691,14 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E0",
+        "E6"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "RC-15",
@@ -17003,7 +17831,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E6"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria"
     },
     {
       "id": "RC-16",
@@ -17147,7 +17981,14 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E0",
+        "E3"
+      ],
+      "geographic_scope": "Territorial",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Metodologia"
     },
     {
       "id": "RC-17",
@@ -17274,7 +18115,13 @@
       "version": "0.1.0",
       "last_reviewed": "2026-05-31",
       "audit_findings": [],
-      "gates_what": "RECYCLASS_CERTIFICATION"
+      "gates_what": "RECYCLASS_CERTIFICATION",
+      "event_ids": [
+        "E0"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Estrutura"
     }
   ]
 }

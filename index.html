@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Impactrakr · Product Blueprint v0.3.4</title>
+<title>Impactrakr · Product Blueprint v0.3.5</title>
 <meta name="description" content="Plataforma dMRV para validação de créditos de reciclagem de plástico. Cliente: MARE Foundation / MSM Polymers (Malta).">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1375,7 +1375,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
         <span class="search-btn-label" lang="en">Search...</span>
         <kbd>⌘K</kbd>
       </button>
-      <span class="version-pill">v0.3.4 · 2 Jun 2026</span>
+      <span class="version-pill">v0.3.5 · 2 Jun 2026</span>
       <div class="lang-toggle" role="group" aria-label="Language">
         <button data-lang="pt" class="active" aria-label="Português">PT</button>
         <button data-lang="en" aria-label="English">EN</button>
@@ -1532,7 +1532,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
 
 <!-- ============ HERO ============ -->
 <section class="hero">
-  <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.3.4</div>
+  <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.3.5</div>
   <h1>
     <span lang="pt">Plataforma dMRV para créditos de reciclagem de plástico</span>
     <span lang="en">dMRV platform for plastic recycling credits</span>
@@ -1578,7 +1578,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
   <div class="callout callout-info">
     <span class="callout-icon">◆</span>
     <div>
-      <strong><span lang="pt">Atualizações desta versão (v0.3.4 — 02/jun/2026)</span><span lang="en">Updates in this version (v0.3.4 — Jun 2, 2026)</span></strong>
+      <strong><span lang="pt">Atualizações desta versão (v0.3.5 — 02/jun/2026)</span><span lang="en">Updates in this version (v0.3.5 — Jun 2, 2026)</span></strong>
       <p style="margin:6px 0 0; color: inherit;">
         <span lang="pt"><strong>Colaboração formal com a Carrot Foundation iniciada.</strong> Laura Budzisz (Coordenadora de Operações da Carrot) compartilhou o pacote oficial do Methodology Factory — 7 skills do Claude, Carrot dMRV Hub v1.0 (118 páginas) e o framework MvF da Bold Carbon CH4 como template. Confirmado: <strong>PURE é a metodologia plástico oficial</strong> da Carrot (forkada do BOLD Recycling); EcoCircle é o author, Impactrakr é o INT, Carrot é o validador. <strong>ADR-033</strong> documenta a abstração Registry (registry-agnostic). <strong>Catálogo v0.5.0:</strong> +1 regra (PG-20 Role-specific accreditation, Carrot-inspired) totalizando 130 regras; primeiras 5 da Onda 1 KYC/Governance migradas para schema MvF-compliance com 4 campos novos (event_ids, geographic_scope, action_on_failure, rule_type). <strong>Plugin Impactrakr Methodology Factory v0.1.1</strong> criado (15 arquivos, arquitetura em 2 camadas: Layer A read-only da Carrot, Layer B operacional Impactrakr).</span>
         <span lang="en"><strong>Formal collaboration with Carrot Foundation started.</strong> Laura Budzisz (Carrot Operations Coordinator) shared the official Methodology Factory pack — 7 Claude skills, Carrot dMRV Hub v1.0 (118 pages) and the Bold Carbon CH4 MvF framework as template. Confirmed: <strong>PURE is the official plastic methodology</strong> for Carrot (forked from BOLD Recycling); EcoCircle is the author, Impactrakr is the INT, Carrot is the validator. <strong>ADR-033</strong> documents the Registry abstraction (registry-agnostic). <strong>Catalog v0.5.0:</strong> +1 rule (PG-20 Role-specific accreditation, Carrot-inspired) totaling 130 rules; first 5 Onda 1 KYC/Governance rules migrated to MvF-compliance schema with 4 new fields (event_ids, geographic_scope, action_on_failure, rule_type). <strong>Plugin Impactrakr Methodology Factory v0.1.1</strong> created (15 files, 2-layer architecture: Layer A read-only from Carrot, Layer B operational Impactrakr).</span>
@@ -3100,7 +3100,7 @@ flowchart LR
       <p style="margin: 4px 0 0; font-size: 12.5px;" lang="en">Last update: <span id="footer-last-updated-en">May 28, 2026</span> · <span id="footer-relative-en">today</span>. Owner: Rodrigo Moraes (Finder Consultoria).</p>
     </div>
     <div style="font-size: 12.5px; text-align: right;">
-      <div class="mono" id="footer-version-pill">v0.3.4 · 2026-06-02</div>
+      <div class="mono" id="footer-version-pill">v0.3.5 · 2026-06-02</div>
       <div class="mono" style="color: var(--accent); margin-top:4px;" id="footer-days-to-golive">— days to go-live</div>
     </div>
   </div>
@@ -3192,7 +3192,7 @@ function initMermaid() {
 window.addEventListener('load', () => setTimeout(initMermaid, 100));
 
 // ============ DYNAMIC DATES (status sempre fresco) ============
-const LAST_UPDATE_ISO = '2026-06-01';
+const LAST_UPDATE_ISO = '2026-06-02';
 const GO_LIVE_ISO = '2026-07-30';
 const PROJECT_START_ISO = '2026-05-01';
 
