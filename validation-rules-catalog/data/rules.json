@@ -1,6 +1,6 @@
 {
   "$schema": "./rules.schema.json",
-  "catalog_version": "0.6.1",
+  "catalog_version": "0.6.2",
   "catalog_last_updated": "2026-06-03",
   "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr. | v0.5.1-proposed: bulk audit (2026-06-02) added MvF-compliance fields to AUTO_APPLY rules; NEEDS_REVIEW/REJECT rules tagged with _audit_status.",
   "sources": [
@@ -43,17 +43,19 @@
       "REVIEWED": 130
     },
     "by_cluster": {
-      "RECYCLER_OUTCOME": 18,
+      "RECYCLER_OUTCOME": 19,
       "HOMOLOGATION_PARTICIPANT": 14,
       "KYC_GOVERNANCE": 10,
-      "QUALITY_ANTIFRAUD": 10,
-      "DOC_INTEGRITY": 2,
+      "QUALITY_ANTIFRAUD": 14,
+      "DOC_INTEGRITY": 7,
       "MATERIAL_COMPOSITION": 14,
       "EVENTS_PICKUP": 7,
-      "TRANSPORT": 9,
+      "TRANSPORT": 12,
       "WEIGHING": 10,
-      "OTHER": 25,
-      "ADMINISTRATION_LICENSING": 4,
+      "WASTE_CLASSIFICATION": 3,
+      "CROSS_BORDER": 2,
+      "ADMINISTRATION_LICENSING": 7,
+      "CHAIN_OF_CUSTODY": 4,
       "STAFF_ORG": 2,
       "PROCESS_CAPACITY": 2,
       "ENVIRONMENTAL": 2,
@@ -12275,7 +12277,7 @@
       "id": "EU-01",
       "title": "EWC code required",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "WASTE_CLASSIFICATION",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -12408,7 +12410,7 @@
       "id": "EU-02",
       "title": "EWC code consistency across chain",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "WASTE_CLASSIFICATION",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -12550,7 +12552,7 @@
       "id": "EU-03",
       "title": "Hazardous classification check",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "WASTE_CLASSIFICATION",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -12680,7 +12682,7 @@
       "id": "EU-04",
       "title": "Licensed waste carrier",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "TRANSPORT",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_TRANSITION",
@@ -12821,7 +12823,7 @@
       "id": "EU-05",
       "title": "Carrier license valid at time of transport",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "TRANSPORT",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_TRANSITION",
@@ -12956,7 +12958,7 @@
       "id": "EU-06",
       "title": "Vehicle registration match",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "TRANSPORT",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_TRANSITION",
@@ -13093,7 +13095,7 @@
       "id": "EU-07",
       "title": "Waste Transfer Note required",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "DOC_INTEGRITY",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -13239,7 +13241,7 @@
       "id": "EU-08",
       "title": "WTN data completeness",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "DOC_INTEGRITY",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -13377,7 +13379,7 @@
       "id": "EU-09",
       "title": "WTN party consistency",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "DOC_INTEGRITY",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -13513,7 +13515,7 @@
       "id": "EU-10",
       "title": "Annex VII required",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "CROSS_BORDER",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -13655,7 +13657,7 @@
       "id": "EU-11",
       "title": "Recovery operation code required",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "RECYCLER_OUTCOME",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -13791,7 +13793,7 @@
       "id": "EU-12",
       "title": "Shipment type compliance",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "CROSS_BORDER",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -13942,7 +13944,7 @@
       "id": "EU-13",
       "title": "Recycler permit valid",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "ADMINISTRATION_LICENSING",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -14080,7 +14082,7 @@
       "id": "EU-14",
       "title": "Waste type allowed by permit",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "ADMINISTRATION_LICENSING",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -14205,7 +14207,7 @@
       "id": "EU-15",
       "title": "Processor permit valid where applicable",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "ADMINISTRATION_LICENSING",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -14339,7 +14341,7 @@
       "id": "EU-16",
       "title": "Continuous legal custody chain",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "CHAIN_OF_CUSTODY",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -14486,7 +14488,7 @@
       "id": "EU-17",
       "title": "Mass consistency across legal documents",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "CHAIN_OF_CUSTODY",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -14634,7 +14636,7 @@
       "id": "EU-18",
       "title": "Date continuity",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "CHAIN_OF_CUSTODY",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -14756,7 +14758,7 @@
       "id": "EU-19",
       "title": "Location consistency",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "CHAIN_OF_CUSTODY",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -14891,7 +14893,7 @@
       "id": "EU-20",
       "title": "Digital equivalent compliance",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "DOC_INTEGRITY",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -15160,7 +15162,7 @@
       "id": "EU-22",
       "title": "Audit trail",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "DOC_INTEGRITY",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -15309,7 +15311,7 @@
       "id": "EU-23",
       "title": "Transport route plausibility",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "QUALITY_ANTIFRAUD",
       "severity": "FLAG",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -15445,7 +15447,7 @@
       "id": "EU-24",
       "title": "Duplicate document detection",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "QUALITY_ANTIFRAUD",
       "severity": "FLAG",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -15567,7 +15569,7 @@
       "id": "EU-25",
       "title": "Volume vs vehicle capacity",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "QUALITY_ANTIFRAUD",
       "severity": "FLAG",
       "trigger": {
         "event": "MASSID_TRANSITION",
@@ -15686,7 +15688,7 @@
       "id": "EU-26",
       "title": "Facility throughput vs permit",
       "pillar": "EU",
-      "cluster": "OTHER",
+      "cluster": "QUALITY_ANTIFRAUD",
       "severity": "FLAG",
       "trigger": {
         "event": "MONTHLY_RECONCILIATION",
