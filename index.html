@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Impactrakr · Product Blueprint v0.3.10</title>
+<title>Impactrakr · Product Blueprint v0.3.11</title>
 <meta name="description" content="Plataforma dMRV para validação de créditos de reciclagem de plástico. Cliente: MARE Foundation / MSM Polymers (Malta).">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1375,7 +1375,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
         <span class="search-btn-label" lang="en">Search...</span>
         <kbd>⌘K</kbd>
       </button>
-      <span class="version-pill">v0.3.10 · 3 Jun 2026</span>
+      <span class="version-pill">v0.3.11 · 3 Jun 2026</span>
       <div class="lang-toggle" role="group" aria-label="Language">
         <button data-lang="pt" class="active" aria-label="Português">PT</button>
         <button data-lang="en" aria-label="English">EN</button>
@@ -1532,7 +1532,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
 
 <!-- ============ HERO ============ -->
 <section class="hero">
-  <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.3.10</div>
+  <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.3.11</div>
   <h1>
     <span lang="pt">Plataforma dMRV para créditos de reciclagem de plástico</span>
     <span lang="en">dMRV platform for plastic recycling credits</span>
@@ -3100,7 +3100,7 @@ flowchart LR
       <p style="margin: 4px 0 0; font-size: 12.5px;" lang="en">Last update: <span id="footer-last-updated-en">May 28, 2026</span> · <span id="footer-relative-en">today</span>. Owner: Rodrigo Moraes (Finder Consultoria).</p>
     </div>
     <div style="font-size: 12.5px; text-align: right;">
-      <div class="mono" id="footer-version-pill">v0.3.10 · 2026-06-03</div>
+      <div class="mono" id="footer-version-pill">v0.3.11 · 2026-06-03</div>
       <div class="mono" style="color: var(--accent); margin-top:4px;" id="footer-days-to-golive">— days to go-live</div>
     </div>
   </div>
@@ -4302,7 +4302,7 @@ document.addEventListener('keydown', (e) => {
     const list = document.getElementById('aw-queue-list');
     if (!list) return;
 
-    const approvals = loadApprovals();
+    // Use isApproved() to honor both git (rules.json status=APPROVED) and localStorage
     const sevOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
     const pillarOrder = { PURE: 0, PURE_GAP: 1, EU: 2, RECYCLASS: 3 };
 
@@ -4311,8 +4311,8 @@ document.addEventListener('keydown', (e) => {
     // Filtros
     if (QUEUE_FILTERS.pillar) items = items.filter(r => r.pillar === QUEUE_FILTERS.pillar);
     if (QUEUE_FILTERS.severity) items = items.filter(r => r.severity === QUEUE_FILTERS.severity);
-    if (QUEUE_FILTERS.status === 'pending') items = items.filter(r => !approvals[r.id]);
-    if (QUEUE_FILTERS.status === 'approved') items = items.filter(r => approvals[r.id]);
+    if (QUEUE_FILTERS.status === 'pending') items = items.filter(r => !isApproved(r.id));
+    if (QUEUE_FILTERS.status === 'approved') items = items.filter(r => isApproved(r.id));
 
     // Sort
     if (QUEUE_FILTERS.priority === 'severity') {
@@ -4346,13 +4346,17 @@ document.addEventListener('keydown', (e) => {
     };
 
     const renderItem = (r) => {
-      const ap = approvals[r.id];
-      return '<div class="aw-queue-item ' + (ap ? 'approved' : '') + '" data-aw-open="' + r.id + '">' +
+      const ap = getApproval(r.id);
+      const isAp = !!ap;
+      // Distinguish git (formal) vs localStorage (ad-hoc) approvals for UX clarity
+      const source = ap && ap.source === 'rules.json' ? ' · git' : (isAp ? ' · local' : '');
+      const apDate = ap ? (ap.approved_at || '').slice(0,10) : '';
+      return '<div class="aw-queue-item ' + (isAp ? 'approved' : '') + '" data-aw-open="' + r.id + '">' +
         '<span class="aw-queue-item-id" style="color:' + pillarColor(r.pillar) + ';">' + r.id + '</span>' +
         '<span class="vr-b vr-pillar-' + r.pillar + '">' + r.pillar + '</span>' +
         '<span class="vr-b vr-sev-' + r.severity + '">' + r.severity + '</span>' +
         '<span class="aw-queue-item-title">' + awEsc(r.title) + '</span>' +
-        '<span class="aw-queue-item-status ' + (ap ? 'approved' : 'pending') + '">' + (ap ? '✓ aprovada ' + awEsc(ap.approved_at.slice(0,10)) : 'pendente') + '</span>' +
+        '<span class="aw-queue-item-status ' + (isAp ? 'approved' : 'pending') + '">' + (isAp ? '✓ aprovada ' + awEsc(apDate) + source : 'pendente') + '</span>' +
       '</div>';
     };
 
@@ -4364,7 +4368,7 @@ document.addEventListener('keydown', (e) => {
       let currentPillarItems = [];
       const flush = () => {
         if (!lastPillar || currentPillarItems.length === 0) return;
-        const apCount = currentPillarItems.filter(r => approvals[r.id]).length;
+        const apCount = currentPillarItems.filter(r => isApproved(r.id)).length;
         const total = currentPillarItems.length;
         const pct = Math.round(apCount / total * 100);
         html += '<div class="aw-pillar-header pillar-' + lastPillar + '">' +
