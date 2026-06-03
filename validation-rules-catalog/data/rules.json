@@ -1,8 +1,8 @@
 {
   "$schema": "./rules.schema.json",
-  "catalog_version": "0.6.4",
+  "catalog_version": "0.6.5",
   "catalog_last_updated": "2026-06-03",
-  "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr. | v0.6.3-proposed: Onda 2 refinement of HOMOLOGATION_PARTICIPANT cluster (14 rules: P-02, P-20..P-26, PG-05..PG-10). AUTO_APPLY rules bumped to v0.3.0 with Onda 1 patterns (secondary_triggers, environment_aware where appropriate, non_retroactive_revocation, expanded edge_cases). NEEDS_REVIEW: P-22 (environment_aware decision), PG-10 (severity & 0-vs-null semantics). PG-06 patch bump (0.2.1) — stale audit_notes archived.",
+  "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr. | v0.6.5-proposed: Onda 3 refinement of TRANSPORT cluster (12 rules: P-33..P-41, EU-04..EU-06). AUTO_APPLY (9) bumped to v0.3.0 with Onda 1 patterns (secondary_triggers on MASSID_UPDATE/DOCUMENT_UPDATE/PARTICIPANT_UPDATE; non_retroactive_revocation on EU-05; territorial scope reaffirmed for P-37/P-38/P-39 manifest sub-cluster). NEEDS_REVIEW (3): P-40 (global-vs-territorial required-set design decision), P-41 (wrong cluster — should be WEIGHING), EU-06 (bundled vehicle authorization + geo-fence — split recommended). REJECT (0). BOLD CH4 residue check: NEGATIVE — vehicle enum em P-33 já é plastic-appropriate (no sludge_pipes anywhere).",
   "sources": [
     {
       "name": "PURE_dMRV_MASTER_FINAL.xlsx",
@@ -28,20 +28,20 @@
     }
   ],
   "stats": {
-    "total": 130,
+    "total": 131,
     "by_pillar": {
       "PURE": 67,
       "PURE_GAP": 20,
-      "EU": 26,
+      "EU": 27,
       "RECYCLASS": 17
     },
     "by_severity": {
-      "BLOCK": 110,
+      "BLOCK": 111,
       "FLAG": 20
     },
     "by_status": {
-      "REVIEWED": 110,
-      "APPROVED": 20
+      "REVIEWED": 98,
+      "APPROVED": 33
     },
     "by_cluster": {
       "RECYCLER_OUTCOME": 19,
@@ -52,7 +52,7 @@
       "MATERIAL_COMPOSITION": 14,
       "EVENTS_PICKUP": 7,
       "TRANSPORT": 12,
-      "WEIGHING": 10,
+      "WEIGHING": 11,
       "WASTE_CLASSIFICATION": 3,
       "CROSS_BORDER": 2,
       "ADMINISTRATION_LICENSING": 7,
@@ -4773,6 +4773,16 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "Transport exists"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate vehicleType when the transport leg is updated post-creation (ex.: leg edit after photo evidence review).",
+            "conditions": [
+              "transportLeg.vehicleType changed"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -4783,7 +4793,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Quando existe leg de transport, o vehicle_type precisa estar declarado (enum: truck, van, motorcycle, bicycle, foot, vessel, other). Sem isso, regras downstream (P-34 description quando Other, P-35 plate quando motorized) não conseguem rodar; análises de logística e CO2 por leg também ficam impossíveis. É type-discriminator do transport leg.",
+      "purpose": "Quando existe leg de transport, o vehicle_type precisa estar declarado e dentro do enum aprovado (truck, van, motorcycle, bicycle, foot, vessel, other). Sem isso, regras downstream como P-34 (description quando Other) e P-35 (plate quando motorized) não conseguem rodar, e análises de logística por modal/leg ficam impossíveis. É o type-discriminator do transport leg e a base do cluster TRANSPORT — sem vehicle_type, o sistema não consegue distinguir transporte informal (cart, bicycle) de motorizado (truck, van) para aplicar gates legais corretos.",
       "logic_human": "BLOCK quando Transport existe se TransportLeg.vehicleType for NULL/blank ou fora do enum aprovado.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-33'>): Promise<RuleResult> {\n  const leg = await ctx.db.transportLeg.findById(ctx.input.transportLegId);\n  if (!leg) {\n    return ctx.skip({ reason: 'No transport leg; rule does not apply.' });\n  }\n  const value = leg.vehicleType;\n  if (value == null || String(value).trim() === '') {\n    return ctx.fail({ ruleId: 'P-33', severity: 'BLOCK',\n      message: 'vehicle_type is required', field: 'vehicleType' });\n  }\n  const APPROVED = ['truck','van','motorcycle','bicycle','foot','vessel','other'];\n  if (!APPROVED.includes(value)) {\n    return ctx.fail({ ruleId: 'P-33', severity: 'BLOCK',\n      message: `vehicle_type '${value}' not in approved enum`,\n      field: 'vehicleType' });\n  }\n  return ctx.pass({ ruleId: 'P-33' });\n}",
       "fields": {
@@ -4839,14 +4849,16 @@
         ]
       },
       "edge_cases": [
-        "Multi-leg: cada leg declara seu vehicleType (pode mudar entre legs).",
-        "Foot (carrinho/manual) é comum em coleta urbana residencial — válido.",
-        "Vessel inclui balsa fluvial/marítima — comum em coleta de rio.",
-        "Bicicleta com reboque entra como 'bicycle' (campo cargoCapacity captura tipo)."
+        "Multi-leg: cada leg declara seu vehicleType (pode mudar entre legs, ex.: cart até consolidação + truck depois).",
+        "Foot (carrinho de mão) é comum em coleta urbana residencial — válido para volumes pequenos.",
+        "Vessel inclui balsa fluvial/marítima — comum em coleta de rio (Amazônia, Mediterrâneo).",
+        "Bicicleta com reboque entra como 'bicycle' (campo cargoCapacity captura o tipo).",
+        "Plastic-specific: 'sludge_pipes' (legado BOLD CH4) NÃO é válido para plástico — não consta no enum.",
+        "Enum normalization: lowercased antes de match (evita 'Truck' vs 'truck' false-negative)."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-01"
+          "TRANSPORT-VEHTYPE-01"
         ],
         "procedure": "Auditor sample 30 legs, confirma vehicleType bate com route_log e fotos.",
         "sample_size": "Sample 30 legs",
@@ -4865,10 +4877,14 @@
         {
           "source": "PURE_METHODOLOGY_JUN2025",
           "section": "§4.6"
+        },
+        {
+          "source": "OTHER",
+          "section": "Onda 3 (03/jun) — enum confirmado plastic-appropriate; sem BOLD CH4 residue (sludge_pipes ausente)"
         }
       ],
       "methodology_quote": "Vehicle type must be declared per transport leg.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "BOLD",
@@ -4879,8 +4895,8 @@
       "dmrv_output": "transport_valid",
       "domain": "Transport",
       "subdomain": "Vehicle Type",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -4888,7 +4904,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-34",
@@ -4901,6 +4924,16 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "vehicle_type = Other"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate quando vehicleType muda para/de 'other' em update.",
+            "conditions": [
+              "transportLeg.vehicleType changed OR transportLeg.vehicleDescription changed"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -4911,7 +4944,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Quando vehicleType='other', exige descrição textual explícita (mín. 3 chars). Espelho de P-12 para vehicle. Sem isso, 'other' vira blanket fallback que esconde tipos não-catalogados e impede análise de logística por modal. Força transparência operacional.",
+      "purpose": "Quando vehicleType='other', exige descrição textual explícita (mín. 3 chars) para evitar que 'other' vire blanket fallback que mascara modais não-catalogados. É espelho de P-12 (para vehicle em vez de waste material). Sem essa exigência, hauler pode marcar 'other' indefinidamente sem accountability, e o time de Ops perde visibilidade sobre que tipos emergentes (ex.: drones cargo, carroças, ATVs) deveriam ser promovidos ao enum estrutural.",
       "logic_human": "BLOCK quando vehicleType='other' se vehicleDescription for NULL/blank ou < 3 chars.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-34'>): Promise<RuleResult> {\n  const leg = await ctx.db.transportLeg.findById(ctx.input.transportLegId);\n  if (!leg || leg.vehicleType !== 'other') {\n    return ctx.skip({ reason: 'vehicleType is not other; rule does not apply.' });\n  }\n  const desc = leg.vehicleDescription;\n  if (desc == null || String(desc).trim() === '') {\n    return ctx.fail({ ruleId: 'P-34', severity: 'BLOCK',\n      message: 'vehicle_description is required when vehicle_type=other',\n      field: 'vehicleDescription' });\n  }\n  if (String(desc).trim().length < 3) {\n    return ctx.fail({ ruleId: 'P-34', severity: 'BLOCK',\n      message: 'vehicle_description must be descriptive (>=3 chars)',\n      field: 'vehicleDescription' });\n  }\n  return ctx.pass({ ruleId: 'P-34' });\n}",
       "fields": {
@@ -4969,12 +5002,14 @@
       },
       "edge_cases": [
         "Descrição em multi-linguagem aceita (não normaliza para EN).",
-        "Drones cargo são caso emergente — devem ser promovidos ao enum se volume crescer.",
-        "Carroça/cart em mercados emergentes é categoria comum, candidato a enum."
+        "Drones cargo são caso emergente — devem ser promovidos ao enum quando volume cruzar threshold.",
+        "Carroça/cart em mercados emergentes (BR informal, África) é categoria comum, candidato a enum.",
+        "Descrição idêntica recorrente (>30x/mês) deve disparar review do enum P-33 pela Ops.",
+        "Plastic-specific: 'sludge_pipes' descrita aqui sem flag → ALERTA de BOLD residue; recomendar deprecar leg."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-01"
+          "TRANSPORT-VEHTYPE-02"
         ],
         "procedure": "Auditor revisa 100% dos legs com vehicleType=other do período, valida descrições contra route logs/fotos.",
         "sample_size": "100% other",
@@ -4994,7 +5029,7 @@
         }
       ],
       "methodology_quote": "Other vehicle types require explicit description.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "BOLD",
@@ -5005,8 +5040,8 @@
       "dmrv_output": "transport_valid",
       "domain": "Transport",
       "subdomain": "Vehicle Other Description",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -5014,7 +5049,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-35",
@@ -5027,6 +5069,16 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "vehicle_motorized = TRUE"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate quando vehiclePlate ou vehicleMotorized mudam em update.",
+            "conditions": [
+              "transportLeg.vehiclePlate changed OR transportLeg.vehicleMotorized changed"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -5037,7 +5089,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Veículos motorizados (truck, van, motorcycle, vessel) precisam de placa/registro para rastreabilidade legal e cross-check com EU-06 (vehicle registration match) e P-64 (route uniqueness). Sem placa, é impossível detectar plate-swap fraud ou route gaming. Não-motorizados (bicycle, foot) são exempt.",
+      "purpose": "Veículos motorizados (truck, van, motorcycle, vessel) exigem placa/registro para rastreabilidade legal e cross-check com EU-06 (vehicle registration match) e P-64 (route uniqueness). Sem placa, é impossível detectar plate-swap fraud (vehicle physical real ≠ vehicle declarado) ou route gaming (mesma placa em routes simultâneas geograficamente incompatíveis). Non-motorizados (bicycle, foot, cart manual) são exempt por design — informal-sector coletas legítimas não têm placa, exigir bloquearia operação real.",
       "logic_human": "BLOCK quando vehicleMotorized=TRUE se TransportLeg.vehiclePlate for NULL/blank ou inválida por regex de placa.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-35'>): Promise<RuleResult> {\n  const leg = await ctx.db.transportLeg.findById(ctx.input.transportLegId);\n  if (!leg || leg.vehicleMotorized !== true) {\n    return ctx.skip({ reason: 'Non-motorized vehicle; rule does not apply.' });\n  }\n  const plate = leg.vehiclePlate;\n  if (plate == null || String(plate).trim() === '') {\n    return ctx.fail({ ruleId: 'P-35', severity: 'BLOCK',\n      message: 'vehicle_plate is required for motorized vehicles',\n      field: 'vehiclePlate' });\n  }\n  const normalized = String(plate).trim().toUpperCase();\n  if (!ctx.validators.isValidPlate(normalized, leg.country)) {\n    return ctx.fail({ ruleId: 'P-35', severity: 'BLOCK',\n      message: `vehicle_plate '${normalized}' invalid format for country ${leg.country}`,\n      field: 'vehiclePlate' });\n  }\n  return ctx.pass({ ruleId: 'P-35' });\n}",
       "fields": {
@@ -5098,11 +5150,13 @@
         "Plates antigas (Mercosul vs. antigo BR) ambas aceitas pelo validator.",
         "Vessels têm registro náutico (formato distinto) — validador por country=vessel.",
         "Plate temporária (DEMO/dealer) requer flag isTemporary + justificativa.",
-        "Normalize uppercase antes de match."
+        "Normalize uppercase + remoção de hífens/espaços antes do match.",
+        "Bicicleta com motor auxiliar (e-bike): se 'motorized' marcado, plate obrigatória (consistência com regulação BR/EU).",
+        "Foot/cart sem placa = SKIP (exemption estrutural — non-motorized é categoria legítima de coleta)."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-10"
+          "TRANSPORT-PLATE-01"
         ],
         "procedure": "Auditor sample 30 motorized legs, confirma plate registrada e cross-check com vehicle registration document (EU-06).",
         "sample_size": "Sample 30 legs",
@@ -5129,7 +5183,7 @@
         }
       ],
       "methodology_quote": "Motorized vehicles require licence plate identification.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "BOLD",
@@ -5140,8 +5194,8 @@
       "dmrv_output": "transport_valid",
       "domain": "Transport",
       "subdomain": "Plate",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -5149,7 +5203,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-36",
@@ -5162,6 +5223,16 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "Transport exists"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate quando driverId ou exemptionReason mudam (substituição de motorista em leg pós-criação).",
+            "conditions": [
+              "transportLeg.driverId changed OR transportLeg.exemptionReason changed"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -5172,7 +5243,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Para cada transport leg exige driverId OU exemptionReason. Driver identifiable permite traceability humana e accountability — exemption só é aceita com justificativa textual (ex.: 'autonomous vehicle', 'drone pilot remote'). Sem este gate, transports viram anônimos e impedem investigação em casos de fraude/incidente.",
+      "purpose": "Para cada transport leg exige driverId OU exemptionReason. Driver identifiable permite traceability humana e accountability em casos de incidente/fraude. Exemption só é aceita com justificativa textual (ex.: 'autonomous vehicle Level 4', 'drone pilot remote', 'cart sem condutor formal — informal collector identificado via P-25'). Sem este gate, transports viram anônimos e impedem investigação em incidente ambiental ou suspeita de fraude. Exemption frequente mesmo hauler é red flag para Compliance.",
       "logic_human": "BLOCK se TransportLeg.driverId AND exemptionReason ambos NULL/blank. PASS se ao menos um preenchido.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-36'>): Promise<RuleResult> {\n  const leg = await ctx.db.transportLeg.findById(ctx.input.transportLegId);\n  if (!leg) {\n    return ctx.skip({ reason: 'No transport leg.' });\n  }\n  const hasDriver = leg.driverId != null && String(leg.driverId).trim() !== '';\n  const hasExemption = leg.exemptionReason != null && String(leg.exemptionReason).trim() !== '';\n  if (!hasDriver && !hasExemption) {\n    return ctx.fail({ ruleId: 'P-36', severity: 'BLOCK',\n      message: 'driver_id or exemption_reason required',\n      field: 'driverId' });\n  }\n  return ctx.pass({ ruleId: 'P-36' });\n}",
       "fields": {
@@ -5229,14 +5300,16 @@
         ]
       },
       "edge_cases": [
-        "Driver pode ser próprio Generator (P-25 generator_as_hauler) — usar o Participant.id como driverId.",
-        "Exemption 'autonomous' deve vir com identificação do sistema responsável.",
-        "Driver license expirada/inválida NÃO checada aqui (regra separada de hauler homologation).",
-        "Privacy: driverId é PII (link a P-48 e PG-16)."
+        "Driver pode ser próprio Generator (P-25 generator_as_hauler) — usar Participant.id como driverId.",
+        "Exemption 'autonomous' deve vir com identificação do sistema responsável (ex.: 'Waymo VIN XYZ').",
+        "Driver license expirada/inválida NÃO checada aqui (regra separada de hauler homologation, PG-20).",
+        "Privacy: driverId é PII (link a P-48 e PG-16) — armazenamento sob consent.",
+        "Cart/foot/bicycle: driver geralmente é o próprio collector informal — exemption 'informal collector identified via P-25' aceita.",
+        "Multi-driver leg (relay): registrar apenas driver do primeiro segmento; relays adicionais via sub-leg."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-01"
+          "TRANSPORT-DRIVER-01"
         ],
         "procedure": "Auditor sample 30 legs, confirma driver identifiable ou exemption justificada com evidência.",
         "sample_size": "Sample 30 legs",
@@ -5259,7 +5332,7 @@
         }
       ],
       "methodology_quote": "Driver identifier required unless justified exemption.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "BOLD",
@@ -5270,8 +5343,8 @@
       "dmrv_output": "transport_valid",
       "domain": "Transport",
       "subdomain": "Driver",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -5279,7 +5352,14 @@
       ],
       "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-37",
@@ -5292,6 +5372,24 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "pickup_source_type = business"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate quando pickupSourceType muda ou transportManifestId é vinculado/desvinculado.",
+            "conditions": [
+              "massid.pickupSourceType changed OR massid.transportManifestId changed"
+            ]
+          },
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate quando o manifest doc associado é criado/atualizado/revogado.",
+            "conditions": [
+              "doc.type IN ('transport_manifest','mtr','annex_vii','wtn')"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -5303,7 +5401,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Pickups originados de fonte business (não residencial) precisam OBRIGATORIAMENTE de transport manifest formal — é exigência legal na maioria das jurisdições (B2B waste transfer). Residential é exempt e usa geo-digital proof. Sem manifest em B2B, o transport é juridicamente irregular e o crédito não passa em auditoria BV/EU.",
+      "purpose": "Pickups originados de fonte business (não residencial) exigem OBRIGATORIAMENTE manifest formal de transporte — é requisito legal em quase todas as jurisdições (B2B waste transfer). Residential é exempt e usa geo-digital proof (foto + GPS + assinatura via app). Sem manifest em B2B, o transport é juridicamente irregular e o MassID falha em qualquer auditoria BV/EU. O tipo de manifest é territorial: BR=MTR (Manifesto de Transporte de Resíduos), EU=Annex VII ou WTN (Waste Transfer Note), MT=local form. A regra aqui valida apenas presença do ID; conteúdo é validado em P-40.",
       "logic_human": "BLOCK quando pickupSourceType='business' se MassID.transportManifestId for NULL/blank. PASS caso contrário.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-37'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  if (massid.pickupSourceType !== 'business') {\n    return ctx.skip({ reason: 'Pickup source not business; rule does not apply.' });\n  }\n  if (!massid.transportManifestId) {\n    return ctx.fail({ ruleId: 'P-37', severity: 'BLOCK',\n      message: 'transport_manifest_id required for business pickup',\n      field: 'transportManifestId' });\n  }\n  return ctx.pass({ ruleId: 'P-37' });\n}",
       "fields": {
@@ -5362,12 +5460,14 @@
       "edge_cases": [
         "Residential pode usar approved geo-digital proof (foto + GPS + signed pickup_record).",
         "Empresas pequenas (microbusiness) podem ter exemption regional — usar P-39 (exemption justification).",
-        "Manifest físico ainda em papel: digitalizar e upload via P-38.",
-        "Multi-pickup em um manifest: ID é compartilhado entre MassIDs."
+        "Manifest físico ainda em papel: digitalizar e upload via P-38; OCR para preencher fields em P-40.",
+        "Multi-pickup em um manifest: ID é compartilhado entre MassIDs; verificar consistency de hash.",
+        "Territorial: BR=MTR (Sinir), EU=Annex VII (WSR Art. 18) / WTN (UK), MT=local. Ver Geographical Adaptation Appendix.",
+        "Open dump (pickupSourceType='open_dump') é tratado em PG-17 (não passa por P-37)."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-11"
+          "TRANSPORT-MANIFEST-01"
         ],
         "procedure": "Auditor sample 30 business pickups, confirma manifest physical + digital, valida required fields (P-40).",
         "sample_size": "Sample 30 business pickups",
@@ -5387,10 +5487,18 @@
         {
           "source": "PURE_METHODOLOGY_JUN2025",
           "section": "§4.7"
+        },
+        {
+          "source": "EU_REG_2024_1157",
+          "section": "Art. 18 (Annex VII — intra-EU shipment information document)"
+        },
+        {
+          "source": "EU_PLASTIC_WASTE_TRANSPORT_DOCUMENTS",
+          "section": "Annex VII / WTN — territorial variants per Member State"
         }
       ],
       "methodology_quote": "Business pickups require formal transport manifest; residential may use approved geo-digital proof.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "PURE/BOLD",
@@ -5401,8 +5509,8 @@
       "dmrv_output": "transport_valid",
       "domain": "Transport",
       "subdomain": "Business Manifest",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -5410,7 +5518,14 @@
       ],
       "geographic_scope": "Territorial",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-38",
@@ -5423,6 +5538,24 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "P-37 triggered"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate ao upload/atualização de doc transport_manifest (ou variantes territoriais).",
+            "conditions": [
+              "doc.type IN ('transport_manifest','mtr','annex_vii','wtn') AND doc.massidId changed"
+            ]
+          },
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate quando manifestExemptionFlag muda em update.",
+            "conditions": [
+              "massid.manifestExemptionFlag changed"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -5434,7 +5567,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Estende P-37: além do ID do manifest, exige o ARQUIVO físico anexado (PDF/imagem assinada) UNLESS o operador marcou manifestExemptionFlag=true (a ser justificado em P-39). Sem o arquivo, o manifest é só um ID sem prova — viola integridade documental.",
+      "purpose": "Estende P-37: além do ID do manifest, exige o ARQUIVO físico anexado (PDF/imagem assinada) UNLESS o operador marcou manifestExemptionFlag=true (a ser justificado em P-39). Sem o arquivo, o manifest é só um ID sem prova documental — viola integridade documental e falha auditoria. Aceita formatos territoriais distintos: BR=MTR PDF assinado, EU=Annex VII PDF/eIDAS, MT=local form. O conteúdo (required fields) é validado em P-40; o arquivo aqui só precisa existir + fileHash íntegro.",
       "logic_human": "BLOCK quando P-37 triggered se transportManifestFile NULL AND manifestExemptionFlag ≠ TRUE.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-38'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  if (massid.pickupSourceType !== 'business') {\n    return ctx.skip({ reason: 'P-37 not triggered.' });\n  }\n  if (massid.manifestExemptionFlag === true) {\n    return ctx.skip({ reason: 'Exemption flagged; delegated to P-39.' });\n  }\n  const doc = await ctx.db.document.findFirst({\n    where: { massidId: massid.id, type: 'transport_manifest' }\n  });\n  if (!doc || !doc.fileHash) {\n    return ctx.fail({ ruleId: 'P-38', severity: 'BLOCK',\n      message: 'transport_manifest file attachment missing',\n      field: 'documents' });\n  }\n  return ctx.pass({ ruleId: 'P-38' });\n}",
       "fields": {
@@ -5496,11 +5629,13 @@
         "FileHash verificado por hash chain (link com PG-12).",
         "Upload de arquivo corrompido (hash mismatch) é rejeitado antes deste check (validation no upload layer).",
         "Manifest multi-página: aceitar PDF com N páginas; cada upload é um Document.",
-        "OCR opcional para preencher fields automaticamente (P-40)."
+        "OCR opcional para preencher fields automaticamente (P-40).",
+        "Territorial: doc_type pode ser 'transport_manifest' (genérico), 'mtr' (BR), 'annex_vii' (EU), 'wtn' (UK). Lookup aceita qualquer um.",
+        "eIDAS-signed Annex VII (PDF Advanced Electronic Signature) tem validação de cert chain adicional — pré-checked no upload layer."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-11"
+          "TRANSPORT-MANIFEST-02"
         ],
         "procedure": "Auditor sample 30 business pickups, abre arquivo do manifest, valida assinatura e hash íntegro.",
         "sample_size": "Sample 30",
@@ -5523,7 +5658,7 @@
         }
       ],
       "methodology_quote": "Transport manifest attachment required unless exempted.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "BOLD",
@@ -5534,8 +5669,8 @@
       "dmrv_output": "transport_valid",
       "domain": "Transport",
       "subdomain": "Manifest Attachment",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -5543,7 +5678,14 @@
       ],
       "geographic_scope": "Territorial",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-39",
@@ -5556,6 +5698,16 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "manifest_exemption_flag = TRUE"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "MASSID_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate quando manifestExemptionFlag ou Reason mudam em update.",
+            "conditions": [
+              "massid.manifestExemptionFlag changed OR massid.manifestExemptionReason changed"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -5567,7 +5719,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Se hauler/business marcou manifestExemptionFlag=TRUE (escapando P-38), exige justificativa textual ≥ 10 chars explicando a base legal (ex.: 'Microempresa <500kg/mês, regional exemption'). Sem isso, exemption vira loophole para evadir manifest sem accountability.",
+      "purpose": "Se hauler/business marcou manifestExemptionFlag=TRUE (escapando P-38), exige justificativa textual ≥ 10 chars explicando a base legal (ex.: 'Microempresa <500kg/mês, regional exemption Lei BR XYZ'; 'Domestic transfer <2t/year per WSR Art. 26 small carrier waiver'). Sem isso, exemption vira loophole para evadir manifest sem accountability. Exemption frequente do mesmo Generator/Hauler (>3x/mês) deve ser convertida em exemption_basis estável no Participant profile, evitando justificar a cada pickup. Compliance audita 100% das exemptions trimestralmente.",
       "logic_human": "BLOCK quando manifestExemptionFlag=TRUE se manifestExemptionReason NULL/blank ou < 10 chars.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-39'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  if (massid.manifestExemptionFlag !== true) {\n    return ctx.skip({ reason: 'No exemption flagged.' });\n  }\n  const reason = massid.manifestExemptionReason;\n  if (reason == null || String(reason).trim() === '') {\n    return ctx.fail({ ruleId: 'P-39', severity: 'BLOCK',\n      message: 'manifest_exemption_reason required when exemption flagged',\n      field: 'manifestExemptionReason' });\n  }\n  if (String(reason).trim().length < 10) {\n    return ctx.fail({ ruleId: 'P-39', severity: 'BLOCK',\n      message: 'manifest_exemption_reason must be substantive (>=10 chars)',\n      field: 'manifestExemptionReason' });\n  }\n  return ctx.pass({ ruleId: 'P-39' });\n}",
       "fields": {
@@ -5627,11 +5779,13 @@
         "Reason em multi-linguagem aceita.",
         "Exemption persistente por mesma fonte (>3x) deve ser marcada como exemption_basis estável no Participant profile.",
         "Compliance pode auditar exemptions de toda a base trimestralmente.",
-        "Lei/regulação citada deve ter referência verificável (ID de norma)."
+        "Lei/regulação citada deve ter referência verificável (ID de norma).",
+        "Territorial: bases legais variam — BR (CONAMA 313 microgenerator), EU (WSR Art. 26 small carrier), MT (LN 184 small business). Ver Geographical Adaptation Appendix.",
+        "Exemption + manifest físico anexado mesmo assim: P-38 ainda pode rodar opcionalmente (não bloqueia)."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-11"
+          "TRANSPORT-MANIFEST-03"
         ],
         "procedure": "Auditor revisa 100% das exemptions do período, valida que a base legal citada é genuína.",
         "sample_size": "100% exemptions",
@@ -5652,7 +5806,7 @@
         }
       ],
       "methodology_quote": "Manifest exemption requires substantive justification.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "BOLD",
@@ -5663,8 +5817,8 @@
       "dmrv_output": "transport_valid",
       "domain": "Transport",
       "subdomain": "Manifest Exemption",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -5672,7 +5826,14 @@
       ],
       "geographic_scope": "Territorial",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-40",
@@ -5696,7 +5857,7 @@
           "GLOBAL"
         ]
       },
-      "purpose": "Quando há manifest anexado, exige que campos obrigatórios estejam preenchidos: shipper, consignee, wasteCode, weight, date, signature. Manifest com fields vazios não tem força probatória — viola EU WSR Article 19 e a maioria das jurisdições. Campos exatos podem variar por jurisdição (ex.: EU exige EWC code).",
+      "purpose": "Quando há manifest anexado, exige que campos obrigatórios estejam preenchidos: shipper, consignee, wasteCode, weight, date, signature. Manifest com fields vazios não tem força probatória — viola EU WSR Article 19 e a maioria das jurisdições. Campos exatos podem variar por jurisdição (ex.: EU exige EWC code). Esta regra é a BASELINE GLOBAL — exige os 6 campos sempre-obrigatórios universalmente. Campos adicionais por jurisdição (EWC/Annex VII no EU, EPA ID no US, FISPQ no BR) são tratados por regras IRMÃS territoriais (ex: EU-08, futuras BR-XX) — Decisão Rodrigo 2026-06-03 (Option B).",
       "logic_human": "BLOCK se manifest anexado mas manifest_json não tem todos campos obrigatórios (shipper, consignee, wasteCode, weight, date, signature) preenchidos.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-40'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  const doc = await ctx.db.document.findFirst({\n    where: { massidId: massid.id, type: 'transport_manifest' }\n  });\n  if (!doc) {\n    return ctx.skip({ reason: 'No manifest attached (delegated to P-38).' });\n  }\n  const data = doc.manifestJson || {};\n  const REQUIRED = ['shipper','consignee','wasteCode','weight','date','signature'];\n  const missing = REQUIRED.filter(f => !data[f] || String(data[f]).trim() === '');\n  if (missing.length) {\n    return ctx.fail({ ruleId: 'P-40', severity: 'BLOCK',\n      message: `transport_manifest missing required fields: ${missing.join(', ')}`,\n      field: missing[0] });\n  }\n  return ctx.pass({ ruleId: 'P-40' });\n}",
       "fields": {
@@ -5755,7 +5916,8 @@
         "Required fields variam por jurisdição: EU adiciona EWC, US adiciona EPA ID. Implementar via config por country.",
         "Signature pode ser digital (eIDAS) — verificar cert chain além de presença.",
         "Manifest OCR pode preencher fields automaticamente, mas validador checa post-OCR.",
-        "Date validação posterior em EU-18 (date continuity)."
+        "Date validação posterior em EU-18 (date continuity).",
+        "Decisão Rodrigo 2026-06-03 (Option B): P-40 mantida como baseline GLOBAL (6 campos universais). Campos territoriais adicionais via regras irmãs por jurisdição (pattern existente: EU-08 cobre Annex VII; BR-XX futura cobrirá MTR; outras territoriais conforme expansão)."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -5786,7 +5948,7 @@
         }
       ],
       "methodology_quote": "Required field completeness varies by jurisdiction.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "BOLD/PURE",
@@ -5797,22 +5959,29 @@
       "dmrv_output": "transport_valid",
       "domain": "Transport",
       "subdomain": "Manifest Required Fields",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
         "E2"
       ],
-      "geographic_scope": "Territorial",
+      "geographic_scope": "Universal",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-41",
       "title": "Transport manifest weight fallback control",
       "pillar": "PURE",
-      "cluster": "TRANSPORT",
+      "cluster": "WEIGHING",
       "severity": "BLOCK",
       "trigger": {
         "event": "MASSID_INGEST",
@@ -5896,7 +6065,8 @@
         "PG-14 (uncertainty) deve aplicar tolerância maior para manifest weights (~5-10%).",
         "Manifest weight pode vir de balança da origem (pre-shipment) — válido se documentado.",
         "Multi-leg com partial weights: cada leg declara seu method; agregado calcula com flag mista.",
-        "Override Compliance para casos especiais com audit."
+        "Override Compliance para casos especiais com audit.",
+        "Decisão Rodrigo 2026-06-03 (Option A): P-41 reclassificada de cluster TRANSPORT → WEIGHING. ID preservado (RULE_REGISTER P-41 mantida). L3 light refinement aqui; refinamento profundo virá na Onda 4 (WEIGHING cluster), onde P-41 será revisada junto com P-42, P-43, P-44, P-46, PG-14, RC-07 (suas regras irmãs)."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -5926,7 +6096,7 @@
         }
       ],
       "methodology_quote": "If scale weight absent and manifest weight is used, capture method must explicitly declare manifest-derived.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "PURE",
@@ -5937,8 +6107,8 @@
       "dmrv_output": "transport_valid",
       "domain": "Transport",
       "subdomain": "Manifest Weight Fallback",
-      "version": "0.1.0",
-      "last_reviewed": "2026-05-29",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
       "event_ids": [
@@ -5947,7 +6117,14 @@
       ],
       "geographic_scope": "Territorial",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Metodologia"
+      "rule_type": "Metodologia",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "P-42",
@@ -13078,6 +13255,24 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "Transport exists"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate quando carrier_licence doc é criado/atualizado/revogado.",
+            "conditions": [
+              "doc.type == 'carrier_licence' AND (doc.participantId changed OR doc.validTo changed OR doc.revokedAt changed)"
+            ]
+          },
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate quando Hauler é atualizado (ex.: mudança de status, link a novo doc).",
+            "conditions": [
+              "participant.type == 'H' AND participant changed"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -13151,11 +13346,13 @@
         "EU-04 valida existência+fields; EU-05 valida prazo na data do transporte (separação intencional).",
         "Multi-licença (Hauler com licenças em vários EU member states): pelo menos uma válida resolve a regra para o país do transport.",
         "Licença revogada manualmente por Compliance (revokedAt definido) é tratada como ausente.",
-        "Brokers/Dealers (também registrados no Member State register conforme Art. 26 WFD) podem ser permitidos via mesmo doc_type com subtipo 'broker_dealer'."
+        "Brokers/Dealers (também registrados no Member State register conforme Art. 26 WFD) podem ser permitidos via mesmo doc_type com subtipo 'broker_dealer'.",
+        "Cross-border: carrier transportando waste entre Member States precisa de licença em pelo menos um dos dois — preferencialmente origem (WSR Art. 18).",
+        "WSR transition window (lei entra em 21/mai/2026): licenças pré-2026 grandfathered se issuingAuthority é a competent authority sob lei prévia (Dir 2008/98/EC)."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-09"
+          "EU-CARRIER-01"
         ],
         "procedure": "Auditor seleciona sample 30 transports do período; para cada, verifica (a) existência do carrier_licence, (b) issuingAuthority entre autoridades competentes EU registradas, (c) campos completos, (d) hash íntegro do PDF.",
         "sample_size": "Sample 30 transports",
@@ -13186,7 +13383,7 @@
         }
       ],
       "methodology_quote": "Hauler must hold valid waste transport authorization issued by competent authority.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "EU",
@@ -13197,8 +13394,8 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Carrier Authorization",
-      "version": "0.2.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
@@ -13206,7 +13403,14 @@
       ],
       "geographic_scope": "Territorial",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Estrutura"
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "EU-05",
@@ -13219,6 +13423,16 @@
         "phase": "PRE_VALIDATION",
         "conditions": [
           "Transport exists"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "purpose": "Re-evaluate quando validFrom/validTo do carrier_licence mudam (ex.: renovação ou revogação manual).",
+            "conditions": [
+              "doc.type == 'carrier_licence' AND (doc.validFrom changed OR doc.validTo changed OR doc.revokedAt changed)"
+            ]
+          }
         ]
       },
       "applies_to": {
@@ -13229,7 +13443,7 @@
           "EU"
         ]
       },
-      "purpose": "Complementa EU-04: a licença existe e tem campos, mas precisa estar VIGENTE na data do transport. Carrier transporting com licença vencida está em violação direta de WSR e expõe a Impactrakr a co-responsabilidade. Sem este gate, BV reprova qualquer MassID cujo transport_date caia fora do window [valid_from, valid_to].",
+      "purpose": "Complementa EU-04: a licença existe e tem campos, mas precisa estar VIGENTE na data do transport. Carrier transporting com licença vencida está em violação direta de WSR Art. 18(4) e expõe a Impactrakr a co-responsabilidade. Aplica princípio non-retroactive: a comparação usa TransportLeg.transportDate (quando o transporte de fato ocorreu) — NÃO usa now(). Se a licença era válida no momento do transport mas expirou depois, o MassID permanece elegível; se a licença foi revogada retroativamente, MassIDs com transportDate anterior à revogação permanecem válidos. Isso é consistente com a posição de Rodrigo (02/jun): 'massas já enviadas para nossa base não existe revogação'.",
       "logic_human": "BLOCK se TransportLeg.transportDate < carrier_licence.validFrom OR transportDate > carrier_licence.validTo.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-05'>): Promise<RuleResult> {\n  const leg = await ctx.db.transportLeg.findById(ctx.input.transportLegId);\n  const doc = await ctx.db.document.findFirst({ where: {\n    participantId: leg.haulerId,\n    type: 'carrier_licence'\n  }});\n  if (!doc) return ctx.skip({ reason: 'EU-04 will block.' });\n  const td = leg.transportDate;\n  if (doc.validFrom && td < doc.validFrom) {\n    return ctx.fail({ ruleId: 'EU-05', severity: 'BLOCK',\n      message: `Transport date ${td.toISOString()} before licence validFrom ${doc.validFrom.toISOString()}`,\n      field: 'transportDate' });\n  }\n  if (doc.validTo && td > doc.validTo) {\n    return ctx.fail({ ruleId: 'EU-05', severity: 'BLOCK',\n      message: `Transport date ${td.toISOString()} after licence validTo ${doc.validTo.toISOString()}`,\n      field: 'transportDate' });\n  }\n  return ctx.pass({ ruleId: 'EU-05' });\n}",
       "fields": {
@@ -13260,7 +13474,8 @@
         "revalidation": "Re-roda em cada update de transportDate ou de validFrom/validTo da licença.",
         "retry_window": "Re-upload de licença atualizada destrava.",
         "escalation": "FLAG 'expiring soon' (30 dias antes do validTo) para Hauler renovar proativamente.",
-        "performance": "O(1)."
+        "performance": "O(1).",
+        "non_retroactive_revocation": "Validação usa TransportLeg.transportDate como evento-âncora: licença que estava ativa no momento do transport permanece válida mesmo se for revogada/expirar depois. Suspensões prospectivas afetam apenas TransportLegs com transportDate >= suspensionEffectiveAt. Princípio alinhado com P-02 (homologation) e P-05 (consent), decisão Rodrigo 02/jun."
       },
       "test_cases": {
         "positive": {
@@ -13288,13 +13503,15 @@
       },
       "edge_cases": [
         "validFrom NULL: tratado como sem boundary inferior.",
-        "validTo NULL: tratado como sem expiração — confirmar com Compliance se cabível no contexto EU (raro).",
+        "validTo NULL: tratado como sem expiração — confirmar com Compliance se cabível no contexto EU (raro, mas algumas autoridades emitem 'until revoked').",
         "Timezone: comparações em UTC; legais geralmente são date-only (sem hora).",
-        "Multi-leg transport com mesmo hauler: regra avalia por leg."
+        "Multi-leg transport com mesmo hauler: regra avalia por leg (cada leg tem sua transportDate).",
+        "Licença revogada retroativamente (revokedAt < transportDate): NÃO bloqueia (princípio non-retroactive).",
+        "FLAG 'expiring soon' (30 dias antes do validTo) é dever do agendador, não é gate desta regra (sinalização proativa)."
       ],
       "bv_verification": {
         "bv_controls": [
-          "BV-09"
+          "EU-CARRIER-02"
         ],
         "procedure": "Auditor seleciona sample 30 transports; para cada, confirma transportDate ∈ [validFrom, validTo] do carrier_licence vinculado.",
         "sample_size": "Sample 30 transports",
@@ -13320,7 +13537,7 @@
         }
       ],
       "methodology_quote": "Transport date must fall within carrier license validity.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "EU",
@@ -13332,8 +13549,8 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Carrier Authorization",
-      "version": "0.2.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
@@ -13341,11 +13558,18 @@
       ],
       "geographic_scope": "Territorial",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Auditoria"
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "EU-06",
-      "title": "Vehicle registration match",
+      "title": "Vehicle authorization match (plate + AuthorizedVehicleRegister)",
       "pillar": "EU",
       "cluster": "TRANSPORT",
       "severity": "BLOCK",
@@ -13364,9 +13588,9 @@
           "EU"
         ]
       },
-      "purpose": "Valida que o veículo usado no transport é um veículo autorizado, registrado e vinculado ao Hauler — com geo+timestamp evidenciando que o pickup/dropoff ocorreu em local registrado. Sem este gate, é possível fabricar transports com plates aleatórias ou de terceiros não autorizados, fraude clássica em waste shipment. Cobre o requirement do Annex VII (carrier identification) e da WSR Art. 18 para shipments.",
-      "logic_human": "BLOCK se TransportLeg.vehiclePlate ausente, OR não constar em AuthorizedVehicleRegister do Hauler, OR pickup/dropoff GPS fora de zona registrada.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-06'>): Promise<RuleResult> {\n  const leg = await ctx.db.transportLeg.findById(ctx.input.transportLegId);\n  if (!leg.vehiclePlate || String(leg.vehiclePlate).trim() === '') {\n    return ctx.fail({ ruleId: 'EU-06', severity: 'BLOCK',\n      message: 'Vehicle plate missing on transport leg', field: 'vehiclePlate' });\n  }\n  const authorized = await ctx.db.authorizedVehicle.findFirst({ where: {\n    haulerId: leg.haulerId, plate: leg.vehiclePlate, active: true\n  }});\n  if (!authorized) {\n    return ctx.fail({ ruleId: 'EU-06', severity: 'BLOCK',\n      message: `Vehicle plate '${leg.vehiclePlate}' not in Hauler's authorized_vehicle_register`,\n      field: 'vehiclePlate' });\n  }\n  if (leg.pickupLat == null || leg.pickupLon == null) {\n    return ctx.fail({ ruleId: 'EU-06', severity: 'BLOCK',\n      message: 'Pickup GPS missing for vehicle event', field: 'pickupLat' });\n  }\n  const inside = await ctx.geo.isInsideRegisteredZone(leg.pickupLat, leg.pickupLon, leg.haulerId);\n  if (!inside) {\n    return ctx.fail({ ruleId: 'EU-06', severity: 'BLOCK',\n      message: 'Pickup GPS outside any registered zone for this Hauler',\n      field: 'pickupLat' });\n  }\n  return ctx.pass({ ruleId: 'EU-06' });\n}",
+      "purpose": "Verifica que o veículo usado no transporte está autorizado para operar pela Hauler responsável: (1) `vehiclePlate` está presente quando exigido (interage com P-35 para veículos motorizados) E (2) plate consta no `Hauler.AuthorizedVehicleRegister`. O check de geo-fence (pickup dentro de zonas registradas) foi separado para EU-27 (split decidido por Rodrigo 2026-06-03 Option A) — atomic controls produzem mensagens precisas e auditoria BV mais clara.",
+      "logic_human": "BLOCK se vehiclePlate ausente em transporte com vehicleType motorized (delegação a P-35 para baseline) OR plate NOT IN Hauler.AuthorizedVehicleRegister.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-06'>): Promise<RuleResult> {\n  const plate = ctx.input.vehiclePlate;\n  const haulerId = ctx.input.haulerId;\n  const vehicleType = ctx.input.vehicleType;\n  const MOTORIZED = ['truck','van','motorcycle','vessel'];\n\n  if (MOTORIZED.includes(vehicleType) && !plate) {\n    return ctx.fail({ ruleId: 'EU-06', severity: 'BLOCK',\n      message: 'Plate ausente em veículo motorizado',\n      field: 'vehiclePlate' });\n  }\n\n  if (plate) {\n    const authorized = await ctx.db.authorizedVehicle.findOne({\n      where: { haulerId, plate, activeFrom: { lte: ctx.massId.pickupAt } }\n    });\n    if (!authorized) {\n      return ctx.fail({ ruleId: 'EU-06', severity: 'BLOCK',\n        message: `Plate ${plate} não consta em AuthorizedVehicleRegister da Hauler`,\n        field: 'AuthorizedVehicleRegister' });\n    }\n  }\n  return ctx.pass({ ruleId: 'EU-06' });\n}",
       "fields": {
         "reads": [
           "TransportLeg.vehiclePlate",
@@ -13387,8 +13611,8 @@
         }
       ],
       "messages": {
-        "block_pt": "Veículo não autorizado ou sem GPS válido. Verifique a placa contra o registro autorizado do hauler e capture a coordenada de pickup no app.",
-        "block_en": "Vehicle not authorized or without valid GPS. Verify the plate against the hauler's authorized vehicle register and capture the pickup GPS in the app."
+        "block_pt": "Veículo não autorizado para esta Hauler. Plate ausente ou não consta no AuthorizedVehicleRegister da transportadora — verifique o cadastro do veículo antes de prosseguir.",
+        "block_en": "Vehicle not authorized for this Hauler. Plate missing or not in the carrier's AuthorizedVehicleRegister — verify vehicle registration before continuing."
       },
       "behavior": {
         "idempotent": true,
@@ -13458,7 +13682,7 @@
         }
       ],
       "methodology_quote": "Vehicle plate must match authorized vehicle where applicable.",
-      "status": "REVIEWED",
+      "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
       "source_type": "EU",
@@ -13469,8 +13693,8 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Vehicle Registration",
-      "version": "0.2.0",
-      "last_reviewed": "2026-05-31",
+      "version": "0.3.0",
+      "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
@@ -13478,7 +13702,14 @@
       ],
       "geographic_scope": "Territorial",
       "action_on_failure": "Bloqueio",
-      "rule_type": "Auditoria"
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "EU-07",
@@ -16205,6 +16436,157 @@
       "geographic_scope": "Territorial",
       "action_on_failure": "Sinalização",
       "rule_type": "Auditoria"
+    },
+    {
+      "id": "EU-27",
+      "title": "Pickup geo-fence inside Hauler registered zones",
+      "pillar": "EU",
+      "cluster": "TRANSPORT",
+      "severity": "BLOCK",
+      "gates_what": "LEGAL_OPERATION",
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria",
+      "event_ids": [
+        "E2"
+      ],
+      "trigger": {
+        "event": "MASSID_INGEST",
+        "phase": "PRE_VALIDATION",
+        "conditions": [
+          "MassID.pickupLat != null",
+          "MassID.pickupLon != null"
+        ]
+      },
+      "applies_to": {
+        "participant_types": [
+          "H"
+        ],
+        "regions": [
+          "EU"
+        ]
+      },
+      "purpose": "Verifica que o pickup geocoded (lat/lon) da MassID está dentro de uma das zonas geográficas registradas pela Hauler em sua área de operação autorizada. Splitada de EU-06 (decisão Rodrigo 2026-06-03 Option A) — atomic control para geo-fence + mensagem precisa para o operador + BV audita 1 controle por conceito. Detecta operação fora da área autorizada (potencial sem licença, cross-border informal, ou data de pickup adulterada).",
+      "logic_human": "BLOCK em prod (FLAG em sandbox) se pickupLat/pickupLon estiver FORA de todas as Hauler.registeredZones. Sandbox = FLAG porque time pode testar zonas fictícias sem cadastro formal pré-prod.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-27'>): Promise<RuleResult> {\n  const isProd = ctx.environment === 'production';\n  const sev: 'BLOCK' | 'FLAG' = isProd ? 'BLOCK' : 'FLAG';\n\n  const haulerId = ctx.input.haulerId;\n  const lat = ctx.massId.pickupLat;\n  const lon = ctx.massId.pickupLon;\n  if (lat == null || lon == null) return ctx.skip({ ruleId: 'EU-27', reason: 'Geo ausente' });\n\n  const zones = await ctx.db.haulerZone.findAll({ where: { haulerId, active: true }});\n  if (zones.length === 0) {\n    return ctx.fail({ ruleId: 'EU-27', severity: sev,\n      message: 'Hauler sem zonas registradas — não é possível validar geo-fence',\n      field: 'Hauler.registeredZones' });\n  }\n  const inside = zones.some(z => pointInPolygon({lat, lon}, z.polygon));\n  if (!inside) {\n    return ctx.fail({ ruleId: 'EU-27', severity: sev,\n      message: isProd\n        ? `Pickup (${lat.toFixed(4)}, ${lon.toFixed(4)}) fora da área registrada da Hauler`\n        : `AVISO sandbox: pickup fora da geo-fence (em prod isso bloqueia)`,\n      field: 'MassID.pickupLat/Lon' });\n  }\n  return ctx.pass({ ruleId: 'EU-27' });\n}",
+      "fields": {
+        "reads": [
+          "MassID.pickupLat",
+          "MassID.pickupLon",
+          "Hauler.registeredZones"
+        ],
+        "writes": [
+          "ValidationResult"
+        ]
+      },
+      "evidence": [
+        {
+          "doc_type": "hauler_zone_registration",
+          "mandatory": true,
+          "note": "Polígonos geo-referenciados das zonas autorizadas da Hauler."
+        }
+      ],
+      "messages": {
+        "block_pt": "Pickup fora da área geográfica registrada da Hauler — operação possivelmente fora do escopo autorizado. Verifique o cadastro de zonas da transportadora antes de prosseguir.",
+        "block_en": "Pickup outside Hauler's registered geographic area — operation possibly outside authorized scope. Verify carrier zone registration before continuing.",
+        "flag_sandbox_pt": "AVISO sandbox: pickup fora da geo-fence registrada. Em produção isso bloqueia.",
+        "flag_sandbox_en": "Sandbox warning: pickup outside registered geo-fence. In production this blocks."
+      },
+      "behavior": {
+        "idempotent": true,
+        "environment_aware": true,
+        "environment_severity_map": {
+          "production": "BLOCK",
+          "sandbox": "FLAG"
+        },
+        "on_fail": "Em prod: bloqueia MASSID_INGEST + AuditLog com snapshot da geo. Em sandbox: flag visível, pipeline segue.",
+        "on_pass": "Continua; geo-validation OK entra no audit pack.",
+        "revalidation": "Re-roda se Hauler.registeredZones for atualizado ou pickup geo for corrigida.",
+        "retry_window": "Imediato (operador atualiza cadastro de zonas ou corrige pickup).",
+        "escalation": "Se permanecer fora da zona por > 7 dias, Compliance avalia se a Hauler precisa expandir cadastro de zonas formalmente.",
+        "performance": "Point-in-polygon com zonas indexadas — O(log n) per zona. Cache de zonas por Hauler aceitável (TTL 1h)."
+      },
+      "test_cases": {
+        "positive": {
+          "name": "Pickup dentro de zona registrada",
+          "given": "Hauler com 3 zonas ativas. MassID.pickupLat=45.46, pickupLon=9.19 (Milão) dentro da zona 'EU-IT-Lombardia'.",
+          "expected": "PASS."
+        },
+        "negative": [
+          {
+            "name": "Pickup fora de qualquer zona registrada (prod)",
+            "given": "Hauler com zonas ativas em IT. Pickup em DE (Berlim).",
+            "expected": "BLOCK 'Pickup (lat, lon) fora da área registrada da Hauler'."
+          },
+          {
+            "name": "Hauler sem zonas registradas",
+            "given": "Hauler sem nenhum zone registration.",
+            "expected": "BLOCK 'Hauler sem zonas registradas — não é possível validar geo-fence'."
+          },
+          {
+            "name": "Sandbox — pickup fora da zona",
+            "given": "environment=sandbox, pickup fora de qualquer zona registrada.",
+            "expected": "FLAG (não bloqueia, com AVISO sandbox)."
+          }
+        ]
+      },
+      "edge_cases": [
+        "Hauler em fase de expansão de área operacional: pode registrar zonas provisórias com validade temporal antes de operar.",
+        "Geo-fence em cross-border (e.g., zona registrada cobre IT+CH): suportado se Hauler tem polígonos multi-país. Verificar EU-21 (border legal compliance) em paralelo.",
+        "Pickup geo com baixa precisão (lat/lon = 0,0 ou rounded para 2 decimais): regra reporta como SKIP — P-29 cobre 'geo precision' separadamente.",
+        "Sandbox flag intencional: equipe pode testar fluxos com zonas fictícias sem o burocrático cadastro formal pre-prod.",
+        "Decisão Rodrigo 2026-06-03 (Option A): EU-27 separada de EU-06 — geo-fence agora tem mensagem precisa + pode ser environment_aware (BLOCK prod / FLAG sandbox), o que era incompatível com checks de tamper detection no EU-06 antigo."
+      ],
+      "bv_verification": {
+        "bv_controls": [
+          "GEOFENCE-01"
+        ],
+        "procedure": "Auditor verifica sample de MassIDs (30) e: (a) confirma haulerZone registration existe, (b) re-executa point-in-polygon, (c) valida AuditLog de eventos bloqueados.",
+        "sample_size": "Sample 30 MassIDs por Hauler ativa",
+        "frequency": "Quarterly"
+      },
+      "related": [
+        "EU-06",
+        "EU-18",
+        "EU-19",
+        "P-29"
+      ],
+      "references": [
+        {
+          "source": "WSR_2024_1157",
+          "section": "Art. 26 — carrier authorization scope"
+        },
+        {
+          "source": "PURE_DMRV_GAP_REGISTER_JUN2025",
+          "section": "EU-27 — split from EU-06 (decisão Rodrigo 2026-06-03 Option A)"
+        },
+        {
+          "source": "OTHER",
+          "section": "Onda 3 review — atomic controls preference, environment_aware compatibility"
+        }
+      ],
+      "methodology_quote": "Carrier authorization must apply to the specific geographic scope of operation (WSR Art. 26).",
+      "status": "APPROVED",
+      "owner": "Compliance",
+      "manual_review": false,
+      "source_type": "EU",
+      "disposition": "New",
+      "odoo_objects": [],
+      "dmrv_output": "geo_fence_valid",
+      "domain": "Transport / Geo-fence",
+      "subdomain": "Hauler operational zone validation",
+      "version": "0.1.0",
+      "last_reviewed": "2026-06-03",
+      "audit_findings": [],
+      "is_new": true,
+      "new_source": "Onda 3 review — EU-06 split (decisão Rodrigo 2026-06-03)",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T16:00:00Z",
+        "approval_wave": "Onda 3 — TRANSPORT",
+        "approval_method": "agent_assisted_review",
+        "audit_report": "docs/audits/onda3-transport-audit-2026-06-03.md"
+      }
     },
     {
       "id": "RC-01",
