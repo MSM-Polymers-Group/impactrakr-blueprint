@@ -39,12 +39,7 @@
     },
     "pillar": {
       "type": "string",
-      "enum": [
-        "PURE",
-        "PURE_GAP",
-        "EU",
-        "RECYCLASS"
-      ],
+      "enum": ["PURE", "PURE_GAP", "EU", "RECYCLASS"],
       "description": "Which catalog this rule belongs to."
     },
     "cluster": {
@@ -73,10 +68,7 @@
     },
     "severity": {
       "type": "string",
-      "enum": [
-        "BLOCK",
-        "FLAG"
-      ],
+      "enum": ["BLOCK", "FLAG"],
       "description": "Mirrors enum RuleSeverity in schema.prisma. BLOCK halts the flow; FLAG flags for manual review."
     },
     "gates_what": {
@@ -92,10 +84,7 @@
     },
     "trigger": {
       "type": "object",
-      "required": [
-        "event",
-        "phase"
-      ],
+      "required": ["event", "phase"],
       "properties": {
         "event": {
           "type": "string",
@@ -149,10 +138,7 @@
           "description": "Additional trigger events that fire the same rule. Used when a rule must re-evaluate on multiple lifecycle points (e.g., PARTICIPANT_CREATE + PARTICIPANT_UPDATE).",
           "items": {
             "type": "object",
-            "required": [
-              "event",
-              "phase"
-            ],
+            "required": ["event", "phase"],
             "properties": {
               "event": {
                 "type": "string"
@@ -176,25 +162,13 @@
     },
     "applies_to": {
       "type": "object",
-      "required": [
-        "participant_types",
-        "regions"
-      ],
+      "required": ["participant_types", "regions"],
       "properties": {
         "participant_types": {
           "type": "array",
           "items": {
             "type": "string",
-            "enum": [
-              "G",
-              "B",
-              "H",
-              "P",
-              "R",
-              "INT",
-              "NGO_BENEF",
-              "BUYER"
-            ]
+            "enum": ["G", "B", "H", "P", "R", "INT", "NGO_BENEF", "BUYER"]
           },
           "description": "Participant types impacted. G=Generator, B=Bin Custodian, H=Hauler, P=Processor, R=Recycler, INT=Integrator, NGO_BENEF=NGO Beneficiary, BUYER=Credit Buyer."
         },
@@ -202,14 +176,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": [
-              "GLOBAL",
-              "EU",
-              "MALTA",
-              "BR",
-              "LATAM",
-              "ASIA"
-            ]
+            "enum": ["GLOBAL", "EU", "MALTA", "BR", "LATAM", "ASIA"]
           },
           "description": "Where the rule applies. GLOBAL = anywhere; MALTA is a subset of EU."
         }
@@ -232,10 +199,7 @@
     },
     "fields": {
       "type": "object",
-      "required": [
-        "reads",
-        "writes"
-      ],
+      "required": ["reads", "writes"],
       "properties": {
         "reads": {
           "type": "array",
@@ -257,10 +221,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": [
-          "doc_type",
-          "mandatory"
-        ],
+        "required": ["doc_type", "mandatory"],
         "properties": {
           "doc_type": {
             "type": "string",
@@ -319,12 +280,7 @@
     },
     "behavior": {
       "type": "object",
-      "required": [
-        "idempotent",
-        "on_fail",
-        "on_pass",
-        "revalidation"
-      ],
+      "required": ["idempotent", "on_fail", "on_pass", "revalidation"],
       "properties": {
         "idempotent": {
           "type": "boolean",
@@ -358,18 +314,11 @@
     },
     "test_cases": {
       "type": "object",
-      "required": [
-        "positive",
-        "negative"
-      ],
+      "required": ["positive", "negative"],
       "properties": {
         "positive": {
           "type": "object",
-          "required": [
-            "name",
-            "given",
-            "expected"
-          ],
+          "required": ["name", "given", "expected"],
           "properties": {
             "name": {
               "type": "string"
@@ -390,11 +339,7 @@
           "maxItems": 10,
           "items": {
             "type": "object",
-            "required": [
-              "name",
-              "given",
-              "expected"
-            ],
+            "required": ["name", "given", "expected"],
             "properties": {
               "name": {
                 "type": "string"
@@ -421,12 +366,7 @@
     },
     "bv_verification": {
       "type": "object",
-      "required": [
-        "bv_controls",
-        "procedure",
-        "sample_size",
-        "frequency"
-      ],
+      "required": ["bv_controls", "procedure", "sample_size", "frequency"],
       "properties": {
         "bv_controls": {
           "type": "array",
@@ -475,10 +415,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": [
-          "source",
-          "section"
-        ],
+        "required": ["source", "section"],
         "properties": {
           "source": {
             "type": "string",
@@ -535,13 +472,7 @@
     },
     "status": {
       "type": "string",
-      "enum": [
-        "DRAFT",
-        "REVIEWED",
-        "APPROVED",
-        "IMPLEMENTED",
-        "DEPRECATED"
-      ],
+      "enum": ["DRAFT", "REVIEWED", "APPROVED", "IMPLEMENTED", "DEPRECATED"],
       "description": "Refinement lifecycle status."
     },
     "owner": {
@@ -571,27 +502,12 @@
     },
     "source_type": {
       "type": "string",
-      "enum": [
-        "PURE",
-        "PURE/BOLD",
-        "BOLD/PURE",
-        "BOLD",
-        "EU",
-        "EU/PURE",
-        "RECYCLASS",
-        "PURE_GAP"
-      ],
+      "enum": ["PURE", "PURE/BOLD", "BOLD/PURE", "BOLD", "EU", "EU/PURE", "RECYCLASS", "PURE_GAP"],
       "description": "Source attribution (from RULE_REGISTER.Source Type column when applicable)."
     },
     "disposition": {
       "type": "string",
-      "enum": [
-        "Keep",
-        "Modify",
-        "Keep/Modify",
-        "New",
-        "Deprecated"
-      ],
+      "enum": ["Keep", "Modify", "Keep/Modify", "New", "Deprecated"],
       "description": "Disposition for the rule (from RULE_REGISTER when applicable)."
     },
     "odoo_objects": {
@@ -640,29 +556,17 @@
     },
     "geographic_scope": {
       "type": "string",
-      "enum": [
-        "Universal",
-        "Territorial"
-      ],
+      "enum": ["Universal", "Territorial"],
       "description": "MvF-compliance field per Carrot dMRV Hub §3.5. Universal = rule applies regardless of territory. Territorial = rule has territory-specific parameters (e.g., manifest type BR=MTR vs EU=Annex VII). Territorial rules need a Geographical Adaptation Appendix entry. Empty during migration."
     },
     "action_on_failure": {
       "type": "string",
-      "enum": [
-        "Rejeição",
-        "Bloqueio",
-        "Sinalização",
-        "Escalonamento"
-      ],
+      "enum": ["Rejeição", "Bloqueio", "Sinalização", "Escalonamento"],
       "description": "MvF-compliance field per Carrot dMRV Hub §3.4.6. Finer-grained than the legacy `severity` (BLOCK/FLAG). Rejeição = data rejected at intake; Bloqueio = downstream operation blocked until regularization; Sinalização = flag for human review without blocking; Escalonamento = escalate to Compliance after retry window. During migration, derive from `severity` + `behavior.on_fail` semantics."
     },
     "rule_type": {
       "type": "string",
-      "enum": [
-        "Estrutura",
-        "Metodologia",
-        "Auditoria"
-      ],
+      "enum": ["Estrutura", "Metodologia", "Auditoria"],
       "description": "MvF-compliance field per Carrot dMRV Hub §3.4.6. Orthogonal to `pillar`. Estrutura = integrity of form/completeness (independent of methodology content); Metodologia = conformity with PURE-specific criteria and parameters; Auditoria = consistency, cross-referencing, pattern-based checks requiring deeper analysis. During migration this is derived from current rule semantics."
     },
     "is_new": {
@@ -707,23 +611,14 @@
           "description": "Optional path to audit report MD"
         }
       },
-      "required": [
-        "approved_by",
-        "approved_at",
-        "approval_wave"
-      ]
+      "required": ["approved_by", "approved_at", "approval_wave"]
     },
     "amendments": {
       "type": "array",
       "description": "Optional amendment log when an APPROVED rule is patched (e.g., sub-role added) without changing the core approval. Each entry: {amended_at, amended_by, wave, change, audit_report}.",
       "items": {
         "type": "object",
-        "required": [
-          "amended_at",
-          "amended_by",
-          "wave",
-          "change"
-        ],
+        "required": ["amended_at", "amended_by", "wave", "change"],
         "properties": {
           "amended_at": {
             "type": "string",
@@ -754,17 +649,12 @@
             "const": "BLOCK"
           }
         },
-        "required": [
-          "severity"
-        ]
+        "required": ["severity"]
       },
       "then": {
         "properties": {
           "messages": {
-            "required": [
-              "block_pt",
-              "block_en"
-            ]
+            "required": ["block_pt", "block_en"]
           }
         }
       }
@@ -777,17 +667,12 @@
             "const": "FLAG"
           }
         },
-        "required": [
-          "severity"
-        ]
+        "required": ["severity"]
       },
       "then": {
         "properties": {
           "messages": {
-            "required": [
-              "flag_pt",
-              "flag_en"
-            ]
+            "required": ["flag_pt", "flag_en"]
           }
         }
       }

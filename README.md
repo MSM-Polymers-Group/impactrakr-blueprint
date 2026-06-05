@@ -45,6 +45,7 @@ Você tem 2 opções:
 **a) Mergear este PR** com as mudanças do `docs/index.html` — o workflow dispara sozinho.
 
 **b) Disparar manualmente** (workflow_dispatch):
+
 - Acesse: `https://github.com/MSM-Polymers-Group/impactrakr/actions/workflows/publish-blueprint.yml`
 - Run workflow → Branch: `main` → Run
 
@@ -90,6 +91,7 @@ URL pública atualizada
 ### A scheduled task diária
 
 Toda noite às 23h um agente automatizado:
+
 1. Lê as memórias do projeto (dailies, decisões, riscos)
 2. Roda audit do repo
 3. Atualiza o HTML local se houver mudanças significativas
@@ -117,10 +119,10 @@ Só `index.html`, `.nojekyll` e (opcionalmente) este `README.md`. Tudo mais perm
 
 ### Troubleshooting
 
-| Sintoma | Causa provável | Solução |
-|---|---|---|
-| Workflow falha em "Clone target" | Secret `BLUEPRINT_DEPLOY_TOKEN` faltando ou expirou | Regenerar PAT, atualizar secret |
-| Workflow falha em "git push" | Token sem scope `repo` | Regenerar com scope `repo` completo |
-| Pages não atualiza | Esqueceu de ativar Pages no repo público | Settings → Pages no público |
-| HTML aparece quebrado | Algum tag faltando | Conferir local com `python -m http.server 8000 --directory docs/` |
-| 404 ao abrir URL | Pages ainda compilando | Aguardar ~1 min e dar refresh |
+| Sintoma                          | Causa provável                                      | Solução                                                           |
+| -------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------- |
+| Workflow falha em "Clone target" | Secret `BLUEPRINT_DEPLOY_TOKEN` faltando ou expirou | Regenerar PAT, atualizar secret                                   |
+| Workflow falha em "git push"     | Token sem scope `repo`                              | Regenerar com scope `repo` completo                               |
+| Pages não atualiza               | Esqueceu de ativar Pages no repo público            | Settings → Pages no público                                       |
+| HTML aparece quebrado            | Algum tag faltando                                  | Conferir local com `python -m http.server 8000 --directory docs/` |
+| 404 ao abrir URL                 | Pages ainda compilando                              | Aguardar ~1 min e dar refresh                                     |
