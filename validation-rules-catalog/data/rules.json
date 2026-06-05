@@ -1,6 +1,6 @@
 {
   "$schema": "./rules.schema.json",
-  "catalog_version": "0.7.0",
+  "catalog_version": "0.12.0",
   "catalog_last_updated": "2026-06-03",
   "catalog_description": "Validation Rules Catalog — fonte de verdade L3 (impl-ready + BV-ready) das regras do Validation Engine Impactrakr. | v0.6.5-proposed: Onda 3 refinement of TRANSPORT cluster (12 rules: P-33..P-41, EU-04..EU-06). AUTO_APPLY (9) bumped to v0.3.0 with Onda 1 patterns (secondary_triggers on MASSID_UPDATE/DOCUMENT_UPDATE/PARTICIPANT_UPDATE; non_retroactive_revocation on EU-05; territorial scope reaffirmed for P-37/P-38/P-39 manifest sub-cluster). NEEDS_REVIEW (3): P-40 (global-vs-territorial required-set design decision), P-41 (wrong cluster — should be WEIGHING), EU-06 (bundled vehicle authorization + geo-fence — split recommended). REJECT (0). BOLD CH4 residue check: NEGATIVE — vehicle enum em P-33 já é plastic-appropriate (no sludge_pipes anywhere).",
   "sources": [
@@ -2740,7 +2740,7 @@
     },
     {
       "id": "P-17",
-      "title": "Hazardous toxic contamination exclusion",
+      "title": "Hazardous toxic contamination exclusion (effective hazardous)",
       "pillar": "PURE",
       "cluster": "MATERIAL_COMPOSITION",
       "severity": "BLOCK",
@@ -2773,13 +2773,15 @@
         ]
       },
       "purpose": "Exclui MassIDs contaminados com substâncias tóxicas/perigosas, a menos que tenham passado por método de descontaminação padronizado e aprovado. Plástico perigoso vira passivo regulatório (EU WSR / Basel B3011) e fora do escopo PURE. Sem este gate, créditos seriam emitidos sobre material que legalmente não deveria ser reciclado — risco de revogação massiva pela rede de registries e BV.",
-      "logic_human": "BLOCK se MassID.hazardFlag=TRUE AND (decontaminationMethod ausente OR decontaminationApproved=FALSE). PASS caso contrário.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-17'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  if (massid.hazardFlag !== true) {\n    return ctx.pass({ ruleId: 'P-17' });\n  }\n  const method = massid.decontaminationMethod;\n  if (method == null || String(method).trim() === '') {\n    return ctx.fail({ ruleId: 'P-17', severity: 'BLOCK',\n      message: 'Hazardous MassID requires declared decontamination method',\n      field: 'decontaminationMethod' });\n  }\n  const approval = await ctx.db.document.findFirst({\n    where: { massidId: massid.id, type: 'decontamination_approval' }\n  });\n  if (!approval) {\n    return ctx.fail({ ruleId: 'P-17', severity: 'BLOCK',\n      message: 'decontamination_approval document missing',\n      field: 'documents' });\n  }\n  return ctx.pass({ ruleId: 'P-17' });\n}",
+      "logic_human": "BLOCK if MassID.hazardous (effective: hazardousEwcDerived OR hazardousManualOverride=TRUE) is TRUE AND required documents (hazard_assessment, decontamination_approval) are missing or expired. Also BLOCK if hazardousEwcDerived=TRUE AND hazardousManualOverride=FALSE explicitly (de-escalation attempt — invalid per ADR-039).",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-17'>): Promise<RuleResult> {\n  const m = ctx.massid;\n  const hazardous = m.hazardousEwcDerived || m.hazardousManualOverride === true;\n  if (m.hazardousEwcDerived === true && m.hazardousManualOverride === false) {\n    return ctx.fail({ ruleId: 'P-17', severity: 'BLOCK', message: 'EWC-derived hazardous cannot be overridden to false. If the EWC code is wrong, change the EWC code (not the hazard flag). Per ADR-039.', field: 'hazardousManualOverride' });\n  }\n  if (!hazardous) return ctx.pass({ ruleId: 'P-17' });\n  const requiredDocs = ['hazard_assessment', 'decontamination_approval'];\n  const docs = await ctx.db.document.findMany({ where: { massidId: m.id, type: { in: requiredDocs } } });\n  const missing = requiredDocs.filter(t => !docs.some(d => d.type === t && (!d.validUntil || d.validUntil >= ctx.now)));\n  if (missing.length > 0) {\n    return ctx.fail({ ruleId: 'P-17', severity: 'BLOCK', message: 'Hazardous material requires documents: ' + missing.join(', '), field: 'documents.hazard' });\n  }\n  return ctx.pass({ ruleId: 'P-17' });\n}",
       "fields": {
         "reads": [
-          "MassID.hazardFlag",
-          "MassID.decontaminationMethod",
-          "Document.type"
+          "MassID.id",
+          "MassID.hazardousEwcDerived",
+          "MassID.hazardousManualOverride",
+          "Document.type",
+          "Document.validUntil"
         ],
         "writes": [
           "ValidationResult"
@@ -2812,33 +2814,39 @@
       },
       "test_cases": {
         "positive": {
-          "name": "Não-perigoso",
-          "given": "hazardFlag=false.",
+          "name": "Non-hazardous EWC + no override + no docs needed",
+          "given": "hazardousEwcDerived=false, hazardousManualOverride=null.",
           "expected": "PASS."
         },
         "negative": [
           {
-            "name": "Perigoso sem método",
-            "given": "hazardFlag=true, decontaminationMethod=null.",
-            "expected": "BLOCK 'Hazardous MassID requires declared decontamination method'."
+            "name": "EWC hazardous + missing hazard_assessment doc",
+            "given": "hazardousEwcDerived=true, no hazard_assessment.",
+            "expected": "BLOCK 'Hazardous material requires documents: hazard_assessment, decontamination_approval'."
           },
           {
-            "name": "Perigoso sem aprovação",
-            "given": "hazardFlag=true, method declarado, sem decontamination_approval doc.",
-            "expected": "BLOCK 'decontamination_approval document missing'."
+            "name": "Manual escalation (cross-contamination) + missing docs",
+            "given": "hazardousEwcDerived=false, hazardousManualOverride=true, no decontamination_approval.",
+            "expected": "BLOCK with missing docs message."
           },
           {
-            "name": "Perigoso aprovado",
-            "given": "hazardFlag=true, method declarado, decontamination_approval anexado.",
+            "name": "De-escalation attempt blocked",
+            "given": "hazardousEwcDerived=true, hazardousManualOverride=false (explicit).",
+            "expected": "BLOCK 'EWC-derived hazardous cannot be overridden to false. ... Per ADR-039.'."
+          },
+          {
+            "name": "Both flags true + complete docs",
+            "given": "hazardousEwcDerived=true, hazardousManualOverride=true, both docs valid.",
             "expected": "PASS."
           }
         ]
       },
       "edge_cases": [
-        "hazardFlag NULL é tratado como false (assume não-perigoso, mas com FLAG paralelo para investigar).",
-        "Métodos aprovados são lista mantida por Compliance (não enum estático, pode evoluir).",
-        "Em EU, hazardFlag deve ser cruzado com EU-03 (hazardous classification check) automaticamente.",
-        "Decontamination_approval requer assinatura de qualified person (link com P-48)."
+        "Computed field 'hazardous' = hazardousEwcDerived OR (hazardousManualOverride === TRUE). Read-only.",
+        "Manual override TRUE legitimately escalates (cross-contamination not in EWC) — must come with docs.",
+        "Manual override FALSE when EWC is TRUE: explicit de-escalation attempt — BLOCK. Field guard prevents UI from sending this; defensive at gate.",
+        "Per ADR-039, EU regulator (EWC) is the floor. Operator adds risk signal only.",
+        "Document expiry checked at gate time (not at MassID write time) — re-validates on PARTICIPANT_UPDATE / DOCUMENT_UPDATE secondary triggers."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -2879,7 +2887,7 @@
       "dmrv_output": "material_valid",
       "domain": "Material",
       "subdomain": "Hazardous Exclusion",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
@@ -2895,7 +2903,16 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T22:00:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "A-04 convergence finding resolution (Option A / ADR-039)",
+          "change": "Rewired to read computed hazardous (= hazardousEwcDerived OR hazardousManualOverride===TRUE). Added explicit BLOCK on de-escalation attempt (EWC=TRUE + override=FALSE).",
+          "audit_report": "docs/adr/039-hazardous-classification-ewc-canonical.md"
+        }
+      ]
     },
     {
       "id": "P-18",
@@ -7625,7 +7642,7 @@
     },
     {
       "id": "P-49",
-      "title": "Recycler legally qualified and professionally adequate",
+      "title": "Recycler legally qualified, permit active at event date, EWC in scope",
       "pillar": "PURE",
       "cluster": "RECYCLER_OUTCOME",
       "severity": "BLOCK",
@@ -7661,22 +7678,25 @@
         ]
       },
       "purpose": "Trinity check do Recycler como endpoint do crédito: homologação ativa + audit em dia + permit válido. Falha em qualquer uma das três invalida o outcome — o Recycler é onde o ato de reciclagem ocorre, então sua qualificação legal e técnica é o gate mais crítico do POST_RECYCLING. P-49 agrega checks atomicos para falhar rápido com mensagem específica de qual aspecto está faltando.",
-      "logic_human": "BLOCK se Recycler.homologationStatus ≠ 'active' OR Recycler.auditStatus ≠ 'current' OR Recycler.permitStatus ≠ 'valid' OR recycler_permit document ausente/expirado. PASS se todas as 3 condições satisfeitas e doc presente.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-49'>): Promise<RuleResult> {\n  const m = await ctx.db.massID.findById(ctx.input.massidId);\n  const recycler = await ctx.db.participant.findFirst({ where: {\n    massidId: m.id, role: 'R'\n  }});\n  if (!recycler) {\n    return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK',\n      message: 'No Recycler in chain', field: 'participants' });\n  }\n  const issues: string[] = [];\n  if (recycler.homologationStatus !== 'active') issues.push(`homologation=${recycler.homologationStatus ?? 'null'}`);\n  if (recycler.auditStatus !== 'current') issues.push(`audit=${recycler.auditStatus ?? 'null'}`);\n  if (recycler.permitStatus !== 'valid') issues.push(`permit_status=${recycler.permitStatus ?? 'null'}`);\n  const permitDoc = await ctx.db.document.findFirst({ where: {\n    participantId: recycler.id, type: 'recycler_permit'\n  }});\n  if (!permitDoc) issues.push('recycler_permit doc missing');\n  else if (permitDoc.validUntil && permitDoc.validUntil < ctx.now) {\n    issues.push(`recycler_permit expired ${permitDoc.validUntil.toISOString()}`);\n  }\n  if (issues.length > 0) {\n    return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK',\n      message: `Recycler ${recycler.id} not qualified: ${issues.join('; ')}`,\n      field: 'recyclerQualification' });\n  }\n  return ctx.pass({ ruleId: 'P-49' });\n}",
+      "logic_human": "BLOCK if no RecyclerLicense for participant OR license.status != ACTIVE at MassID.pickupAt OR ewcCode not in license.licensedEwcScope OR Participant.homologationStatus != APPROVED. non_retroactive_revocation principle: license validity computed at pickupAt, not at evaluation time.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-49'>): Promise<RuleResult> {\n  const m = ctx.massid;\n  const p = await ctx.db.participant.findUnique({ where: { id: m.recyclerId } });\n  if (!p) return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK', message: 'Recycler participant missing.', field: 'recyclerId' });\n  if (p.homologationStatus !== 'APPROVED') {\n    return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK', message: 'Recycler not homologated (status=' + p.homologationStatus + ').', field: 'homologationStatus' });\n  }\n  const license = await ctx.db.recyclerLicense.findUnique({ where: { participantId: p.id } });\n  if (!license) {\n    return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK', message: 'RecyclerLicense missing — required per ADR-040.', field: 'recyclerLicense' });\n  }\n  // non_retroactive_revocation: status valid at pickupAt\n  const event = m.pickupAt;\n  if (license.validFrom > event || license.validUntil < event) {\n    return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK', message: 'Recycler permit not valid at pickup date ' + event.toISOString() + ' (validFrom=' + license.validFrom.toISOString() + ', validUntil=' + license.validUntil.toISOString() + ').', field: 'validFrom/Until' });\n  }\n  // status check at evaluation time still uses event-anchor for non_retroactive\n  if (license.status !== 'ACTIVE') {\n    return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK', message: 'Recycler permit status=' + license.status + ' (expected ACTIVE).', field: 'status' });\n  }\n  // EWC scope check via shared utility\n  if (!ewcInScope(m.ewcCode, license.licensedEwcScope)) {\n    return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK', message: 'EWC code ' + m.ewcCode + ' not in recycler permit scope ' + JSON.stringify(license.licensedEwcScope) + '.', field: 'ewcCode' });\n  }\n  return ctx.pass({ ruleId: 'P-49' });\n}",
       "fields": {
         "reads": [
           "MassID.id",
+          "MassID.recyclerId",
+          "MassID.ewcCode",
+          "MassID.pickupAt",
           "Participant.id",
           "Participant.role",
           "Participant.homologationStatus",
-          "Participant.auditStatus",
-          "Participant.permitStatus",
-          "Document.type",
-          "Document.validUntil"
+          "RecyclerLicense.participantId",
+          "RecyclerLicense.licensedEwcScope",
+          "RecyclerLicense.status",
+          "RecyclerLicense.validFrom",
+          "RecyclerLicense.validUntil"
         ],
         "writes": [
-          "ValidationResult",
-          "AuditLog"
+          "ValidationResult"
         ]
       },
       "evidence": [
@@ -7704,33 +7724,44 @@
       },
       "test_cases": {
         "positive": {
-          "name": "Recycler totalmente qualificado",
-          "given": "Recycler com homologationStatus='active', auditStatus='current', permitStatus='valid' e recycler_permit doc vigente.",
+          "name": "Recycler homologated, permit ACTIVE at pickupAt, EWC in scope",
+          "given": "Participant.homologationStatus=APPROVED; RecyclerLicense.status=ACTIVE, validFrom=2026-01-01, validUntil=2027-01-01; licensedEwcScope=['15 01 02','07 02 *']; MassID.ewcCode='07 02 13'; pickupAt=2026-06-01.",
           "expected": "PASS."
         },
         "negative": [
           {
-            "name": "Audit overdue",
-            "given": "Recycler.auditStatus='overdue'.",
-            "expected": "BLOCK message inclui 'audit=overdue'."
+            "name": "Permit expired at pickupAt",
+            "given": "validUntil=2026-05-31; pickupAt=2026-06-01.",
+            "expected": "BLOCK 'Recycler permit not valid at pickup date ...'."
           },
           {
-            "name": "Permit expirado",
-            "given": "recycler_permit.validUntil < now.",
-            "expected": "BLOCK message 'recycler_permit expired …'."
+            "name": "License status SUSPENDED",
+            "given": "License.status=SUSPENDED.",
+            "expected": "BLOCK 'Recycler permit status=SUSPENDED (expected ACTIVE)'."
           },
           {
-            "name": "recycler_permit doc ausente",
-            "given": "Nenhum Document type='recycler_permit' para o Recycler.",
-            "expected": "BLOCK 'recycler_permit doc missing'."
+            "name": "EWC code outside scope",
+            "given": "licensedEwcScope=['15 01 02']; MassID.ewcCode='19 12 11*'.",
+            "expected": "BLOCK 'EWC code 19 12 11* not in recycler permit scope ...'."
+          },
+          {
+            "name": "RecyclerLicense missing",
+            "given": "Nenhum RecyclerLicense for participant.",
+            "expected": "BLOCK 'RecyclerLicense missing — required per ADR-040'."
+          },
+          {
+            "name": "Non-retroactive: license REVOKED after pickupAt",
+            "given": "pickupAt=2026-04-01; license.status=REVOKED at time of evaluation (2026-06-03) but validFrom..validUntil still cover 2026-04-01.",
+            "expected": "Decision: still uses status from license object at eval time → BLOCK because status=REVOKED. Note: prospective revocation should set new license row; rule evaluates current row. Edge case handled via INCIDENT_TRIGGERED path."
           }
         ]
       },
       "edge_cases": [
-        "P-49 sobrepõe parcialmente P-02 (homologação) e EU-13 (permit) — mantém os 3 checks juntos para mensagem agregada acionável.",
-        "auditStatus='pending' (audit em andamento) é tratado como ≠ current → BLOCK; Compliance pode fazer override temporário com justificativa.",
-        "Em jurisdição EU, EU-13/EU-14/EU-15 fazem checks adicionais de permit scope; P-49 é check baseline GLOBAL.",
-        "RC-01 e RC-04 (Recyclass) adicionam company_registration e public_liability quando Recyclass scheme aplicável."
+        "Wildcard EWC scope: licensedEwcScope=['07 02 *'] matches '07 02 13' but not '15 01 02'. ewcInScope utility shared with EU-14.",
+        "Asterisk in EWC code (hazardous indicator): '19 12 11*' is distinct from '19 12 11'. Match is exact string after asterisk handling.",
+        "non_retroactive_revocation: validFrom/validUntil are the floor. status field is current. Prospective revocation should create a new RecyclerLicense row with new validFrom; old row stays for historical lookups (audit-trail).",
+        "Backfill recyclers without RecyclerLicense: FLAG via ReviewQueue (30d window) instead of immediate BLOCK on all in-flight MassIDs. ADR-040 details.",
+        "permitDocumentId is evidence (PDF upload); structured facts live on RecyclerLicense. P-49 doesn't read the doc directly."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -7772,7 +7803,7 @@
       "dmrv_output": "outcome_valid",
       "domain": "Recycler",
       "subdomain": "Recycler Qualification",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "HOMOLOGATION_APPROVAL",
@@ -7789,11 +7820,20 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T22:30:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "D-07 convergence finding resolution (Option C / ADR-040)",
+          "change": "Reads RecyclerLicense as single source: adds permit status check at MassID.pickupAt + EWC scope check via ewcInScope. Drops legacy Participant.permitStatus + Document.scope reads.",
+          "audit_report": "docs/adr/040-recycler-licensing-single-source-of-truth.md"
+        }
+      ]
     },
     {
       "id": "P-50",
-      "title": "Recycler process type declared",
+      "title": "Recycler process declared (mechanism + subtype + quality delta)",
       "pillar": "PURE",
       "cluster": "RECYCLER_OUTCOME",
       "severity": "BLOCK",
@@ -7829,12 +7869,14 @@
         ]
       },
       "purpose": "Cada Recycler precisa declarar QUAL processo de reciclagem foi aplicado (mechanical, chemical, closed_loop, downcycling, upcycling). Sem isso, P-51 (no fuel) e cálculo de adjustment factor downstream não conseguem rodar. processType também é input direto da metodologia que determina o multiplicador de crédito. NULL aqui = nenhuma decisão informada possível.",
-      "logic_human": "BLOCK se RecyclingOutcome.processType IS NULL OR NOT IN {mechanical, chemical, closed_loop, downcycling, upcycling}. PASS se valor estiver no enum.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-50'>): Promise<RuleResult> {\n  const outcome = await ctx.db.recyclingOutcome.findFirst({ where: { massidId: ctx.input.massidId }});\n  if (!outcome) {\n    return ctx.fail({ ruleId: 'P-50', severity: 'BLOCK',\n      message: 'RecyclingOutcome missing', field: 'recyclingOutcome' });\n  }\n  const value = outcome.processType;\n  if (value == null || String(value).trim() === '') {\n    return ctx.fail({ ruleId: 'P-50', severity: 'BLOCK',\n      message: 'process_type is required', field: 'processType' });\n  }\n  const APPROVED = ['mechanical', 'chemical', 'closed_loop', 'downcycling', 'upcycling'];\n  if (!APPROVED.includes(value)) {\n    return ctx.fail({ ruleId: 'P-50', severity: 'BLOCK',\n      message: `process_type '${value}' not in approved enum [${APPROVED.join(', ')}]`,\n      field: 'processType' });\n  }\n  return ctx.pass({ ruleId: 'P-50' });\n}",
+      "logic_human": "BLOCK if processMechanism IS NULL OR NOT IN {PHYSICAL,CHEMICAL,BIOLOGICAL}, OR processSubtype IS NULL OR NOT IN config taxonomy for that mechanism, OR qualityDelta IS NULL OR NOT IN {SAME,DOWN,UP}. FLAG (not BLOCK) when processSubtype=chemical_other (ops must reclassify within 14d). BLOCK if processMechanism=BIOLOGICAL AND processSubtype=microbial (not yet TRC-eligible per ADR-038).",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-50'>): Promise<RuleResult> {\n  const taxonomy = await ctx.config.load<ProcessSubtypeTaxonomy>('process_subtype_taxonomy', 'v1');\n  const o = await ctx.db.recyclingOutcome.findFirst({ where: { massidId: ctx.input.massidId } });\n  if (!o) return ctx.fail({ ruleId: 'P-50', severity: 'BLOCK', message: 'RecyclingOutcome missing', field: 'RecyclingOutcome' });\n  if (!o.processMechanism || !taxonomy.axes.mechanism.includes(o.processMechanism)) {\n    return ctx.fail({ ruleId: 'P-50', severity: 'BLOCK', message: 'processMechanism must be one of ' + taxonomy.axes.mechanism.join(', '), field: 'processMechanism' });\n  }\n  const validSubtypes = (taxonomy.subtype_by_mechanism[o.processMechanism] || []).map(s => s.id);\n  if (!o.processSubtype || !validSubtypes.includes(o.processSubtype)) {\n    return ctx.fail({ ruleId: 'P-50', severity: 'BLOCK', message: 'processSubtype for ' + o.processMechanism + ' must be one of ' + validSubtypes.join(', '), field: 'processSubtype' });\n  }\n  if (o.processMechanism === 'BIOLOGICAL' && o.processSubtype === 'microbial') {\n    return ctx.fail({ ruleId: 'P-50', severity: 'BLOCK', message: 'Microbial degradation is not yet TRC-eligible per ADR-038.', field: 'processSubtype' });\n  }\n  if (o.processSubtype === 'chemical_other') {\n    return ctx.fail({ ruleId: 'P-50', severity: 'FLAG', message: 'processSubtype=chemical_other is a fallback bucket — please reclassify within 14 days.', field: 'processSubtype' });\n  }\n  if (!o.qualityDelta || !taxonomy.axes.quality_delta.includes(o.qualityDelta)) {\n    return ctx.fail({ ruleId: 'P-50', severity: 'BLOCK', message: 'qualityDelta must be one of ' + taxonomy.axes.quality_delta.join(', '), field: 'qualityDelta' });\n  }\n  return ctx.pass({ ruleId: 'P-50' });\n}",
       "fields": {
         "reads": [
           "RecyclingOutcome.massidId",
-          "RecyclingOutcome.processType"
+          "RecyclingOutcome.processMechanism",
+          "RecyclingOutcome.processSubtype",
+          "RecyclingOutcome.qualityDelta"
         ],
         "writes": [
           "ValidationResult",
@@ -7862,33 +7904,49 @@
       },
       "test_cases": {
         "positive": {
-          "name": "process_type = mechanical",
-          "given": "RecyclingOutcome.processType = 'mechanical'.",
+          "name": "Valid PHYSICAL mechanical_closed_loop SAME (rPET bottle-to-bottle)",
+          "given": "RecyclingOutcome { processMechanism: PHYSICAL, processSubtype: mechanical_closed_loop, qualityDelta: SAME }.",
           "expected": "PASS."
         },
         "negative": [
           {
-            "name": "process_type NULL",
-            "given": "RecyclingOutcome.processType = NULL.",
-            "expected": "BLOCK 'process_type is required'."
+            "name": "processMechanism NULL",
+            "given": "processMechanism = NULL.",
+            "expected": "BLOCK processMechanism enum message."
           },
           {
-            "name": "process_type fora do enum",
-            "given": "RecyclingOutcome.processType = 'pyrolysis'.",
-            "expected": "BLOCK message lista enum aprovado."
+            "name": "Subtype incompatible with mechanism",
+            "given": "processMechanism=CHEMICAL, processSubtype=mechanical_open_loop.",
+            "expected": "BLOCK with valid subtypes for CHEMICAL."
           },
           {
-            "name": "RecyclingOutcome inexistente",
-            "given": "Nenhum RecyclingOutcome para a MassID.",
+            "name": "chemical_other → FLAG (not BLOCK)",
+            "given": "processMechanism=CHEMICAL, processSubtype=chemical_other, qualityDelta=SAME.",
+            "expected": "FLAG asking ops to reclassify within 14 days."
+          },
+          {
+            "name": "Microbial blocked (not yet TRC-eligible)",
+            "given": "processMechanism=BIOLOGICAL, processSubtype=microbial.",
+            "expected": "BLOCK with ADR-038 reference."
+          },
+          {
+            "name": "qualityDelta NULL",
+            "given": "Valid mechanism+subtype, qualityDelta=NULL.",
+            "expected": "BLOCK qualityDelta enum message."
+          },
+          {
+            "name": "RecyclingOutcome missing",
+            "given": "No RecyclingOutcome for MassID.",
             "expected": "BLOCK 'RecyclingOutcome missing'."
           }
         ]
       },
       "edge_cases": [
-        "Case sensitivity: enum match strict — 'Mechanical' falha; UI normaliza para lowercase no input.",
-        "Trim aplicado antes da comparação.",
-        "Migração de catálogo: enum pode crescer (e.g., 'gasification'); rule reads config para flexibilidade controlada.",
-        "process_type='chemical' aciona P-51 (no fuel) como follow-up dependente."
+        "Backfill from legacy processType handled by migration: ~95% deterministic; chemical/upcycling FLAGed for ops reclassification (ADR-038).",
+        "Subtype taxonomy versioned in docs/config/process_subtype_taxonomy_v1.json — adding new Recyclass subtype = config bump, no schema migration.",
+        "External MassID export emits processType_legacy derived field for 90 days post-migration (compat window).",
+        "Carrot/RecyClass audit pack uses the 3 new fields directly — zero rework after backfill window closes.",
+        "Operator can submit RecyclingOutcome with processSubtype=chemical_other deliberately when truly unsure; FLAG (not BLOCK) lets MassID continue while Compliance investigates."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -7926,7 +7984,7 @@
       "dmrv_output": "outcome_valid",
       "domain": "Recycler",
       "subdomain": "Process Type",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "last_reviewed": "2026-06-03",
       "audit_findings": [],
       "gates_what": "TRC_ISSUANCE",
@@ -7942,7 +8000,16 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T21:00:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "A-03 convergence finding resolution (Option B / ADR-038)",
+          "change": "Split processType into 3 orthogonal fields (processMechanism + processSubtype + qualityDelta). Reads config doc process_subtype_taxonomy_v1.json. chemical_other = FLAG fallback; microbial = BLOCK (not yet TRC-eligible).",
+          "audit_report": "docs/adr/038-recyclingoutcome-process-type-orthogonal-axes.md"
+        }
+      ]
     },
     {
       "id": "P-51",
@@ -9777,7 +9844,12 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "siblings": [
+        "RC-02",
+        "EU-26"
+      ],
+      "severity_resolver": "max_among_pillars"
     },
     {
       "id": "P-63",
@@ -10476,6 +10548,14 @@
               "anomaly-relevant fields changed"
             ],
             "purpose": "Re-evaluate anomaly heuristics on MassID mutation."
+          },
+          {
+            "event": "EXCEPTION_REQUEST_TIMEOUT",
+            "phase": "PERIODIC_JOB",
+            "conditions": [
+              "exception_open AND days_since_request >= 30"
+            ],
+            "purpose": "Implements PURE §14 30-day timer — resolves convergence finding A-05."
           }
         ]
       },
@@ -10493,7 +10573,7 @@
         ]
       },
       "purpose": "Quando uma MassID é flagged por incidente severo (hash chain quebrado, duplicate confirmado, fraude documentada), TODOS os atores ligados e TODOS os créditos vinculados entram em exception state. Esta é a 'Proof of Authority penalty logic' do PURE — contaminação de um ponto se propaga pela rede para forçar investigação ampla. Manual review por Compliance decide caso a caso quem fica suspenso, quem retorna após audit.",
-      "logic_human": "FLAG (exception state) TODOS os participants linked e TODOS os credits vinculados quando MassID.exceptionState='severe'. Roda como ação reativa (não pre-validation).",
+      "logic_human": "By exception class: severe=BLOCK (escalated propagation), minor=FLAG (revisão manual). Driven by exception.severityClass field. Effective severity = by_exception_class resolver per ADR-041.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-67'>): Promise<RuleResult> {\n  const incident = ctx.input.incident; // { massidId, severity, reason }\n  if (incident.severity !== 'severe') {\n    return ctx.skip({ reason: 'Incident not severe; no propagation' });\n  }\n  const linkedActors = await ctx.db.participant.findMany({ where: {\n    massids: { some: { id: incident.massidId }}\n  }});\n  const linkedCredits = await ctx.db.trcCredit.findMany({ where: {\n    massidId: incident.massidId\n  }});\n  // Mark all in exception state\n  for (const a of linkedActors) {\n    await ctx.db.participant.update({ where: { id: a.id }, data: { exceptionState: 'flagged', exceptionReason: incident.reason }});\n  }\n  for (const c of linkedCredits) {\n    await ctx.db.trcCredit.update({ where: { id: c.id }, data: { status: 'HOLD', exceptionRef: incident.id }});\n  }\n  await ctx.audit.log({\n    ruleId: 'P-67',\n    action: 'propagation',\n    affectedActors: linkedActors.map(a => a.id),\n    affectedCredits: linkedCredits.map(c => c.id),\n    reason: incident.reason,\n  });\n  return ctx.fail({ ruleId: 'P-67', severity: 'FLAG',\n    message: `Bad actor propagation: ${linkedActors.length} actors + ${linkedCredits.length} credits placed in exception state due to ${incident.reason}`,\n    field: 'exceptionState' });\n}",
       "fields": {
         "reads": [
@@ -10618,7 +10698,17 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "severity_resolver": "by_exception_class",
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T23:30:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "A-05 + A-06 Big Bang",
+          "change": "Added EXCEPTION_REQUEST_TIMEOUT periodic trigger (PURE §14 30d timer) + severity_resolver=by_exception_class per ADR-041.",
+          "audit_report": "docs/adr/041-mirror-rules-pattern-universal-pg.md"
+        }
+      ]
     },
     {
       "id": "PG-01",
@@ -12626,6 +12716,14 @@
               "anomaly-relevant fields changed"
             ],
             "purpose": "Re-evaluate anomaly heuristics on MassID mutation."
+          },
+          {
+            "event": "EXCEPTION_REQUEST_TIMEOUT",
+            "phase": "PERIODIC_JOB",
+            "conditions": [
+              "exception_open AND days_since_request >= 30"
+            ],
+            "purpose": "Implements PURE §14 30-day timer — resolves convergence finding A-05."
           }
         ]
       },
@@ -12638,7 +12736,7 @@
         ]
       },
       "purpose": "PURE §8.7 (Proof-of-Authority) define que Bad Actors podem ser temporariamente suspended ou permanently removed do rede de registries. P-67 implementa bad-actor propagation para participants da supply chain (G, B, H, P, R), mas NÃO cobre INTs. PG-12 é o mirror INT-side: quando INT é flagged por intDataQualityFlag=TRUE ou intSecurityBreachFlag=TRUE, todos os MassIDs vinculados ao INT vão para EXCEPTION state e o INT.intHomologationStatus = 'suspended'. Audit log distingue falhas supply-chain (P-67) de falhas INT-side (PG-12). Recovery path: INT remedia e passa re-assessment.",
-      "logic_human": "BLOCK e move para EXCEPTION todos os MassIDs do INT se Participant.intDataQualityFlag=TRUE OR Participant.intSecurityBreachFlag=TRUE. Adicionalmente seta intHomologationStatus='suspended'.",
+      "logic_human": "By exception class: severe=BLOCK, minor=FLAG. Driven by exception.severityClass field. Effective severity = by_exception_class resolver per ADR-041.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-12'>): Promise<RuleResult> {\n  const int = await ctx.db.participant.findById(ctx.input.intId);\n  if (int.participantType !== 'INT') return ctx.skip({ reason: 'Only applies to INTs.' });\n  if (!int.intDataQualityFlag && !int.intSecurityBreachFlag) {\n    return ctx.pass({ ruleId: 'PG-12' });\n  }\n  const linkedMassIds = await ctx.db.massID.findMany({\n    where: { submittedByIntId: int.id, status: { notIn: ['EXCEPTION', 'RECYCLED'] } }\n  });\n  await ctx.db.massID.updateMany({\n    where: { id: { in: linkedMassIds.map(m => m.id) } },\n    data: { exceptionState: 'INT_POA_PROPAGATION' }\n  });\n  await ctx.db.participant.update({\n    where: { id: int.id },\n    data: { intHomologationStatus: 'suspended' }\n  });\n  return ctx.fail({ ruleId: 'PG-12', severity: 'BLOCK',\n    message: `INT flagged (dataQuality=${int.intDataQualityFlag}, securityBreach=${int.intSecurityBreachFlag}); ${linkedMassIds.length} MassIDs moved to EXCEPTION; INT suspended`,\n    field: 'intHomologationStatus' });\n}",
       "fields": {
         "reads": [
@@ -12747,7 +12845,17 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "severity_resolver": "by_exception_class",
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T23:30:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "A-05 + A-06 Big Bang",
+          "change": "Added EXCEPTION_REQUEST_TIMEOUT periodic trigger + severity_resolver=by_exception_class per ADR-041.",
+          "audit_report": "docs/adr/041-mirror-rules-pattern-universal-pg.md"
+        }
+      ]
     },
     {
       "id": "PG-13",
@@ -14382,7 +14490,7 @@
     },
     {
       "id": "EU-03",
-      "title": "Hazardous classification check",
+      "title": "Hazardous classification check (EWC consistency)",
       "pillar": "EU",
       "cluster": "WASTE_CLASSIFICATION",
       "severity": "BLOCK",
@@ -14415,12 +14523,12 @@
         ]
       },
       "purpose": "Detecta MassIDs cujo EWC é hazardous (asterisco no código, conforme Decision 2000/532/EC) — sob PURE Methodology, hazardous waste é EXCLUÍDO do programa (P-17). Em EU, hazardous tem regulação adicional (HazWaste Directive 91/689/EEC consolidada na WFD): carrier autorizado para haz, manifest específico, destino com permit hazardous, notification cross-border obrigatória. Sem este gate, o pipeline aceitaria material que reprovaria em auditoria BV e violaria a PURE.",
-      "logic_human": "BLOCK se MassID.ewcCode termina com '*' (hazardous EWC) OR MassID.hazardousFlag = true. Não há rota PURE para haz waste no MVP.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-03'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  const ewc = massid.ewcCode || '';\n  const isHazByCode = ewc.trim().endsWith('*');\n  const isHazByFlag = massid.hazardousFlag === true;\n  if (isHazByCode || isHazByFlag) {\n    return ctx.fail({ ruleId: 'EU-03', severity: 'BLOCK',\n      message: `Hazardous waste excluded from PURE (ewcCode='${ewc}', hazardousFlag=${isHazByFlag})`,\n      field: 'ewcCode' });\n  }\n  return ctx.pass({ ruleId: 'EU-03' });\n}",
+      "logic_human": "BLOCK if MassID.hazardousEwcDerived is inconsistent with the re-derivation from MassID.ewcCode against config doc ewc_hazardous_codes_v1.json (defensive against config drift / API-direct writes). Also FLAG if ewcCode is unknown (not in seed list) — Compliance refresh needed.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-03'>): Promise<RuleResult> {\n  const m = ctx.massid;\n  const ewcConfig = await ctx.config.load<EwcHazardousCodes>('ewc_hazardous_codes', 'v1');\n  const hazSet = new Set(ewcConfig.hazardous_codes_subset_plastic_waste_streams.map(c => c.code));\n  const nonHazSet = new Set(ewcConfig.non_hazardous_codes_subset_plastic_waste_streams.map(c => c.code));\n  const derivedFresh = hazSet.has(m.ewcCode);\n  const known = derivedFresh || nonHazSet.has(m.ewcCode);\n  if (!known) {\n    return ctx.fail({ ruleId: 'EU-03', severity: 'FLAG', message: 'EWC code ' + m.ewcCode + ' not in seed lookup. Compliance refresh needed (config doc bump).', field: 'ewcCode' });\n  }\n  if (m.hazardousEwcDerived !== derivedFresh) {\n    return ctx.fail({ ruleId: 'EU-03', severity: 'BLOCK', message: 'hazardousEwcDerived (' + m.hazardousEwcDerived + ') inconsistent with EWC ' + m.ewcCode + ' lookup (' + derivedFresh + '). Likely config doc drift or API-direct write.', field: 'hazardousEwcDerived' });\n  }\n  return ctx.pass({ ruleId: 'EU-03' });\n}",
       "fields": {
         "reads": [
           "MassID.ewcCode",
-          "MassID.hazardousFlag"
+          "MassID.hazardousEwcDerived"
         ],
         "writes": [
           "ValidationResult"
@@ -14442,28 +14550,33 @@
       },
       "test_cases": {
         "positive": {
-          "name": "EWC non-hazardous",
-          "given": "MassID.ewcCode = '15 01 02', hazardousFlag = false.",
+          "name": "Consistent hazardous record",
+          "given": "ewcCode='19 12 11*', hazardousEwcDerived=true.",
           "expected": "PASS."
         },
         "negative": [
           {
-            "name": "EWC hazardous por asterisco",
-            "given": "MassID.ewcCode = '15 01 10*' (packaging contendo hazardous residues).",
-            "expected": "BLOCK 'Hazardous waste excluded from PURE'."
+            "name": "ewcCode unknown (FLAG)",
+            "given": "ewcCode='99 99 99' (not in seed list).",
+            "expected": "FLAG 'Compliance refresh needed'."
           },
           {
-            "name": "hazardousFlag forçado true",
-            "given": "ewcCode non-haz mas hazardousFlag = true (override manual de Compliance).",
-            "expected": "BLOCK."
+            "name": "Derivation drift (BLOCK)",
+            "given": "ewcCode='19 12 11*', hazardousEwcDerived=false (drift).",
+            "expected": "BLOCK 'inconsistent with EWC ... lookup'."
+          },
+          {
+            "name": "Non-hazardous code with hazardous flag (BLOCK)",
+            "given": "ewcCode='15 01 02', hazardousEwcDerived=true.",
+            "expected": "BLOCK 'inconsistent with EWC ... lookup'."
           }
         ]
       },
       "edge_cases": [
-        "Lista EWC oficial marca hazardous com asterisco (Decision 2000/532/EC).",
-        "Mirror entries (mesmo waste em forma haz e non-haz) requerem evaluation de threshold de contaminantes — checked off-system em laboratório.",
-        "P-17 (PURE-side hazard exclusion) é a regra par; ambas evaluam — falha em qualquer uma bloqueia.",
-        "Future: rota separada para haz waste (Fase 2/3) não impacta esta regra no MVP."
+        "EU-03 is a defensive self-check: validates the persisted hazardousEwcDerived against a fresh lookup. Catches config doc drift, API-direct writes that bypass UI logic, manual DB edits.",
+        "EU-03 does NOT use sibling resolver pattern with P-17 — they consume the same field but gate different concerns (TRC_ISSUANCE vs LEGAL_OPERATION).",
+        "Unknown EWC codes → FLAG (not BLOCK) so Compliance can refresh seed list without blocking ingest. Quarterly review cadence per config doc.",
+        "Asterisk semantics: '19 12 11*' is hazardous; '19 12 11' is non-hazardous. Match strategy is exact_string_match."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -14525,7 +14638,16 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T22:00:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "A-04 convergence finding resolution (Option A / ADR-039)",
+          "change": "Now defensive self-check: re-derives hazardous from ewcCode via config doc ewc_hazardous_codes_v1.json and BLOCKs if persisted value drifted. Unknown EWC codes FLAG for Compliance refresh.",
+          "audit_report": "docs/adr/039-hazardous-classification-ewc-canonical.md"
+        }
+      ]
     },
     {
       "id": "EU-04",
@@ -15972,7 +16094,7 @@
     },
     {
       "id": "EU-13",
-      "title": "Recycler permit valid",
+      "title": "Recycler permit valid (EU regulatory)",
       "pillar": "EU",
       "cluster": "ADMINISTRATION_LICENSING",
       "severity": "BLOCK",
@@ -16008,17 +16130,17 @@
         ]
       },
       "purpose": "Recycler facility precisa ter waste treatment permit emitido por competent authority (ERA Malta, EA UK, BImSchG-Genehmigung DE, etc.) conforme Art. 23 WFD. Operar sem permit é violação criminal — e qualquer waste recebido fica sem destinação legal. Sem este gate, MassIDs podem ser enviados para facilities operando ilegalmente, invalidando todos os créditos PURE downstream.",
-      "logic_human": "BLOCK se Document.type='recycler_permit' não existir para o Recycler OR validUntil < now OR algum field obrigatório (permitNo, issuingAuthority, validTo, scope) vazio.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-13'>): Promise<RuleResult> {\n  const recycler = await ctx.db.participant.findOne({ where: { id: ctx.input.recyclerId, type: 'R' }});\n  const permit = await ctx.db.document.findFirst({ where: {\n    participantId: recycler.id, type: 'recycler_permit'\n  }});\n  if (!permit) {\n    return ctx.fail({ ruleId: 'EU-13', severity: 'BLOCK',\n      message: 'recycler_permit document missing', field: 'documents' });\n  }\n  if (permit.validUntil && permit.validUntil < ctx.now) {\n    return ctx.fail({ ruleId: 'EU-13', severity: 'BLOCK',\n      message: `recycler_permit expired on ${permit.validUntil.toISOString()}`,\n      field: 'validUntil' });\n  }\n  const REQUIRED = ['permitNo', 'issuingAuthority', 'validTo', 'scope'];\n  const missing = REQUIRED.filter(f => !permit[f] || String(permit[f]).trim() === '');\n  if (missing.length) {\n    return ctx.fail({ ruleId: 'EU-13', severity: 'BLOCK',\n      message: `recycler_permit missing fields: ${missing.join(', ')}`,\n      field: 'permitNo' });\n  }\n  return ctx.pass({ ruleId: 'EU-13' });\n}",
+      "logic_human": "BLOCK if MassID's recycler has no RecyclerLicense OR license.validUntil < MassID.pickupAt OR license.status != ACTIVE. Reads single source of truth per ADR-040 (no more Document.scope indirection).",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-13'>): Promise<RuleResult> {\n  const m = ctx.massid;\n  const license = await ctx.db.recyclerLicense.findUnique({ where: { participantId: m.recyclerId } });\n  if (!license) {\n    return ctx.fail({ ruleId: 'EU-13', severity: 'BLOCK', message: 'RecyclerLicense missing for participant ' + m.recyclerId + '.', field: 'recyclerLicense' });\n  }\n  // non_retroactive: license must be valid at pickup\n  if (license.validFrom > m.pickupAt || license.validUntil < m.pickupAt) {\n    return ctx.fail({ ruleId: 'EU-13', severity: 'BLOCK', message: 'Permit ' + license.permitNumber + ' not valid at pickupAt (validFrom=' + license.validFrom.toISOString() + ', validUntil=' + license.validUntil.toISOString() + ').', field: 'validUntil' });\n  }\n  if (license.status !== 'ACTIVE') {\n    return ctx.fail({ ruleId: 'EU-13', severity: 'BLOCK', message: 'Permit ' + license.permitNumber + ' status=' + license.status + ' (expected ACTIVE).', field: 'status' });\n  }\n  if (!license.permitNumber || !license.issuingAuthority) {\n    return ctx.fail({ ruleId: 'EU-13', severity: 'BLOCK', message: 'Permit metadata incomplete (number or issuing authority missing).', field: 'permitNumber/issuingAuthority' });\n  }\n  return ctx.pass({ ruleId: 'EU-13' });\n}",
       "fields": {
         "reads": [
-          "Participant.id",
-          "Document.type",
-          "Document.participantId",
-          "Document.permitNo",
-          "Document.issuingAuthority",
-          "Document.validUntil",
-          "Document.scope"
+          "MassID.recyclerId",
+          "MassID.pickupAt",
+          "RecyclerLicense.permitNumber",
+          "RecyclerLicense.issuingAuthority",
+          "RecyclerLicense.validFrom",
+          "RecyclerLicense.validUntil",
+          "RecyclerLicense.status"
         ],
         "writes": [
           "ValidationResult"
@@ -16046,33 +16168,38 @@
       },
       "test_cases": {
         "positive": {
-          "name": "Permit válido e completo",
-          "given": "Recycler com Document type='recycler_permit', permitNo='MT-RP-2024-007', issuingAuthority='ERA Malta', validUntil='2027-12-31', scope=['15 01 02','07 02 13'].",
+          "name": "Permit ACTIVE, valid at pickupAt",
+          "given": "RecyclerLicense { permitNumber: 'MT-2026-0042', issuingAuthority: 'ERA Malta', status: ACTIVE, validFrom: 2026-01-01, validUntil: 2027-01-01 }; pickupAt=2026-06-01.",
           "expected": "PASS."
         },
         "negative": [
           {
-            "name": "Permit ausente",
-            "given": "Recycler sem permit.",
-            "expected": "BLOCK 'recycler_permit document missing'."
+            "name": "License missing",
+            "given": "Nenhum RecyclerLicense.",
+            "expected": "BLOCK 'RecyclerLicense missing for participant ...'."
           },
           {
-            "name": "Permit expirado",
-            "given": "validUntil < now.",
-            "expected": "BLOCK 'recycler_permit expired on …'."
+            "name": "Expired",
+            "given": "validUntil=2026-05-31; pickupAt=2026-06-01.",
+            "expected": "BLOCK 'Permit ... not valid at pickupAt ...'."
           },
           {
-            "name": "scope vazio",
-            "given": "Permit existe mas scope = [].",
-            "expected": "BLOCK 'recycler_permit missing fields: scope'."
+            "name": "Status REVOKED",
+            "given": "status=REVOKED.",
+            "expected": "BLOCK 'Permit ... status=REVOKED (expected ACTIVE)'."
+          },
+          {
+            "name": "Metadata missing",
+            "given": "permitNumber=null.",
+            "expected": "BLOCK 'Permit metadata incomplete ...'."
           }
         ]
       },
       "edge_cases": [
-        "Recycler com múltiplos sites: cada site precisa de permit próprio; vincular ao Recycler.siteId.",
-        "Permit renewal em fly: aceitar permit antigo com extension letter (doc_type='permit_extension') quando autoridade confirmou prorrogação.",
-        "scope pode usar wildcards ('15 01 *' = todos packaging plastic) — EU-14 expande.",
-        "Compliance pode revogar permit manualmente (revokedAt) — tratado como expirado."
+        "non_retroactive_revocation: validUntil is floor at pickupAt; subsequent revocation doesn't invalidate past MassIDs.",
+        "Note ADR-040: EU-13 reads from RecyclerLicense (single source), not from Document.scope as in legacy v0.2.x.",
+        "permitDocumentId is evidence; EU-13 doesn't dereference. Auditor pulls doc separately when needed.",
+        "EU-13 (LEGAL_OPERATION) and P-49 (HOMOLOGATION_APPROVAL) consume the same RecyclerLicense but gate different concerns — coherence ensured at source, not via sibling resolver."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -16132,11 +16259,20 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T22:30:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "D-07 convergence finding resolution (Option C / ADR-040)",
+          "change": "Reads RecyclerLicense instead of Document.scope. Single source of truth for permit validity (validFrom/validUntil + status) per ADR-040.",
+          "audit_report": "docs/adr/040-recycler-licensing-single-source-of-truth.md"
+        }
+      ]
     },
     {
       "id": "EU-14",
-      "title": "Waste type allowed by permit",
+      "title": "Waste type allowed by recycler permit scope",
       "pillar": "EU",
       "cluster": "ADMINISTRATION_LICENSING",
       "severity": "BLOCK",
@@ -16172,13 +16308,15 @@
         ]
       },
       "purpose": "EU-13 valida que o permit existe e está vigente; EU-14 valida que o EWC do MassID é ACEITO pelo permit. Recyclers só podem processar waste cujo EWC consta na permit_scope. Processar EWC fora do escopo é violação do permit e expõe o recycler a sanções. Em MassIDs PURE, isso invalidaria toda a cadeia de prova de recycling.",
-      "logic_human": "BLOCK se MassID.ewcCode NÃO está em recycler_permit.scope (com expansão de wildcards).",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-14'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  const permit = await ctx.db.document.findFirst({ where: {\n    participantId: massid.recyclerId, type: 'recycler_permit'\n  }});\n  if (!permit) return ctx.skip({ reason: 'EU-13 will block.' });\n  const ewc = massid.ewcCode;\n  const scope = permit.scope || [];\n  const matched = scope.some(s => ctx.ewc.matches(s, ewc)); // expande wildcards '15 01 *'\n  if (!matched) {\n    return ctx.fail({ ruleId: 'EU-14', severity: 'BLOCK',\n      message: `EWC '${ewc}' not in recycler_permit scope: [${scope.join(', ')}]`,\n      field: 'ewcCode' });\n  }\n  return ctx.pass({ ruleId: 'EU-14' });\n}",
+      "logic_human": "BLOCK if MassID.ewcCode not in RecyclerLicense.licensedEwcScope (using ewcInScope wildcard matcher). Reads single source of truth per ADR-040.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-14'>): Promise<RuleResult> {\n  const m = ctx.massid;\n  const license = await ctx.db.recyclerLicense.findUnique({ where: { participantId: m.recyclerId } });\n  if (!license) {\n    return ctx.fail({ ruleId: 'EU-14', severity: 'BLOCK', message: 'RecyclerLicense missing for participant ' + m.recyclerId + '.', field: 'recyclerLicense' });\n  }\n  if (!ewcInScope(m.ewcCode, license.licensedEwcScope)) {\n    return ctx.fail({ ruleId: 'EU-14', severity: 'BLOCK', message: 'EWC code ' + m.ewcCode + ' not in recycler permit scope ' + JSON.stringify(license.licensedEwcScope) + '. Permit ' + license.permitNumber + ' issued by ' + license.issuingAuthority + '.', field: 'ewcCode' });\n  }\n  return ctx.pass({ ruleId: 'EU-14' });\n}",
       "fields": {
         "reads": [
           "MassID.ewcCode",
           "MassID.recyclerId",
-          "Document.scope"
+          "RecyclerLicense.licensedEwcScope",
+          "RecyclerLicense.permitNumber",
+          "RecyclerLicense.issuingAuthority"
         ],
         "writes": [
           "ValidationResult"
@@ -16206,28 +16344,38 @@
       },
       "test_cases": {
         "positive": {
-          "name": "EWC dentro do scope",
-          "given": "MassID.ewcCode='15 01 02'; permit.scope=['15 01 02','07 02 13'].",
+          "name": "EWC in scope (exact)",
+          "given": "licensedEwcScope=['15 01 02','07 02 13']; ewcCode='07 02 13'.",
           "expected": "PASS."
         },
         "negative": [
           {
-            "name": "EWC fora do scope",
-            "given": "MassID.ewcCode='15 01 02'; permit.scope=['07 02 13'].",
-            "expected": "BLOCK 'not in recycler_permit scope'."
+            "name": "EWC out of scope",
+            "given": "licensedEwcScope=['15 01 02']; ewcCode='19 12 11*'.",
+            "expected": "BLOCK 'EWC code 19 12 11* not in recycler permit scope ...'."
           },
           {
-            "name": "Scope wildcard cobre",
-            "given": "MassID.ewcCode='15 01 02'; permit.scope=['15 01 *'].",
-            "expected": "PASS (wildcard expande)."
+            "name": "Wildcard match",
+            "given": "licensedEwcScope=['07 02 *']; ewcCode='07 02 14*'.",
+            "expected": "PASS (wildcard '07 02 *' matches '07 02 14*')."
+          },
+          {
+            "name": "Wildcard prefix mismatch",
+            "given": "licensedEwcScope=['07 02 *']; ewcCode='15 01 02'.",
+            "expected": "BLOCK 'EWC code 15 01 02 not in recycler permit scope ...'."
+          },
+          {
+            "name": "License missing",
+            "given": "Nenhum RecyclerLicense.",
+            "expected": "BLOCK 'RecyclerLicense missing ...'."
           }
         ]
       },
       "edge_cases": [
-        "Wildcard syntax: '15 01 *' cobre 15 01 01 .. 15 01 99; documentar canonical pattern em config.",
-        "Quantity-limited permits (ex.: recycler autorizado para 10 t/ano de 15 01 10) NÃO cobertos aqui — EU-26 cobre throughput vs permit.",
-        "Multi-permit (recycler com 2+ permits cobrindo conjuntamente os EWCs): aceitar se algum cobre.",
-        "scope com sub-classificações por hazardous: PURE já bloqueia haz em EU-03, não impacta aqui."
+        "ewcInScope utility shared with P-49: 'XX YY *' matches anything with prefix 'XX YY '; exact codes match exactly. Asterisk in EWC code (hazardous indicator) treated as literal char in matching.",
+        "Wildcard pattern '07 02 *' matches '07 02 13', '07 02 14*', etc. Useful for broad permits.",
+        "Per ADR-040, EU-14 reads single source RecyclerLicense (not Document.scope). Doc continues as evidence storage.",
+        "EU-14 (LEGAL_OPERATION) is distinct from P-49 (HOMOLOGATION_APPROVAL) — same data, different gate."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -16283,7 +16431,16 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T22:30:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "D-07 convergence finding resolution (Option C / ADR-040)",
+          "change": "Reads RecyclerLicense.licensedEwcScope via ewcInScope utility (supports wildcards). Drops Document.scope reading per ADR-040.",
+          "audit_report": "docs/adr/040-recycler-licensing-single-source-of-truth.md"
+        }
+      ]
     },
     {
       "id": "EU-15",
@@ -18143,7 +18300,12 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "siblings": [
+        "RC-02",
+        "P-62"
+      ],
+      "severity_resolver": "max_among_pillars"
     },
     {
       "id": "EU-27",
@@ -18624,7 +18786,12 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "siblings": [
+        "EU-26",
+        "P-62"
+      ],
+      "severity_resolver": "max_among_pillars"
     },
     {
       "id": "RC-03",
@@ -18786,7 +18953,20 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "siblings": [
+        "PG-21"
+      ],
+      "severity_resolver": "max_among_pillars",
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T20:00:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "A-02 convergence finding resolution (Option B)",
+          "change": "Added siblings=[PG-21] + severity_resolver=max_among_pillars (ADR-037 reuse). PG-21 covers non-RecyClass-scoped recyclers; RC-03 remains the Recyclass-scoped BLOCK gate. Pattern keeps Carrot/RecyClass audit trail accurate per-pillar.",
+          "audit_report": "docs/adr/037-sibling-rules-severity-resolver.md"
+        }
+      ]
     },
     {
       "id": "RC-04",
@@ -19425,7 +19605,20 @@
         "approval_wave": "Onda 4 — WEIGHING",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda4-weighing-audit-2026-06-03.md"
-      }
+      },
+      "siblings": [
+        "PG-26"
+      ],
+      "severity_resolver": "max_among_pillars",
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T23:30:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "D-21 Big Bang (Mirror sibling PG-26)",
+          "change": "Declares siblings=[PG-26] + severity_resolver=max_among_pillars per ADR-041.",
+          "audit_report": "docs/adr/041-mirror-rules-pattern-universal-pg.md"
+        }
+      ]
     },
     {
       "id": "RC-08",
@@ -20329,7 +20522,20 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "siblings": [
+        "PG-27"
+      ],
+      "severity_resolver": "max_among_pillars",
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T23:30:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "D-25 Big Bang (Mirror sibling PG-27)",
+          "change": "Declares siblings=[PG-27] + severity_resolver=max_among_pillars per ADR-041.",
+          "audit_report": "docs/adr/041-mirror-rules-pattern-universal-pg.md"
+        }
+      ]
     },
     {
       "id": "RC-14",
@@ -20820,7 +21026,20 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
-      }
+      },
+      "siblings": [
+        "PG-28"
+      ],
+      "severity_resolver": "max_among_pillars",
+      "amendments": [
+        {
+          "amended_at": "2026-06-03T23:30:00Z",
+          "amended_by": "Rodrigo Moraes",
+          "wave": "D-28 Big Bang (Mirror sibling PG-28)",
+          "change": "Declares siblings=[PG-28] + severity_resolver=max_among_pillars per ADR-041.",
+          "audit_report": "docs/adr/041-mirror-rules-pattern-universal-pg.md"
+        }
+      ]
     },
     {
       "id": "RC-17",
@@ -20970,6 +21189,1242 @@
         "approval_wave": "Onda 5 — Big Bang (all remaining clusters)",
         "approval_method": "agent_assisted_review",
         "audit_report": "docs/audits/onda5-bigbang-audit-2026-06-03.md"
+      }
+    },
+    {
+      "id": "PG-21",
+      "title": "Recycler storage permit compliance (universal)",
+      "pillar": "PURE_GAP",
+      "cluster": "ADMINISTRATION_LICENSING",
+      "severity": "FLAG",
+      "gates_what": "TRC_ISSUANCE",
+      "trigger": {
+        "event": "MONTHLY_RECONCILIATION",
+        "phase": "MONTHLY",
+        "conditions": [
+          "Monthly close"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "storage license fields changed (validUntil, licensedStorageVolumeKg, status)"
+            ],
+            "purpose": "Re-evaluate storage limits when license is renewed/expanded/revoked."
+          },
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "doc.type IN ('operating_license','storage_permit')"
+            ],
+            "purpose": "Pick up newly-uploaded storage permit to clear previously-blocked recyclers."
+          }
+        ]
+      },
+      "applies_to": {
+        "participant_types": [
+          "R",
+          "P"
+        ],
+        "regions": [
+          "GLOBAL"
+        ]
+      },
+      "purpose": "PURE gap counterpart to RC-03. Validates that every Recycler/Processor (not only RecyClass-scoped) respects storage limits from their operating license. Without PG-21, participants not pursuing RecyClass certification could exceed storage permit silently — same fire/safety/regulator risk vectors but without an audit gate. PG-21 + RC-03 are siblings (ADR-037): they evaluate the same signal under different audit lenses (Recyclass vs PURE). PG-21 declared FLAG; effective severity elevates to BLOCK via severity_resolver=max_among_pillars when RC-03 fires BLOCK for RecyClass-scoped participants.",
+      "logic_human": "FLAG se 3-month avg stock > licensed_storage_volume_kg. PURE doesn't gate at BLOCK by itself; the effective BLOCK comes from sibling RC-03 when participant is RecyClass-scoped and overage >20%. Thresholds via config doc storage_thresholds_v1.json.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-21'>): Promise<RuleResult> {\n  const thresholds = await ctx.config.load<StorageThresholds>('storage_thresholds', 'v1');\n  const inv = await ctx.db.inventory.findFirst({ where: { participantId: ctx.input.participantId }, orderBy: { snapshotDate: 'desc' } });\n  const license = await ctx.db.recyclerLicense.findFirst({ where: { participantId: ctx.input.participantId, validUntil: { gte: ctx.now } } });\n  if (!inv || !license) return ctx.skip({ reason: 'Inventory snapshot or storage license missing.' });\n  const avg3m = (inv.stockLevelCurrentKg + inv.stockLevelM1Kg + inv.stockLevelM2Kg) / 3;\n  const limit = license.licensedStorageVolumeKg;\n  if (avg3m > thresholds.flag_ratio * limit) {\n    return ctx.fail({ ruleId: 'PG-21', severity: 'FLAG',\n      message: `3-month avg stock (${avg3m.toFixed(0)}kg) > licensed storage limit (${limit}kg)`,\n      field: 'stockLevelCurrentKg',\n      metadata: { avg3m, limit, ratio: avg3m / limit } });\n  }\n  return ctx.pass({ ruleId: 'PG-21' });\n}",
+      "fields": {
+        "reads": [
+          "RecyclerLicense.licensedStorageVolumeKg",
+          "RecyclerLicense.validUntil",
+          "Inventory.stockLevelCurrentKg",
+          "Inventory.stockLevelM1Kg",
+          "Inventory.stockLevelM2Kg",
+          "Inventory.snapshotDate"
+        ],
+        "writes": [
+          "ValidationResult"
+        ]
+      },
+      "evidence": [
+        {
+          "doc_type": "operating_license",
+          "mandatory": true,
+          "when": "any recycler/processor"
+        },
+        {
+          "doc_type": "stock_inventory_extract",
+          "mandatory": true
+        }
+      ],
+      "messages": {
+        "flag_pt": "Estoque médio 3 meses acima do limite licenciado de armazenagem. Investigue gargalo de saída ou inicie renovação/extensão do permit. Persistência por 2+ ciclos exige ação Compliance.",
+        "flag_en": "3-month average stock above licensed storage limit. Investigate output bottleneck or start permit renewal/extension. Persistence ≥2 cycles requires Compliance action.",
+        "block_pt": "(severidade efetiva BLOCK via sibling RC-03) Excesso sustentado >20% do limite licenciado bloqueia emissão de TRC. Reduza estoque ou negocie ampliação do permit imediatamente.",
+        "block_en": "(effective severity BLOCK via sibling RC-03) Sustained overage >20% of licensed storage blocks TRC issuance. Reduce stock or negotiate permit extension immediately."
+      },
+      "behavior": {
+        "idempotent": true,
+        "on_fail": "FLAG: review queue without blocking ingest. Effective severity may be elevated to BLOCK by sibling resolver (ADR-037) when RC-03 also fires for RecyClass-scoped participants.",
+        "on_pass": "Cache result 24h.",
+        "revalidation": "Re-runs at MONTHLY_RECONCILIATION + on Inventory snapshot writes.",
+        "retry_window": "N/A — needs participant action (reduce stock or extend permit).",
+        "escalation": "FLAG 2 consecutive cycles → Compliance review; FLAG 3 cycles without action → preventive BLOCK (manual ops decision).",
+        "performance": "O(1) lookup by participantId; in-memory Inventory.latest cache.",
+        "non_retroactive_revocation": "Validation uses MassID.pickupAt / Inventory.snapshotDate as moment-of-truth: a license valid at snapshot date remains valid for that record even if later revoked or expired. Aligned with P-02/P-05/EU-05/RC-07."
+      },
+      "test_cases": {
+        "positive": {
+          "name": "Estoque dentro do limite",
+          "given": "license.licensedStorageVolumeKg=100_000; Inventory.stockNow=80k, M1=85k, M2=90k (avg=85k).",
+          "expected": "PASS."
+        },
+        "negative": [
+          {
+            "name": "Overage 10% — recycler não-Recyclass",
+            "given": "Participant.pursuingRecyclassCertification=false; limit=100k, avg=110k.",
+            "expected": "FLAG (effective=FLAG; sibling RC-03 não dispara via conditions, fica só PG-21)."
+          },
+          {
+            "name": "Overage 30% — recycler Recyclass-scoped",
+            "given": "Participant.pursuingRecyclassCertification=true; limit=100k, avg=130k.",
+            "expected": "PG-21 fires FLAG (declared); RC-03 fires BLOCK (>120%). Resolver max_among_pillars → effective severity de ambos = BLOCK."
+          },
+          {
+            "name": "Snapshot ausente",
+            "given": "Sem Inventory.",
+            "expected": "SKIP."
+          }
+        ]
+      },
+      "edge_cases": [
+        "Para participants RecyClass-scoped, PG-21 e RC-03 sempre disparam juntos (mesmas conditions secundárias). Sibling resolver garante coerência de severity.",
+        "Para participants não-Recyclass: só PG-21 fires; severity fica FLAG. PURE não gateia BLOCK aqui — é decisão de policy não-Recyclass.",
+        "Storage license pode ser parte do operating_license (single doc) ou doc separado (storage_permit). RecyclerLicense.* aggrega ambos.",
+        "Stock em volume (m³) vs massa (kg): config doc declara denominator licensedStorageVolumeKg (massa); conversão de m³ → kg via densidade configurável quando necessário.",
+        "Snapshot stale (>45 dias): SKIP + paralelo FLAG operacional p/ Ops capturar dado."
+      ],
+      "bv_verification": {
+        "bv_controls": [],
+        "procedure": "Same physical audit procedure as RC-03 (site visit, stratified bay sampling, variance check). PG-21 expands to non-RecyClass participants.",
+        "sample_size": "Site inspection + 3 monthly snapshots per recycler",
+        "frequency": "Monthly (system) + Annual (in-loco)"
+      },
+      "related": [
+        "RC-02",
+        "RC-03",
+        "RC-09",
+        "P-65"
+      ],
+      "siblings": [
+        "RC-03"
+      ],
+      "severity_resolver": "max_among_pillars",
+      "references": [
+        {
+          "source": "RECYCLASS_AUDIT_SCHEME_V1.1",
+          "section": "§1.5 storage limits (PURE-equivalent gap)"
+        },
+        {
+          "source": "PURE_DMRV_GAP_REGISTER_JUN2025",
+          "section": "PG-21 (gap from A-02 convergence finding)"
+        },
+        {
+          "source": "ADR_037_SIBLING_RULES_SEVERITY_RESOLVER",
+          "section": "Sibling rules + severity_resolver — A-01 sibling pattern reused"
+        }
+      ],
+      "methodology_quote": "Created 2026-06-03 to resolve convergence finding A-02 (Rodrigo decision Option B). Reuses sibling pattern from ADR-037.",
+      "status": "APPROVED",
+      "owner": "Methodology",
+      "manual_review": false,
+      "source_type": "PURE_GAP",
+      "disposition": "New",
+      "odoo_objects": [],
+      "dmrv_output": "storage_compliance_valid",
+      "domain": "Administration / Licensing",
+      "subdomain": "Storage permit compliance",
+      "version": "0.1.0",
+      "last_reviewed": "2026-06-03",
+      "audit_findings": [],
+      "is_new": true,
+      "new_source": "A-02 convergence finding resolution (Rodrigo decision Option B)",
+      "event_ids": [
+        "E6",
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T20:00:00Z",
+        "approval_wave": "A-02 finding resolution (Option B)",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/adr/037-sibling-rules-severity-resolver.md (sibling pattern reuse)"
+      }
+    },
+    {
+      "id": "PG-22",
+      "title": "Pre/post-consumer split captured at MassID origin",
+      "pillar": "PURE_GAP",
+      "cluster": "RECYCLER_OUTCOME",
+      "severity": "BLOCK",
+      "gates_what": "TRC_ISSUANCE",
+      "trigger": {
+        "event": "MASSID_INGEST",
+        "phase": "PRE_VALIDATION",
+        "conditions": [
+          "MassID has recycling_outcome OR is recyclate input"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "RECYCLING_OUTCOME_WRITE",
+            "phase": "POST_CREATE",
+            "conditions": [
+              "outcome.preConsumerPct OR postConsumerPct set"
+            ],
+            "purpose": "Re-validate split when outcome is written or updated."
+          }
+        ]
+      },
+      "applies_to": {
+        "participant_types": [
+          "G",
+          "B",
+          "R",
+          "INT"
+        ],
+        "regions": [
+          "GLOBAL"
+        ]
+      },
+      "purpose": "Resolves B-02 (HIGH gap): RC-11 expects RecyclingOutcome.preConsumerPct + postConsumerPct that no PURE rule currently writes. Without origin-side capture of consumer class (industrial / commercial / post-consumer / municipal), downstream split calculations are guess-work and RecyClass §6.2 audit fails. PG-22 establishes consumer class as a MassID-origin captured fact (enum on MassID.consumerClass) and validates that RecyclingOutcome.preConsumerPct + postConsumerPct + recycled_content_pct are internally consistent (sum identity).",
+      "logic_human": "BLOCK if MassID.consumerClass is missing OR RecyclingOutcome.preConsumerPct + postConsumerPct != recycled_content_pct (±0.5%) OR consumer class transformation rule is violated (e.g., a 'POST_CONSUMER' MassID rolling up into preConsumerPct).",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-22'>): Promise<RuleResult> {\n  const m = ctx.massid;\n  if (!m.consumerClass) {\n    return ctx.fail({ ruleId: 'PG-22', severity: 'BLOCK', message: 'MassID.consumerClass must be declared at origin (INDUSTRIAL | COMMERCIAL | POST_CONSUMER | MUNICIPAL).', field: 'consumerClass' });\n  }\n  const o = await ctx.db.recyclingOutcome.findFirst({ where: { massidId: m.id } });\n  if (!o) return ctx.skip({ reason: 'No RecyclingOutcome yet — re-evaluates on RECYCLING_OUTCOME_WRITE secondary trigger.' });\n  const sum = (o.preConsumerPct || 0) + (o.postConsumerPct || 0);\n  if (Math.abs(sum - (o.recycledContentPct || 0)) > 0.5) {\n    return ctx.fail({ ruleId: 'PG-22', severity: 'BLOCK', message: 'Pre+post-consumer split (' + sum.toFixed(1) + '%) inconsistent with recycled_content_pct (' + (o.recycledContentPct || 0).toFixed(1) + '%). Tolerance ±0.5%.', field: 'preConsumerPct/postConsumerPct' });\n  }\n  // Consistency: POST_CONSUMER MassID can only fill postConsumerPct\n  if (m.consumerClass === 'POST_CONSUMER' && (o.preConsumerPct || 0) > 0) {\n    return ctx.fail({ ruleId: 'PG-22', severity: 'BLOCK', message: 'POST_CONSUMER origin cannot contribute to preConsumerPct.', field: 'preConsumerPct' });\n  }\n  if ((m.consumerClass === 'INDUSTRIAL' || m.consumerClass === 'COMMERCIAL') && (o.postConsumerPct || 0) > 0) {\n    return ctx.fail({ ruleId: 'PG-22', severity: 'BLOCK', message: m.consumerClass + ' origin cannot contribute to postConsumerPct.', field: 'postConsumerPct' });\n  }\n  return ctx.pass({ ruleId: 'PG-22' });\n}",
+      "fields": {
+        "reads": [
+          "MassID.id",
+          "MassID.consumerClass",
+          "RecyclingOutcome.preConsumerPct",
+          "RecyclingOutcome.postConsumerPct",
+          "RecyclingOutcome.recycledContentPct"
+        ],
+        "writes": [
+          "ValidationResult"
+        ]
+      },
+      "evidence": [
+        {
+          "doc_type": "origin_declaration",
+          "mandatory": true,
+          "when": "MassID create"
+        }
+      ],
+      "messages": {
+        "block_pt": "Origem do MassID (consumerClass) ou split pre/post-consumer ausente ou inconsistente. Necessário para conformidade RecyClass §6.2 e cálculo Recycled Content.",
+        "block_en": "MassID origin (consumerClass) or pre/post-consumer split missing or inconsistent. Required for RecyClass §6.2 conformity and Recycled Content calculation."
+      },
+      "behavior": {
+        "idempotent": true,
+        "on_fail": "BLOCK ingest/outcome write; ReviewQueue surface for Compliance.",
+        "on_pass": "Cache 24h.",
+        "revalidation": "On any update of consumerClass or RecyclingOutcome split fields."
+      },
+      "test_cases": {
+        "positive": {
+          "name": "Industrial origin, 100% pre-consumer",
+          "given": "consumerClass=INDUSTRIAL; preConsumerPct=100, postConsumerPct=0, recycledContentPct=100.",
+          "expected": "PASS."
+        },
+        "negative": [
+          {
+            "name": "consumerClass missing",
+            "given": "consumerClass=null.",
+            "expected": "BLOCK 'must be declared at origin'."
+          },
+          {
+            "name": "Split inconsistent",
+            "given": "preConsumerPct=60, postConsumerPct=30, recycledContentPct=100.",
+            "expected": "BLOCK '(90.0%) inconsistent with (100.0%)'."
+          },
+          {
+            "name": "POST_CONSUMER contributes to preConsumerPct",
+            "given": "consumerClass=POST_CONSUMER, preConsumerPct=50, postConsumerPct=50.",
+            "expected": "BLOCK 'POST_CONSUMER origin cannot contribute to preConsumerPct'."
+          }
+        ]
+      },
+      "edge_cases": [
+        "Tolerance ±0.5% allows for rounding at outcome write time.",
+        "consumerClass enum: INDUSTRIAL | COMMERCIAL | POST_CONSUMER | MUNICIPAL — captured at MassID create.",
+        "Aligned with EN 15343:2007 traceability convention + RecyClass V1.1 §6.2.",
+        "Schema delta required: MassID.consumerClass enum + RecyclingOutcome.preConsumerPct + RecyclingOutcome.postConsumerPct.",
+        "non_retroactive_revocation: backfill of pre-PG-22 MassIDs defaults consumerClass='POST_CONSUMER' if waste stream EWC indicates municipal (per ADR-039 EWC lookup), else FLAG ops to classify."
+      ],
+      "related": [
+        "RC-11",
+        "P-47",
+        "P-50",
+        "P-57"
+      ],
+      "references": [
+        {
+          "source": "RECYCLASS_AUDIT_SCHEME_V1.1",
+          "section": "§6.2 Recycled Content split"
+        },
+        {
+          "source": "EN_15343_2007",
+          "section": "Traceability of recycled plastics"
+        },
+        {
+          "source": "PURE_DMRV_GAP_REGISTER_JUN2025",
+          "section": "PG-22 (B-02 finding resolution)"
+        },
+        {
+          "source": "ADR_041_MIRROR_RULES_PATTERN",
+          "section": "Mirror + schema delta combo"
+        }
+      ],
+      "methodology_quote": "Resolves B-02 — Rodrigo decision Big Bang 2026-06-03.",
+      "status": "APPROVED",
+      "owner": "Methodology",
+      "manual_review": false,
+      "source_type": "PURE_GAP",
+      "disposition": "New",
+      "odoo_objects": [],
+      "dmrv_output": "consumer_split_consistent",
+      "domain": "Recycled Content",
+      "subdomain": "Pre/post-consumer split",
+      "version": "0.1.0",
+      "last_reviewed": "2026-06-03",
+      "is_new": true,
+      "new_source": "B-02 convergence finding (Big Bang 2026-06-03)",
+      "event_ids": [
+        "E0",
+        "E9"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Estrutura",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T23:30:00Z",
+        "approval_wave": "Big Bang 8 HIGH OPEN (B-02)",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/adr/041-mirror-rules-pattern-universal-pg.md"
+      },
+      "bv_verification": {
+        "bv_controls": [],
+        "procedure": "TBD per ADR-041 Big Bang rollout; BV procedure to be defined alongside Validation Engine implementation.",
+        "sample_size": "TBD",
+        "frequency": "Quarterly"
+      }
+    },
+    {
+      "id": "PG-23",
+      "title": "Hauler waste-transport license valid (universal)",
+      "pillar": "PURE_GAP",
+      "cluster": "TRANSPORT",
+      "severity": "BLOCK",
+      "gates_what": "TRC_ISSUANCE",
+      "trigger": {
+        "event": "MASSID_INGEST",
+        "phase": "PRE_VALIDATION",
+        "conditions": [
+          "MassID has haulerId"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "hauler license fields changed"
+            ],
+            "purpose": "Re-evaluate on license renewal/revocation."
+          },
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "doc.type='hauler_license'"
+            ],
+            "purpose": "Pick up newly-uploaded license."
+          }
+        ]
+      },
+      "applies_to": {
+        "participant_types": [
+          "H"
+        ],
+        "regions": [
+          "GLOBAL"
+        ]
+      },
+      "purpose": "Resolves D-03 (HIGH reverse_gap): EU-04 validates licensed waste carrier; PURE has no global equivalent. Mirror pattern (ADR-041): PG-23 is universal hauler license gate, independent of EU-04 (different concerns — PG-23 gates TRC_ISSUANCE, EU-04 gates LEGAL_OPERATION). LATAM (BR) also requires Licença Ambiental para Transporte de Resíduos; PG-23 captures equivalence via Document.scope.",
+      "logic_human": "BLOCK if MassID.haulerId references a Participant without a valid hauler_license document active at MassID.pickupAt (non_retroactive_revocation). Accepts equivalent regional licenses via licensing_authority field.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-23'>): Promise<RuleResult> {\n  const m = ctx.massid;\n  if (!m.haulerId) return ctx.skip({ reason: 'MassID has no hauler — skip.' });\n  const doc = await ctx.db.document.findFirst({ where: { participantId: m.haulerId, type: 'hauler_license' }, orderBy: { validUntil: 'desc' } });\n  if (!doc) {\n    return ctx.fail({ ruleId: 'PG-23', severity: 'BLOCK', message: 'Hauler ' + m.haulerId + ' has no hauler_license document.', field: 'hauler_license' });\n  }\n  if (doc.validFrom > m.pickupAt || doc.validUntil < m.pickupAt) {\n    return ctx.fail({ ruleId: 'PG-23', severity: 'BLOCK', message: 'Hauler license not valid at pickupAt (validFrom=' + doc.validFrom.toISOString() + ', validUntil=' + doc.validUntil.toISOString() + ').', field: 'validUntil' });\n  }\n  return ctx.pass({ ruleId: 'PG-23' });\n}",
+      "fields": {
+        "reads": [
+          "MassID.haulerId",
+          "MassID.pickupAt",
+          "Document.type",
+          "Document.participantId",
+          "Document.validFrom",
+          "Document.validUntil"
+        ],
+        "writes": [
+          "ValidationResult"
+        ]
+      },
+      "evidence": [
+        {
+          "doc_type": "hauler_license",
+          "mandatory": true,
+          "when": "hauler participates in MassID"
+        }
+      ],
+      "messages": {
+        "block_pt": "Hauler sem licença válida de transporte de resíduos na data do MassID. Anexe o documento exigido.",
+        "block_en": "Hauler without valid waste-transport license at MassID pickup date. Attach the required document."
+      },
+      "behavior": {
+        "idempotent": true,
+        "on_fail": "BLOCK ingest; ReviewQueue notifies Compliance + Ops.",
+        "on_pass": "Cache 24h.",
+        "non_retroactive_revocation": "License validity uses MassID.pickupAt as floor; subsequent revocation doesn't invalidate past records.",
+        "revalidation": "On PARTICIPANT_UPDATE (hauler license changes) and DOCUMENT_UPDATE (license re-upload)."
+      },
+      "test_cases": {
+        "positive": {
+          "name": "License valid at pickup",
+          "given": "validFrom=2026-01-01, validUntil=2027-01-01, pickupAt=2026-06-01.",
+          "expected": "PASS."
+        },
+        "negative": [
+          {
+            "name": "No license",
+            "given": "No hauler_license doc.",
+            "expected": "BLOCK 'has no hauler_license document'."
+          },
+          {
+            "name": "License expired",
+            "given": "validUntil=2026-05-31, pickupAt=2026-06-01.",
+            "expected": "BLOCK 'not valid at pickupAt'."
+          },
+          {
+            "name": "Skip when no hauler",
+            "given": "MassID.haulerId=null.",
+            "expected": "SKIP."
+          }
+        ]
+      },
+      "edge_cases": [
+        "LATAM equivalence (Licença Ambiental BR / ENTRE in MX / etc): doc.licensingAuthority field captures issuing body; PG-23 accepts as long as doc type='hauler_license' regardless of authority.",
+        "Multi-leg transports (multiple haulers in one MassID via MassIdEvent chain): each hauler validated separately via secondary trigger on MassIdEvent write.",
+        "non_retroactive_revocation aligned with ADR-040 + Onda 1-4 principle.",
+        "EU-04 remains active for LEGAL_OPERATION gate; PG-23 is independent (not sibling) per ADR-041."
+      ],
+      "related": [
+        "EU-04",
+        "EU-05",
+        "P-25",
+        "P-36"
+      ],
+      "references": [
+        {
+          "source": "EU_REG_2024_1157",
+          "section": "Art. 26 (carrier license)"
+        },
+        {
+          "source": "RECYCLASS_AUDIT_SCHEME_V1.1",
+          "section": "Transport requirements"
+        },
+        {
+          "source": "ADR_041_MIRROR_RULES_PATTERN",
+          "section": "Independent mirror — different gate"
+        }
+      ],
+      "methodology_quote": "Resolves D-03 — Big Bang 2026-06-03.",
+      "status": "APPROVED",
+      "owner": "Methodology",
+      "manual_review": false,
+      "source_type": "PURE_GAP",
+      "disposition": "New",
+      "odoo_objects": [],
+      "dmrv_output": "hauler_license_valid",
+      "domain": "Transport",
+      "subdomain": "Hauler licensing",
+      "version": "0.1.0",
+      "last_reviewed": "2026-06-03",
+      "is_new": true,
+      "new_source": "D-03 convergence finding (Big Bang 2026-06-03)",
+      "event_ids": [
+        "E1",
+        "E2"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T23:30:00Z",
+        "approval_wave": "Big Bang 8 HIGH OPEN (D-03)",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/adr/041-mirror-rules-pattern-universal-pg.md"
+      },
+      "bv_verification": {
+        "bv_controls": [],
+        "procedure": "TBD per ADR-041 Big Bang rollout; BV procedure to be defined alongside Validation Engine implementation.",
+        "sample_size": "TBD",
+        "frequency": "Quarterly"
+      }
+    },
+    {
+      "id": "PG-24",
+      "title": "Attached document integrity (hash + timestamp + version)",
+      "pillar": "PURE_GAP",
+      "cluster": "DOC_INTEGRITY",
+      "severity": "BLOCK",
+      "gates_what": "TRC_ISSUANCE",
+      "trigger": {
+        "event": "EVIDENCE_ATTACH",
+        "phase": "POST_ATTACH",
+        "conditions": [
+          "Any document attached as evidence"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "doc.content changed"
+            ],
+            "purpose": "Detect content drift between hash and stored bytes."
+          }
+        ]
+      },
+      "applies_to": {
+        "participant_types": [
+          "G",
+          "B",
+          "H",
+          "P",
+          "R",
+          "INT"
+        ],
+        "regions": [
+          "GLOBAL"
+        ]
+      },
+      "purpose": "Resolves D-12 (HIGH reverse_gap): EU-21 requires document integrity hash; PURE only hashes the MassID (P-63), not attached evidence. Without document hash + timestamp + version, replay attacks (same PDF reused) pass silently. PG-24 establishes integrity gate on every evidence attachment: hash (SHA-256) + immutable timestamp + version chain. Independent of EU-21 (transversal — applies to all evidence refs, every participant type).",
+      "logic_human": "BLOCK if Document is attached without sha256Hash OR uploadedAt OR version field. BLOCK if subsequent content read produces hash != stored sha256Hash (drift detection on DOCUMENT_UPDATE).",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-24'>): Promise<RuleResult> {\n  const d = ctx.document;\n  if (!d.sha256Hash || !d.uploadedAt || d.version == null) {\n    return ctx.fail({ ruleId: 'PG-24', severity: 'BLOCK', message: 'Document missing integrity metadata (sha256Hash / uploadedAt / version).', field: 'sha256Hash/uploadedAt/version' });\n  }\n  // Drift detection: re-hash current content\n  const currentHash = await ctx.storage.sha256(d.storageRef);\n  if (currentHash !== d.sha256Hash) {\n    return ctx.fail({ ruleId: 'PG-24', severity: 'BLOCK', message: 'Document content drift detected (stored hash != current content hash). Possible tampering or storage corruption.', field: 'sha256Hash' });\n  }\n  return ctx.pass({ ruleId: 'PG-24' });\n}",
+      "fields": {
+        "reads": [
+          "Document.id",
+          "Document.sha256Hash",
+          "Document.uploadedAt",
+          "Document.version",
+          "Document.storageRef"
+        ],
+        "writes": [
+          "ValidationResult",
+          "AuditLog"
+        ]
+      },
+      "evidence": [],
+      "messages": {
+        "block_pt": "Documento sem metadados de integridade (hash SHA-256, timestamp ou versão). Re-upload obrigatório.",
+        "block_en": "Document missing integrity metadata (SHA-256 hash, timestamp, or version). Re-upload required."
+      },
+      "behavior": {
+        "idempotent": true,
+        "on_fail": "BLOCK; incident logged at AuditLog with hash mismatch detail.",
+        "on_pass": "Cache 24h.",
+        "performance": "Drift detection is O(filesize) — gated to PERIODIC_JOB nightly + on-demand DOCUMENT_UPDATE.",
+        "revalidation": "On EVIDENCE_ATTACH + nightly drift detection (PERIODIC_JOB)."
+      },
+      "test_cases": {
+        "positive": {
+          "name": "Valid metadata + intact content",
+          "given": "sha256Hash set, uploadedAt set, version=1, content matches hash.",
+          "expected": "PASS."
+        },
+        "negative": [
+          {
+            "name": "Missing hash",
+            "given": "sha256Hash=null.",
+            "expected": "BLOCK 'missing integrity metadata'."
+          },
+          {
+            "name": "Content drift detected",
+            "given": "storedHash='abc...', current content hashes to 'xyz...'.",
+            "expected": "BLOCK 'content drift detected'."
+          }
+        ]
+      },
+      "edge_cases": [
+        "Document versions: new upload creates new Document row with version=N+1 and new sha256Hash. Old version preserved (audit chain).",
+        "Replay attack defense: same PDF uploaded twice gets the same hash but different uploadedAt + different Document.id — PG-24 still validates each independently.",
+        "Drift detection runs nightly across all active Documents; on-demand re-check on DOCUMENT_UPDATE.",
+        "Storage backend can be S3/GCS/local — abstracted via ctx.storage.sha256(storageRef).",
+        "Aligned with EU 2024/1157 Art. 26 + eIDAS 910/2014 (timestamp integrity)."
+      ],
+      "related": [
+        "P-63",
+        "EU-21",
+        "EU-24"
+      ],
+      "references": [
+        {
+          "source": "EU_REG_2024_1157",
+          "section": "Art. 26 (document integrity)"
+        },
+        {
+          "source": "EIDAS_910_2014",
+          "section": "Trust services + timestamp integrity"
+        },
+        {
+          "source": "ADR_041_MIRROR_RULES_PATTERN",
+          "section": "Transversal mirror — applies to all evidence"
+        }
+      ],
+      "methodology_quote": "Resolves D-12 — Big Bang 2026-06-03.",
+      "status": "APPROVED",
+      "owner": "Methodology",
+      "manual_review": false,
+      "source_type": "PURE_GAP",
+      "disposition": "New",
+      "odoo_objects": [],
+      "dmrv_output": "document_integrity_valid",
+      "domain": "Audit / Integrity",
+      "subdomain": "Document hash + timestamp",
+      "version": "0.1.0",
+      "last_reviewed": "2026-06-03",
+      "is_new": true,
+      "new_source": "D-12 convergence finding (Big Bang 2026-06-03)",
+      "event_ids": [
+        "E0",
+        "E12"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T23:30:00Z",
+        "approval_wave": "Big Bang 8 HIGH OPEN (D-12)",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/adr/041-mirror-rules-pattern-universal-pg.md"
+      },
+      "bv_verification": {
+        "bv_controls": [],
+        "procedure": "TBD per ADR-041 Big Bang rollout; BV procedure to be defined alongside Validation Engine implementation.",
+        "sample_size": "TBD",
+        "frequency": "Quarterly"
+      }
+    },
+    {
+      "id": "PG-25",
+      "title": "Audit trail retention >=5 years (periodic check)",
+      "pillar": "PURE_GAP",
+      "cluster": "DOC_INTEGRITY",
+      "severity": "BLOCK",
+      "gates_what": "TRC_ISSUANCE",
+      "trigger": {
+        "event": "PERIODIC_RETENTION_CHECK",
+        "phase": "PERIODIC_JOB",
+        "conditions": [
+          "Monthly retention sweep"
+        ],
+        "secondary_triggers": []
+      },
+      "applies_to": {
+        "participant_types": [
+          "G",
+          "B",
+          "H",
+          "P",
+          "R",
+          "INT"
+        ],
+        "regions": [
+          "GLOBAL"
+        ]
+      },
+      "purpose": "Resolves D-13 (HIGH reverse_gap): EU-22 mandates 5y audit trail retention; PURE methodology silent. Without explicit retention rule, ops can purge logs prematurely (legal exposure under WSR + GDPR). PG-25 runs periodic job validating oldest record per category meets retention period from docs/config/retention_policy_v1.json. Purge actions allowed only when retention_period_expired AND purge_authorized=TRUE (DPO+Compliance joint sign-off).",
+      "logic_human": "BLOCK if any retention-protected category has records older than retention_period AND no purge_authorization. PASS if all categories within window or properly purged.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-25'>): Promise<RuleResult> {\n  const policy = await ctx.config.load<RetentionPolicy>('retention_policy', 'v1');\n  const violations: string[] = [];\n  for (const [category, years] of Object.entries(policy.retention_periods_years)) {\n    const cutoff = new Date(ctx.now);\n    cutoff.setFullYear(cutoff.getFullYear() - years);\n    const oldest = await ctx.db.byCategory(category).oldest();\n    if (!oldest) continue;\n    if (oldest.createdAt < cutoff) {\n      const purgeAuth = await ctx.db.purgeAuthorization.findFirst({ where: { category, retentionExpiresAt: { lte: ctx.now } } });\n      if (!purgeAuth) {\n        violations.push(category + ': oldest record at ' + oldest.createdAt.toISOString() + ' exceeds ' + years + 'y retention without purge authorization');\n      }\n    }\n  }\n  if (violations.length > 0) {\n    return ctx.fail({ ruleId: 'PG-25', severity: 'BLOCK', message: 'Retention violations: ' + violations.join('; '), field: 'retention_policy' });\n  }\n  return ctx.pass({ ruleId: 'PG-25' });\n}",
+      "fields": {
+        "reads": [
+          "RetentionPolicy.retention_periods_years",
+          "AuditLog.createdAt",
+          "PurgeAuthorization.category",
+          "PurgeAuthorization.signedBy"
+        ],
+        "writes": [
+          "ValidationResult",
+          "AuditLog"
+        ]
+      },
+      "evidence": [],
+      "messages": {
+        "block_pt": "Política de retenção violada. Categoria(s) com registros além do prazo legal e sem autorização de purga conjunta DPO+Compliance.",
+        "block_en": "Retention policy violated. Category(ies) with records past legal retention without joint DPO+Compliance purge authorization."
+      },
+      "behavior": {
+        "idempotent": true,
+        "on_fail": "BLOCK TRC issuance until retention issue resolved; alert DPO + Compliance.",
+        "on_pass": "Cache until next periodic run.",
+        "performance": "O(categories) per run; categories are small (7 in retention_policy_v1).",
+        "revalidation": "Monthly PERIODIC_RETENTION_CHECK job."
+      },
+      "test_cases": {
+        "positive": {
+          "name": "All categories within retention",
+          "given": "All oldest records within 5y window (or younger).",
+          "expected": "PASS."
+        },
+        "negative": [
+          {
+            "name": "Category over retention without purge auth",
+            "given": "massid_event_log oldest=2020-05-01, retention=5y, ctx.now=2026-06-03, no PurgeAuthorization.",
+            "expected": "BLOCK 'oldest record at 2020-05-01... exceeds 5y retention'."
+          },
+          {
+            "name": "Category over retention with valid purge auth",
+            "given": "Same as above + PurgeAuthorization signed by DPO+Compliance with category='massid_event_log' and retentionExpiresAt<=now.",
+            "expected": "PASS."
+          }
+        ]
+      },
+      "edge_cases": [
+        "Periodic job runs first of each month (configurable in scheduler).",
+        "Purge authorization is per-category and time-bounded (one auth = one purge window).",
+        "Legal hold scenarios (litigation) require separate flag (out of scope for v1; future ADR if needed).",
+        "GDPR alignment: personal_data_pii category retention = 5y with explicit lawful basis (legitimate interest + legal obligation under WSR).",
+        "Aligned with EU 2024/1157 Art. 26 + GDPR Art. 5(1)(e)."
+      ],
+      "related": [
+        "EU-22",
+        "EU-30"
+      ],
+      "references": [
+        {
+          "source": "EU_REG_2024_1157",
+          "section": "Art. 26 (5y record keeping)"
+        },
+        {
+          "source": "GDPR_EU_2016_679",
+          "section": "Art. 5(1)(e) storage limitation"
+        },
+        {
+          "source": "ADR_041_MIRROR_RULES_PATTERN",
+          "section": "Independent mirror — different gate"
+        }
+      ],
+      "methodology_quote": "Resolves D-13 — Big Bang 2026-06-03.",
+      "status": "APPROVED",
+      "owner": "Compliance",
+      "manual_review": false,
+      "source_type": "PURE_GAP",
+      "disposition": "New",
+      "odoo_objects": [],
+      "dmrv_output": "retention_policy_satisfied",
+      "domain": "Audit / Integrity",
+      "subdomain": "Retention",
+      "version": "0.1.0",
+      "last_reviewed": "2026-06-03",
+      "is_new": true,
+      "new_source": "D-13 convergence finding (Big Bang 2026-06-03)",
+      "event_ids": [
+        "E12"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Bloqueio",
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T23:30:00Z",
+        "approval_wave": "Big Bang 8 HIGH OPEN (D-13)",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/adr/041-mirror-rules-pattern-universal-pg.md"
+      },
+      "bv_verification": {
+        "bv_controls": [],
+        "procedure": "TBD per ADR-041 Big Bang rollout; BV procedure to be defined alongside Validation Engine implementation.",
+        "sample_size": "TBD",
+        "frequency": "Quarterly"
+      }
+    },
+    {
+      "id": "PG-26",
+      "title": "Scale calibration certificate (universal sibling of RC-07)",
+      "pillar": "PURE_GAP",
+      "cluster": "WEIGHING",
+      "severity": "FLAG",
+      "gates_what": "TRC_ISSUANCE",
+      "trigger": {
+        "event": "MASSID_INGEST",
+        "phase": "PRE_VALIDATION",
+        "conditions": [
+          "MassID has weighEvent AND weighEvent.scaleType IN (bridge_scale, floor_scale, hopper_scale)"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "doc.type='scale_calibration_certificate'"
+            ],
+            "purpose": "Re-evaluate when calibration is renewed."
+          }
+        ]
+      },
+      "applies_to": {
+        "participant_types": [
+          "R",
+          "P"
+        ],
+        "regions": [
+          "GLOBAL"
+        ]
+      },
+      "purpose": "Resolves D-21 (HIGH reverse_gap): RC-07 validates weighbridge calibration (annual); PURE has no global equivalent. Sibling of RC-07 (ADR-037 + ADR-041): same physical signal (calibration of the scale used to record WeighEvent), declared severities differ intentionally (PG-26 FLAG, RC-07 BLOCK for RecyClass-scoped). Resolver max_among_pillars elevates effective severity to BLOCK when participant is RecyClass-scoped.",
+      "logic_human": "FLAG if scaleType is industrial (bridge/floor/hopper) AND no valid scale_calibration_certificate within 12 months of weighEvent timestamp. Effective severity becomes BLOCK via sibling RC-07 for RecyClass-scoped participants.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-26'>): Promise<RuleResult> {\n  const m = ctx.massid;\n  if (!m.weighEvent || !['bridge_scale', 'floor_scale', 'hopper_scale'].includes(m.weighEvent.scaleType)) {\n    return ctx.skip({ reason: 'No industrial scale used — skip.' });\n  }\n  const cal = await ctx.db.document.findFirst({ where: { participantId: m.recyclerId, type: 'scale_calibration_certificate', scaleId: m.weighEvent.scaleId }, orderBy: { validUntil: 'desc' } });\n  if (!cal) {\n    return ctx.fail({ ruleId: 'PG-26', severity: 'FLAG', message: 'No scale_calibration_certificate for scale ' + m.weighEvent.scaleId + '.', field: 'calibration' });\n  }\n  const oneYearAgo = new Date(m.weighEvent.weighedAt);\n  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);\n  if (cal.validUntil < m.weighEvent.weighedAt || cal.issuedAt < oneYearAgo) {\n    return ctx.fail({ ruleId: 'PG-26', severity: 'FLAG', message: 'Scale calibration expired or older than 12 months at weighEvent.', field: 'calibration.validUntil' });\n  }\n  return ctx.pass({ ruleId: 'PG-26' });\n}",
+      "fields": {
+        "reads": [
+          "MassID.weighEvent.scaleType",
+          "MassID.weighEvent.scaleId",
+          "MassID.weighEvent.weighedAt",
+          "Document.type",
+          "Document.scaleId",
+          "Document.validUntil",
+          "Document.issuedAt"
+        ],
+        "writes": [
+          "ValidationResult"
+        ]
+      },
+      "evidence": [
+        {
+          "doc_type": "scale_calibration_certificate",
+          "mandatory": true,
+          "when": "scaleType IN (bridge_scale, floor_scale, hopper_scale)"
+        }
+      ],
+      "messages": {
+        "flag_pt": "Calibração da balança industrial ausente ou vencida (>12m) na data da pesagem. Verifique anualmente.",
+        "flag_en": "Industrial scale calibration missing or expired (>12m) at weighEvent date. Renew annually.",
+        "block_pt": "(via sibling RC-07) Participant RecyClass-scoped: calibração da balança é mandatória.",
+        "block_en": "(via sibling RC-07) RecyClass-scoped participant: scale calibration is mandatory."
+      },
+      "behavior": {
+        "idempotent": true,
+        "on_fail": "FLAG (BLOCK via sibling resolver for RecyClass-scoped); ReviewQueue surface.",
+        "on_pass": "Cache 24h.",
+        "non_retroactive_revocation": "Calibration validity computed at weighedAt, not at evaluation.",
+        "revalidation": "On weighEvent write + DOCUMENT_UPDATE (calibration renewal)."
+      },
+      "test_cases": {
+        "positive": {
+          "name": "Calibration valid at weighedAt",
+          "given": "scaleType=bridge_scale, calibration validUntil=2027-01-01, weighedAt=2026-06-01.",
+          "expected": "PASS."
+        },
+        "negative": [
+          {
+            "name": "No calibration cert",
+            "given": "No Document for scale.",
+            "expected": "FLAG 'No scale_calibration_certificate'."
+          },
+          {
+            "name": "Expired calibration",
+            "given": "validUntil=2026-05-31, weighedAt=2026-06-01.",
+            "expected": "FLAG 'expired or older than 12 months'."
+          },
+          {
+            "name": "Skip artisanal scale",
+            "given": "scaleType='manual_scale'.",
+            "expected": "SKIP."
+          }
+        ]
+      },
+      "edge_cases": [
+        "Sibling with RC-07: RecyClass-scoped recyclers see effective BLOCK via max_among_pillars resolver (ADR-037).",
+        "Artisanal/manual scales SKIP — calibration not required (smallholder ops out of scope).",
+        "Scale identity via WeighEvent.scaleId — each scale tracked independently; multi-scale facility cleared individually.",
+        "12-month window aligned with RecyClass V1.1 §3.2 + EN ISO 6789 traceability conventions."
+      ],
+      "related": [
+        "RC-07",
+        "P-44",
+        "P-48"
+      ],
+      "siblings": [
+        "RC-07"
+      ],
+      "severity_resolver": "max_among_pillars",
+      "references": [
+        {
+          "source": "RECYCLASS_AUDIT_SCHEME_V1.1",
+          "section": "§3.2 weighbridge calibration"
+        },
+        {
+          "source": "ADR_041_MIRROR_RULES_PATTERN",
+          "section": "Sibling mirror — same signal"
+        }
+      ],
+      "methodology_quote": "Resolves D-21 — Big Bang 2026-06-03.",
+      "status": "APPROVED",
+      "owner": "Methodology",
+      "manual_review": false,
+      "source_type": "PURE_GAP",
+      "disposition": "New",
+      "odoo_objects": [],
+      "dmrv_output": "scale_calibration_valid",
+      "domain": "Weighing",
+      "subdomain": "Scale calibration",
+      "version": "0.1.0",
+      "last_reviewed": "2026-06-03",
+      "is_new": true,
+      "new_source": "D-21 convergence finding (Big Bang 2026-06-03)",
+      "event_ids": [
+        "E5",
+        "E6"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T23:30:00Z",
+        "approval_wave": "Big Bang 8 HIGH OPEN (D-21)",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/adr/041-mirror-rules-pattern-universal-pg.md"
+      },
+      "bv_verification": {
+        "bv_controls": [],
+        "procedure": "TBD per ADR-041 Big Bang rollout; BV procedure to be defined alongside Validation Engine implementation.",
+        "sample_size": "TBD",
+        "frequency": "Quarterly"
+      }
+    },
+    {
+      "id": "PG-27",
+      "title": "Recycler pellet loss prevention procedure (universal sibling of RC-13)",
+      "pillar": "PURE_GAP",
+      "cluster": "ENVIRONMENTAL",
+      "severity": "FLAG",
+      "gates_what": "TRC_ISSUANCE",
+      "trigger": {
+        "event": "PARTICIPANT_ONBOARDING",
+        "phase": "PRE_VALIDATION",
+        "conditions": [
+          "Participant.role='R'"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "PARTICIPANT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "pelletLossProcedure fields changed"
+            ],
+            "purpose": "Re-evaluate on procedure renewal."
+          }
+        ]
+      },
+      "applies_to": {
+        "participant_types": [
+          "R"
+        ],
+        "regions": [
+          "GLOBAL"
+        ]
+      },
+      "purpose": "Resolves D-25 (HIGH reverse_gap): RC-13 validates recycler pellet loss prevention procedure (microplastic discharge prevention); PURE markets it as co-benefit but doesn't gate. Sibling of RC-13 (ADR-037 + ADR-041): same procedure check, declared severities differ (PG-27 FLAG, RC-13 BLOCK for RecyClass-scoped). Resolver max_among_pillars handles RecyClass-scoped escalation. ESG / reputational value: closes inconsistency between PURE marketing (microplastic reduction co-benefit) and absence of operational gate.",
+      "logic_human": "FLAG if Participant.pelletLossProcedure document missing OR not renewed within last 12 months. Effective BLOCK via sibling RC-13 for RecyClass-scoped.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-27'>): Promise<RuleResult> {\n  const p = ctx.participant;\n  if (p.role !== 'R') return ctx.skip({ reason: 'Only Recyclers — skip.' });\n  const doc = await ctx.db.document.findFirst({ where: { participantId: p.id, type: 'pellet_loss_prevention_procedure' }, orderBy: { validUntil: 'desc' } });\n  if (!doc) {\n    return ctx.fail({ ruleId: 'PG-27', severity: 'FLAG', message: 'Recycler has no pellet_loss_prevention_procedure document.', field: 'pelletLossProcedure' });\n  }\n  const oneYearAgo = new Date(ctx.now);\n  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);\n  if (doc.validUntil < ctx.now || doc.issuedAt < oneYearAgo) {\n    return ctx.fail({ ruleId: 'PG-27', severity: 'FLAG', message: 'Pellet loss procedure expired or older than 12 months.', field: 'validUntil' });\n  }\n  return ctx.pass({ ruleId: 'PG-27' });\n}",
+      "fields": {
+        "reads": [
+          "Participant.id",
+          "Participant.role",
+          "Document.type",
+          "Document.participantId",
+          "Document.validUntil",
+          "Document.issuedAt"
+        ],
+        "writes": [
+          "ValidationResult"
+        ]
+      },
+      "evidence": [
+        {
+          "doc_type": "pellet_loss_prevention_procedure",
+          "mandatory": true,
+          "when": "Recycler onboarding"
+        }
+      ],
+      "messages": {
+        "flag_pt": "Recicladora sem procedimento de prevenção de perda de pellet (microplástico) válido. Renove anualmente.",
+        "flag_en": "Recycler without valid pellet loss prevention procedure (microplastic). Renew annually.",
+        "block_pt": "(via sibling RC-13) Participant RecyClass-scoped: procedimento de prevenção de pellet loss é mandatório.",
+        "block_en": "(via sibling RC-13) RecyClass-scoped participant: pellet loss prevention procedure is mandatory."
+      },
+      "behavior": {
+        "idempotent": true,
+        "on_fail": "FLAG; ReviewQueue surface.",
+        "on_pass": "Cache until validUntil approaches.",
+        "non_retroactive_revocation": "Procedure validity computed at MassID.pickupAt for downstream gates.",
+        "revalidation": "On PARTICIPANT_UPDATE + DOCUMENT_UPDATE (procedure renewal)."
+      },
+      "test_cases": {
+        "positive": {
+          "name": "Valid procedure",
+          "given": "doc.validUntil=2027-01-01, issuedAt=2026-04-01.",
+          "expected": "PASS."
+        },
+        "negative": [
+          {
+            "name": "No procedure",
+            "given": "No doc.",
+            "expected": "FLAG 'has no pellet_loss_prevention_procedure'."
+          },
+          {
+            "name": "Expired procedure",
+            "given": "validUntil=2026-05-01.",
+            "expected": "FLAG 'expired or older than 12 months'."
+          }
+        ]
+      },
+      "edge_cases": [
+        "Sibling with RC-13: RecyClass-scoped recyclers see effective BLOCK via resolver.",
+        "Document captures procedure narrative + standard reference (e.g., Operation Clean Sweep) + auditor sign-off.",
+        "Annual review aligned with OCS / RecyClass V1.1 §4.3 + EU SUP Directive guidance on plastic loss.",
+        "ESG dashboard surface: PG-27 status feeds into Sustainability Report."
+      ],
+      "related": [
+        "RC-13",
+        "P-43"
+      ],
+      "siblings": [
+        "RC-13"
+      ],
+      "severity_resolver": "max_among_pillars",
+      "references": [
+        {
+          "source": "RECYCLASS_AUDIT_SCHEME_V1.1",
+          "section": "§4.3 pellet loss prevention"
+        },
+        {
+          "source": "ADR_041_MIRROR_RULES_PATTERN",
+          "section": "Sibling mirror — ESG-relevant"
+        }
+      ],
+      "methodology_quote": "Resolves D-25 — Big Bang 2026-06-03.",
+      "status": "APPROVED",
+      "owner": "Methodology",
+      "manual_review": false,
+      "source_type": "PURE_GAP",
+      "disposition": "New",
+      "odoo_objects": [],
+      "dmrv_output": "pellet_loss_procedure_valid",
+      "domain": "Environment / Health & Safety",
+      "subdomain": "Microplastic emission control",
+      "version": "0.1.0",
+      "last_reviewed": "2026-06-03",
+      "is_new": true,
+      "new_source": "D-25 convergence finding (Big Bang 2026-06-03)",
+      "event_ids": [
+        "E6",
+        "E7"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T23:30:00Z",
+        "approval_wave": "Big Bang 8 HIGH OPEN (D-25)",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/adr/041-mirror-rules-pattern-universal-pg.md"
+      },
+      "bv_verification": {
+        "bv_controls": [],
+        "procedure": "TBD per ADR-041 Big Bang rollout; BV procedure to be defined alongside Validation Engine implementation.",
+        "sample_size": "TBD",
+        "frequency": "Quarterly"
+      }
+    },
+    {
+      "id": "PG-28",
+      "title": "Recycler chemical compliance (REACH / SVHC / POP) — universal sibling of RC-16",
+      "pillar": "PURE_GAP",
+      "cluster": "ENVIRONMENTAL",
+      "severity": "FLAG",
+      "gates_what": "TRC_ISSUANCE",
+      "trigger": {
+        "event": "RECYCLING_OUTCOME_WRITE",
+        "phase": "POST_CREATE",
+        "conditions": [
+          "outcome.intendedEndUse IN (FOOD_CONTACT, GENERAL)"
+        ],
+        "secondary_triggers": [
+          {
+            "event": "DOCUMENT_UPDATE",
+            "phase": "POST_UPDATE",
+            "conditions": [
+              "doc.type='svhc_screening_certificate'"
+            ],
+            "purpose": "Re-evaluate on certificate renewal."
+          }
+        ]
+      },
+      "applies_to": {
+        "participant_types": [
+          "R"
+        ],
+        "regions": [
+          "GLOBAL"
+        ]
+      },
+      "purpose": "Resolves D-28 (HIGH reverse_gap): RC-16 enforces REACH/SVHC/POP chemical screening for recycled output; PURE silent. Sibling of RC-16 (ADR-037 + ADR-041): same screening requirement, severities differ (PG-28 FLAG, RC-16 BLOCK for RecyClass-scoped). Reads svhc_substances_v1 config doc for substance classes + thresholds by intendedEndUse (FOOD_CONTACT 0 ppm strict / GENERAL 100 ppm / TECHNICAL self-declaration). Risk: SVHC contamination in food-grade rPET — regulatory + reputational liability.",
+      "logic_human": "FLAG if RecyclingOutcome.intendedEndUse=FOOD_CONTACT or GENERAL AND no valid svhc_screening_certificate within renewal_months window OR certificate doesn't cover required substance classes per config doc OR certificate shows substance ppm > max_svhc_ppm threshold.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-28'>): Promise<RuleResult> {\n  const o = ctx.recyclingOutcome;\n  const config = await ctx.config.load<SvhcSubstances>('svhc_substances', 'v1');\n  const req = config.screening_requirements_by_end_use[o.intendedEndUse];\n  if (!req || !req.screening_required) return ctx.skip({ reason: 'End use ' + o.intendedEndUse + ' does not require screening (TECHNICAL or unset).' });\n  const cert = await ctx.db.document.findFirst({ where: { participantId: o.recyclerId, type: 'svhc_screening_certificate' }, orderBy: { issuedAt: 'desc' } });\n  if (!cert) {\n    return ctx.fail({ ruleId: 'PG-28', severity: 'FLAG', message: 'svhc_screening_certificate missing for intendedEndUse=' + o.intendedEndUse + '.', field: 'svhc_screening_certificate' });\n  }\n  const ageMonths = (ctx.now.getTime() - cert.issuedAt.getTime()) / (1000 * 60 * 60 * 24 * 30);\n  if (ageMonths > req.renewal_months) {\n    return ctx.fail({ ruleId: 'PG-28', severity: 'FLAG', message: 'Certificate aged ' + ageMonths.toFixed(1) + 'm > renewal_months=' + req.renewal_months + ' for ' + o.intendedEndUse + '.', field: 'cert.issuedAt' });\n  }\n  const maxPpm = req.max_svhc_ppm;\n  const exceeded = (cert.testResults || []).filter((r: any) => r.measured_ppm > maxPpm);\n  if (exceeded.length > 0) {\n    return ctx.fail({ ruleId: 'PG-28', severity: 'FLAG', message: 'Certificate shows substances exceeding ' + maxPpm + 'ppm: ' + exceeded.map((r: any) => r.substance_id + '=' + r.measured_ppm + 'ppm').join(', ') + '.', field: 'cert.testResults' });\n  }\n  return ctx.pass({ ruleId: 'PG-28' });\n}",
+      "fields": {
+        "reads": [
+          "RecyclingOutcome.intendedEndUse",
+          "RecyclingOutcome.recyclerId",
+          "Document.type",
+          "Document.participantId",
+          "Document.issuedAt",
+          "Document.testResults"
+        ],
+        "writes": [
+          "ValidationResult"
+        ]
+      },
+      "evidence": [
+        {
+          "doc_type": "svhc_screening_certificate",
+          "mandatory": true,
+          "when": "intendedEndUse IN (FOOD_CONTACT, GENERAL)"
+        }
+      ],
+      "messages": {
+        "flag_pt": "Certificado de triagem SVHC ausente, vencido ou com substâncias acima do limite para intendedEndUse declarado.",
+        "flag_en": "SVHC screening certificate missing, expired, or with substances above threshold for declared intendedEndUse.",
+        "block_pt": "(via sibling RC-16) Participant RecyClass-scoped: triagem SVHC é mandatória.",
+        "block_en": "(via sibling RC-16) RecyClass-scoped participant: SVHC screening is mandatory."
+      },
+      "behavior": {
+        "idempotent": true,
+        "on_fail": "FLAG (BLOCK via sibling resolver for RecyClass-scoped); ReviewQueue surface.",
+        "on_pass": "Cache until cert.issuedAt + renewal_months approaches.",
+        "non_retroactive_revocation": "Certificate validity computed at RecyclingOutcome.createdAt.",
+        "revalidation": "On RECYCLING_OUTCOME_WRITE + DOCUMENT_UPDATE (certificate renewal)."
+      },
+      "test_cases": {
+        "positive": {
+          "name": "Valid cert, FOOD_CONTACT 0ppm",
+          "given": "intendedEndUse=FOOD_CONTACT; cert.issuedAt=2026-04-01; cert.testResults all 0 ppm.",
+          "expected": "PASS."
+        },
+        "negative": [
+          {
+            "name": "Cert missing",
+            "given": "intendedEndUse=GENERAL, no cert.",
+            "expected": "FLAG 'missing for intendedEndUse=GENERAL'."
+          },
+          {
+            "name": "Cert aged > renewal_months",
+            "given": "intendedEndUse=FOOD_CONTACT (renewal_months=6); cert.issuedAt=2025-01-01; ctx.now=2026-06-01.",
+            "expected": "FLAG 'aged ... > renewal_months'."
+          },
+          {
+            "name": "Substance over threshold",
+            "given": "intendedEndUse=GENERAL (max_svhc_ppm=100); cert.testResults includes Pb=350ppm.",
+            "expected": "FLAG 'exceeding 100ppm: Pb=350ppm'."
+          },
+          {
+            "name": "TECHNICAL self-declaration skip",
+            "given": "intendedEndUse=TECHNICAL.",
+            "expected": "SKIP."
+          }
+        ]
+      },
+      "edge_cases": [
+        "Sibling with RC-16: RecyClass-scoped recyclers see effective BLOCK via resolver (ADR-037).",
+        "Substance classes seeded from ECHA SVHC list + EU POP Annex IV; quarterly Compliance refresh per config doc.",
+        "intendedEndUse FOOD_CONTACT requires 0 ppm strict (any detection = FLAG); GENERAL 100 ppm; TECHNICAL self-declaration acceptable.",
+        "IMP-66 (Onda 5) introduces intendedEndUse enum — this rule consumes it.",
+        "Document.testResults schema: [{substance_id: 'Pb', measured_ppm: 50, LOD: 5}, ...] — referenced by config doc substance_classes_relevant_to_plastic_recycling."
+      ],
+      "related": [
+        "RC-16",
+        "RC-11",
+        "P-50",
+        "P-57"
+      ],
+      "siblings": [
+        "RC-16"
+      ],
+      "severity_resolver": "max_among_pillars",
+      "references": [
+        {
+          "source": "REACH_EC_1907_2006",
+          "section": "REACH SVHC Candidate List"
+        },
+        {
+          "source": "POP_REGULATION_EU_2019_1021",
+          "section": "POP Annex IV"
+        },
+        {
+          "source": "RECYCLASS_AUDIT_SCHEME_V1.1",
+          "section": "§6 chemical compliance"
+        },
+        {
+          "source": "ADR_041_MIRROR_RULES_PATTERN",
+          "section": "Sibling mirror + config doc consumer"
+        }
+      ],
+      "methodology_quote": "Resolves D-28 — Big Bang 2026-06-03.",
+      "status": "APPROVED",
+      "owner": "Compliance",
+      "manual_review": false,
+      "source_type": "PURE_GAP",
+      "disposition": "New",
+      "odoo_objects": [],
+      "dmrv_output": "svhc_compliance_valid",
+      "domain": "Environment / Health & Safety",
+      "subdomain": "Chemical compliance",
+      "version": "0.1.0",
+      "last_reviewed": "2026-06-03",
+      "is_new": true,
+      "new_source": "D-28 convergence finding (Big Bang 2026-06-03)",
+      "event_ids": [
+        "E9",
+        "E11"
+      ],
+      "geographic_scope": "Universal",
+      "action_on_failure": "Sinalização",
+      "rule_type": "Auditoria",
+      "approval": {
+        "approved_by": "Rodrigo Moraes",
+        "approved_at": "2026-06-03T23:30:00Z",
+        "approval_wave": "Big Bang 8 HIGH OPEN (D-28)",
+        "approval_method": "interactive_review",
+        "audit_report": "docs/adr/041-mirror-rules-pattern-universal-pg.md"
+      },
+      "bv_verification": {
+        "bv_controls": [],
+        "procedure": "TBD per ADR-041 Big Bang rollout; BV procedure to be defined alongside Validation Engine implementation.",
+        "sample_size": "TBD",
+        "frequency": "Quarterly"
       }
     }
   ],

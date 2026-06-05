@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Impactrakr · Product Blueprint v0.4.0</title>
+<title>Impactrakr · Product Blueprint v0.4.3</title>
 <meta name="description" content="Plataforma dMRV para validação de créditos de reciclagem de plástico. Cliente: MARE Foundation / MSM Polymers (Malta).">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1375,7 +1375,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
         <span class="search-btn-label" lang="en">Search...</span>
         <kbd>⌘K</kbd>
       </button>
-      <span class="version-pill">v0.4.0 · 3 Jun 2026</span>
+      <span class="version-pill">v0.4.3 · 3 Jun 2026</span>
       <div class="lang-toggle" role="group" aria-label="Language">
         <button data-lang="pt" class="active" aria-label="Português">PT</button>
         <button data-lang="en" aria-label="English">EN</button>
@@ -1444,8 +1444,8 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
     <span lang="en">Technical architecture</span>
   </a>
   <a href="#rules-catalog" class="sidebar-link"><span class="sidebar-link-num">VR</span>
-    <span lang="pt">Catálogo de Regras (131)</span>
-    <span lang="en">Rules Catalog (131)</span>
+    <span lang="pt">Catálogo de Regras (139)</span>
+    <span lang="en">Rules Catalog (139)</span>
   </a>
 
   <div class="sidebar-section">
@@ -1511,7 +1511,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
   <button class="tab-btn tab-cat" data-tab="catalog" role="tab" aria-selected="false">
     <span class="tab-icon">🛡</span>
     <span lang="pt">Catálogo de Regras</span><span lang="en">Rules Catalog</span>
-    <span class="tab-count" id="tab-count-catalog">131</span>
+    <span class="tab-count" id="tab-count-catalog">139</span>
   </button>
   <button class="tab-btn tab-cnv" data-tab="convergence" role="tab" aria-selected="false">
     <span class="tab-icon">📋</span>
@@ -1521,7 +1521,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
   <button class="tab-btn tab-aw" data-tab="approval" role="tab" aria-selected="false">
     <span class="tab-icon">✍️</span>
     <span lang="pt">Fila de Aprovação</span><span lang="en">Approval Queue</span>
-    <span class="tab-count" id="tab-count-approval">131</span>
+    <span class="tab-count" id="tab-count-approval">139</span>
   </button>
 </nav>
 
@@ -1532,7 +1532,7 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
 
 <!-- ============ HERO ============ -->
 <section class="hero">
-  <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.4.0</div>
+  <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.4.3</div>
   <h1>
     <span lang="pt">Plataforma dMRV para créditos de reciclagem de plástico</span>
     <span lang="en">dMRV platform for plastic recycling credits</span>
@@ -1578,7 +1578,18 @@ hr { border: none; border-top: 1px solid var(--border-default); margin: 32px 0; 
   <div class="callout callout-info">
     <span class="callout-icon">◆</span>
     <div>
-      <strong><span lang="pt">Atualizações desta versão (v0.3.5 — 02/jun/2026)</span><span lang="en">Updates in this version (v0.3.5 — Jun 2, 2026)</span></strong>
+      <strong><span lang="pt">Atualizações desta versão (v0.4.3 — 03/jun/2026)</span><span lang="en">Updates in this version (v0.4.3 — Jun 3, 2026)</span></strong>
+      <p style="margin:6px 0 0; color: inherit;">
+        <span lang="pt"><strong>Catálogo de Regras 100% aprovado.</strong> Concluídas as Ondas 4 (pesagem) e 5 (Big Bang), o catálogo atingiu <strong>todas as regras com status APPROVED</strong> (catálogo v0.7.0) — todas revisadas a nível de implementação e prontas para auditoria. Em paralelo, iniciada a rodada de convergência PURE × EU/RecyClass: das 49 observações mapeadas pelo auditor metodológico, as 3 contradições prioritárias (A-01, A-02, A-03) foram <strong>resolvidas</strong>, junto a três gaps menores (G-08, G-09, B-01). A resolução introduziu uma nova regra de armazenamento universal (<strong>PG-21</strong>), levando o catálogo a <strong>132 regras</strong>, e dois novos registros de decisão técnica (<strong>ADR-037</strong> regras-irmãs + resolvedor de severidade; <strong>ADR-038</strong> eixos ortogonais de tipo de processo). <strong>Frontend web em produção:</strong> primeiras telas do registro publicadas na <code>main</code> — listagem, criação e detalhe de Participantes e Endereços, com endereços aninhados sob participantes e UI alinhada ao protótipo de design.</span>
+        <span lang="en"><strong>Rules Catalog 100% approved.</strong> Waves 4 (weighing) and 5 (Big Bang) are complete, bringing the catalog to <strong>all rules at APPROVED status</strong> (catalog v0.7.0) — each reviewed at implementation level and audit-ready. In parallel, the PURE × EU/RecyClass convergence pass began: of the 49 findings mapped by the methodology auditor, the 3 priority contradictions (A-01, A-02, A-03) are now <strong>resolved</strong>, along with three minor gaps (G-08, G-09, B-01). The resolution introduced a new universal-storage rule (<strong>PG-21</strong>), taking the catalog to <strong>132 rules</strong>, plus two new technical decision records (<strong>ADR-037</strong> sibling rules + severity resolver; <strong>ADR-038</strong> orthogonal process-type axes). <strong>Web frontend live:</strong> first registry screens shipped to <code>main</code> — Participant and Address list, create and detail, with addresses nested under participants and UI aligned to the design prototype.</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="callout callout-info" style="margin-top:12px;">
+    <span class="callout-icon">i</span>
+    <div>
+      <strong><span lang="pt">Versão anterior (v0.3.5 — 02/jun/2026)</span><span lang="en">Earlier version (v0.3.5 — Jun 2, 2026)</span></strong>
       <p style="margin:6px 0 0; color: inherit;">
         <span lang="pt"><strong>Colaboração formal com a Carrot Foundation iniciada.</strong> Laura Budzisz (Coordenadora de Operações da Carrot) compartilhou o pacote oficial do Methodology Factory — 7 skills do Claude, Carrot dMRV Hub v1.0 (118 páginas) e o framework MvF da Bold Carbon CH4 como template. Confirmado: <strong>PURE é a metodologia plástico oficial</strong> da Carrot (forkada do BOLD Recycling); EcoCircle é o author, Impactrakr é o INT, Carrot é o validador. <strong>ADR-033</strong> documenta a abstração Registry (registry-agnostic). <strong>Catálogo v0.5.0:</strong> +1 regra (PG-20 Role-specific accreditation, Carrot-inspired) totalizando 131 regras; primeiras 5 da Onda 1 KYC/Governance migradas para schema MvF-compliance com 4 campos novos (event_ids, geographic_scope, action_on_failure, rule_type). <strong>Plugin Impactrakr Methodology Factory v0.1.1</strong> criado (15 arquivos, arquitetura em 2 camadas: Layer A read-only da Carrot, Layer B operacional Impactrakr).</span>
         <span lang="en"><strong>Formal collaboration with Carrot Foundation started.</strong> Laura Budzisz (Carrot Operations Coordinator) shared the official Methodology Factory pack — 7 Claude skills, Carrot dMRV Hub v1.0 (118 pages) and the Bold Carbon CH4 MvF framework as template. Confirmed: <strong>PURE is the official plastic methodology</strong> for Carrot (forked from BOLD Recycling); EcoCircle is the author, Impactrakr is the INT, Carrot is the validator. <strong>ADR-033</strong> documents the Registry abstraction (registry-agnostic). <strong>Catalog v0.5.0:</strong> +1 rule (PG-20 Role-specific accreditation, Carrot-inspired) totaling 131 rules; first 5 Onda 1 KYC/Governance rules migrated to MvF-compliance schema with 4 new fields (event_ids, geographic_scope, action_on_failure, rule_type). <strong>Plugin Impactrakr Methodology Factory v0.1.1</strong> created (15 files, 2-layer architecture: Layer A read-only from Carrot, Layer B operational Impactrakr).</span>
@@ -2325,15 +2336,15 @@ flowchart LR
           <li lang="en">Full AWS deploy (Participant + Address already in the database)</li>
           <li lang="pt">Serviço de <strong>upload de documentos</strong> no S3 AWS</li>
           <li lang="en"><strong>Document upload</strong> service on AWS S3</li>
-          <li lang="pt"><strong>Frontend (Next.js)</strong> em paralelo — começa este sprint com telas da Julia (login, organização, cadastro de Participant)</li>
-          <li lang="en"><strong>Frontend (Next.js)</strong> in parallel — starts this sprint with Julia's screens (login, organization, Participant signup)</li>
+          <li lang="pt"><strong>Frontend web (Next.js) — primeiras telas do registro publicadas na <code>main</code> (03/jun):</strong> listagem, criação e detalhe de Participantes e Endereços, com endereços aninhados sob participantes e UI alinhada ao protótipo de design.</li>
+          <li lang="en"><strong>Web frontend (Next.js) — first registry screens shipped to <code>main</code> (Jun 3):</strong> Participant and Address list, create and detail, with addresses nested under participants and UI aligned to the design prototype.</li>
         </ul>
         <strong lang="pt" style="margin-top:10px; display:block;">Próximos</strong><strong lang="en" style="margin-top:10px; display:block;">Next</strong>
         <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 0; margin-top: 4px;">
           <li lang="pt"><strong>MassID</strong> — CRUD + transições de estado (cadeia de custódia)</li>
           <li lang="en"><strong>MassID</strong> — CRUD + state transitions (chain of custody)</li>
-          <li lang="pt"><strong>Validation Engine</strong> — implementação progressiva das 131 regras conforme aprovadas no catálogo</li>
-          <li lang="en"><strong>Validation Engine</strong> — progressive implementation of the 129 catalog rules as approved</li>
+          <li lang="pt"><strong>Validation Engine</strong> — implementação progressiva das 132 regras (todas APPROVED no catálogo)</li>
+          <li lang="en"><strong>Validation Engine</strong> — progressive implementation of the 132 catalog rules (all APPROVED)</li>
         </ul>
       </div>
     </div>
@@ -2362,8 +2373,8 @@ flowchart LR
         <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 0; margin-top: 4px;">
           <li lang="pt"><strong>Refinamento de modelo de negócio</strong> com o posicionamento M13 (add-on de ERPs) — input para arquitetura 2–3 anos</li>
           <li lang="en"><strong>Business model refinement</strong> aligned with M13 positioning (ERP add-on) — input for 2–3 year architecture</li>
-          <li lang="pt"><strong>Revisão 1-a-1 das 131 regras</strong> com nível de detalhe — uma falha compromete a credibilidade do sistema</li>
-          <li lang="en"><strong>1-to-1 review of the 131 rules</strong> at detailed level — a single failure compromises system credibility</li>
+          <li lang="pt"><strong>Revisão 1-a-1 das 132 regras</strong> com nível de detalhe — uma falha compromete a credibilidade do sistema</li>
+          <li lang="en"><strong>1-to-1 review of the 132 rules</strong> at detailed level — a single failure compromises system credibility</li>
           <li lang="pt">Mapeamento de requisitos de segurança (DIWASS/Recyclass) — R15</li>
           <li lang="en">Mapping security requirements (DIWASS/Recyclass) — R15</li>
         </ul>
@@ -2390,8 +2401,8 @@ flowchart LR
         </ul>
         <strong lang="pt" style="margin-top:10px; display:block;">Em andamento</strong><strong lang="en" style="margin-top:10px; display:block;">In progress</strong>
         <ul style="font-size: 12px; color: var(--text-secondary); padding-left: 0; margin-top: 4px;">
-          <li lang="pt"><strong>Validação cruzada das 131 regras</strong> com o mapeamento de documentos do reciclador EU (input do Gian) — cobertura PURE + EU + Recyclass</li>
-          <li lang="en"><strong>Cross-validation of the 131 rules</strong> against the EU recycler document mapping (input from Gian) — PURE + EU + Recyclass coverage</li>
+          <li lang="pt"><strong>Validação cruzada das 139 regras</strong> com o mapeamento de documentos do reciclador EU (input do Gian) — cobertura PURE + EU + Recyclass</li>
+          <li lang="en"><strong>Cross-validation of the 139 rules</strong> against the EU recycler document mapping (input from Gian) — PURE + EU + Recyclass coverage</li>
           <li lang="pt">Validação do protótipo com designer (Kelvin)</li>
           <li lang="en">Prototype validation with designer (Kelvin)</li>
           <li lang="pt">Resposta de Q2 (hazard_flag) e Q3 (processor_step)</li>
@@ -2467,6 +2478,14 @@ flowchart LR
         <div class="decision-title"><span lang="pt">Marco de Sprint 2 — autenticação multi-tenant entregue</span><span lang="en">Sprint 2 milestone — multi-tenant authentication delivered</span></div>
         <div class="decision-meta" lang="pt">40+ incrementos entre 25 e 28/mai · A12 implementado · Cognito provisionado em produção · contextos de "identidade" e "participantes" extraídos em pacotes · pipeline CI/CD modernizado · 8 ADRs novos (024–031). Blueprint publicado em GitHub Pages com atualização diária automática.</div>
         <div class="decision-meta" lang="en">40+ increments between May 25 and 28 · A12 implemented · Cognito provisioned in prod · "identity" and "participants" contexts split into packages · modernized CI/CD pipeline · 8 new ADRs (024–031). Blueprint published on GitHub Pages with automatic daily updates.</div>
+      </div>
+    </div>
+    <div class="decision" style="border-color: var(--accent);">
+      <div class="decision-id">03 Jun</div>
+      <div class="decision-body">
+        <div class="decision-title"><span lang="pt">Marco — Catálogo de Regras 100% aprovado + frontend do registro em produção</span><span lang="en">Milestone — Rules Catalog 100% approved + registry frontend live</span></div>
+        <div class="decision-meta" lang="pt">Concluídas as Ondas 4 (pesagem) e 5 (Big Bang) e a rodada de convergência PURE × EU/RecyClass: catálogo bumpado de v0.7.0 → <strong>v0.12.0</strong> com 139 regras todas em status APPROVED. <strong>17 dos 49 findings RESOLVED</strong> (35%), incluindo 10 dos 13 HIGH. 5 ADRs estabelecidos (ADR-037 sibling rules, ADR-038 orthogonal axes, ADR-039 EWC-canonical hazardous, ADR-040 single source of truth, ADR-041 mirror rules pattern). 8 novas regras PG (PG-21..PG-28) + 4 novos config docs (throughput, storage, process_subtype, EWC, SVHC, retention). 5 issues Linear (IMP-71..IMP-75 ≈ 14d) criadas pro Gabriel implementar. Frontend web: telas de Participante e Endereço (listagem, criação, detalhe) publicadas na <code>main</code>.</div>
+        <div class="decision-meta" lang="en">Waves 4 (weighing), 5 (Big Bang) and the PURE × EU/RecyClass convergence pass complete: catalog bumped from v0.7.0 → <strong>v0.12.0</strong> with 139 rules all at APPROVED status. <strong>17 of 49 findings RESOLVED</strong> (35%), including 10 of 13 HIGH. 5 ADRs established (ADR-037 sibling rules, ADR-038 orthogonal axes, ADR-039 EWC-canonical hazardous, ADR-040 single source of truth, ADR-041 mirror rules pattern). 8 new PG rules (PG-21..PG-28) + 4 new config docs (throughput, storage, process_subtype, EWC, SVHC, retention). 5 Linear issues (IMP-71..IMP-75 ≈ 14d) created for Gabriel to implement. Web frontend: Participant and Address screens (list, create, detail) shipped to <code>main</code>.</div>
       </div>
     </div>
     <div class="decision" style="border-color: var(--danger);">
@@ -2931,8 +2950,8 @@ flowchart LR
     <h2><span lang="pt">Catálogo de Regras de Validação</span><span lang="en">Validation Rules Catalog</span></h2>
   </div>
   <p class="lede">
-    <span lang="pt"><strong>131 regras</strong> que governam toda emissão de TRC: 67 do core PURE oficial + 20 gaps PURE a fechar + 27 EU/legais + 17 RecyClass. Cada regra explicada em L3 (pronta para implementação e auditoria BV) quando marcada como REVIEWED ou superior. Fonte: <code>PURE_dMRV_MASTER_FINAL.xlsx</code> + <code>PURE dMRV Gap Register</code> + metodologia PURE Junho/2025 + mapeamento de fluxo do reciclador EU (Gian, 01/jun).</span>
-    <span lang="en"><strong>131 rules</strong> that govern every TRC issuance: 67 official PURE core + 20 PURE gaps to close + 27 EU/legal + 17 RecyClass. Each rule explained at L3 (implementation- and BV-ready) when marked REVIEWED or higher. Source: <code>PURE_dMRV_MASTER_FINAL.xlsx</code> + <code>PURE dMRV Gap Register</code> + PURE methodology June/2025 + EU recycler flow mapping (Gian, Jun 1).</span>
+    <span lang="pt"><strong>139 regras</strong> que governam toda emissão de TRC: 67 do core PURE oficial + 28 gaps PURE + 27 EU/legais + 17 RecyClass. <strong>Todas com status APPROVED</strong> (catálogo v0.12.0). 8 novas regras PG (PG-21..PG-28) criadas na rodada de convergência pra fechar gaps cross-pilar. Explicadas em L3 (prontas para implementação e auditoria BV). Fonte: <code>PURE_dMRV_MASTER_FINAL.xlsx</code> + <code>PURE dMRV Gap Register</code> + metodologia PURE Junho/2025 + mapeamento de fluxo do reciclador EU (Gian, 01/jun) + ADR-037 a ADR-041.</span>
+    <span lang="en"><strong>139 rules</strong> that govern every TRC issuance: 67 official PURE core + 28 PURE gaps + 27 EU/legal + 17 RecyClass. <strong>All at APPROVED status</strong> (catalog v0.12.0). 8 new PG rules (PG-21..PG-28) created during convergence pass to close cross-pillar gaps. Explained at L3 (implementation- and BV-ready). Source: <code>PURE_dMRV_MASTER_FINAL.xlsx</code> + <code>PURE dMRV Gap Register</code> + PURE methodology June/2025 + EU recycler flow mapping (Gian, Jun 1) + ADR-037 through ADR-041.</span>
   </p>
 
   <div class="vr-stats" id="vr-stats"></div>
@@ -2971,7 +2990,7 @@ flowchart LR
 <section class="section" id="convergence">
   <div class="section-header">
     <div class="eyebrow"><span class="eyebrow-dot"></span>PC · <span lang="pt">Auditoria metodológica</span><span lang="en">Methodology audit</span></div>
-    <h2><span lang="pt">Pendências &amp; Conflitos entre as 131 regras</span><span lang="en">Pending &amp; Conflicts across 131 rules</span></h2>
+    <h2><span lang="pt">Pendências &amp; Conflitos entre as 139 regras</span><span lang="en">Pending &amp; Conflicts across 139 rules</span></h2>
   </div>
   <p class="lede">
     <span lang="pt">Análise cross-pilar dos conflitos e gaps abertos entre PURE / PG / EU / RecyClass: <strong>contradições</strong> (mesma data, severidades opostas), <strong>gaps inter-pilar</strong> (regras que assumem campos que nenhuma outra escreve), <strong>redundâncias</strong> (mesma intenção em pilares diferentes) e <strong>gaps reversos</strong> (regras EU/RC que a PURE methodology não cobre). Cada achado tem evidência verbatim, severidade e resolução proposta. Atualizado em <span id="cv-generated-at">2026-05-29</span>.</span>
@@ -3038,7 +3057,7 @@ flowchart LR
 <section class="section" id="approval-queue">
   <div class="section-header">
     <div class="eyebrow"><span class="eyebrow-dot"></span>FA · <span lang="pt">Workflow de aprovação</span><span lang="en">Approval workflow</span></div>
-    <h2><span lang="pt">Fila de Aprovação das 131 regras</span><span lang="en">Approval Queue · 131 rules</span></h2>
+    <h2><span lang="pt">Fila de Aprovação das 139 regras</span><span lang="en">Approval Queue · 139 rules</span></h2>
   </div>
   <p class="lede">
     <span lang="pt">Co-piloto guiado para você aprovar cada regra com contexto completo: citação verbatim da metodologia, diagrama do trigger, 2 cenários de MassID e checklist. Aprovações ficam salvas no navegador (localStorage). Quando quiser persistir no JSON oficial, clique <strong>"Exportar aprovações"</strong>.</span>
@@ -3095,12 +3114,12 @@ flowchart LR
 <footer class="footer">
   <div class="footer-grid">
     <div>
-      <strong style="color: var(--text-secondary);">Impactrakr · Product Blueprint <span id="footer-version">v0.3.3</span></strong>
-      <p style="margin: 4px 0 0; font-size: 12.5px;" lang="pt">Última atualização: <span id="footer-last-updated">28 de maio de 2026</span> · <span id="footer-relative-pt">hoje</span>. Owner: Rodrigo Moraes (Finder Consultoria).</p>
-      <p style="margin: 4px 0 0; font-size: 12.5px;" lang="en">Last update: <span id="footer-last-updated-en">May 28, 2026</span> · <span id="footer-relative-en">today</span>. Owner: Rodrigo Moraes (Finder Consultoria).</p>
+      <strong style="color: var(--text-secondary);">Impactrakr · Product Blueprint <span id="footer-version">v0.4.3</span></strong>
+      <p style="margin: 4px 0 0; font-size: 12.5px;" lang="pt">Última atualização: <span id="footer-last-updated">3 de junho de 2026</span> · <span id="footer-relative-pt">hoje</span>. Owner: Rodrigo Moraes (Finder Consultoria).</p>
+      <p style="margin: 4px 0 0; font-size: 12.5px;" lang="en">Last update: <span id="footer-last-updated-en">June 3, 2026</span> · <span id="footer-relative-en">today</span>. Owner: Rodrigo Moraes (Finder Consultoria).</p>
     </div>
     <div style="font-size: 12.5px; text-align: right;">
-      <div class="mono" id="footer-version-pill">v0.4.0 · 2026-06-03</div>
+      <div class="mono" id="footer-version-pill">v0.4.3 · 2026-06-03</div>
       <div class="mono" style="color: var(--accent); margin-top:4px;" id="footer-days-to-golive">— days to go-live</div>
     </div>
   </div>
@@ -3192,7 +3211,7 @@ function initMermaid() {
 window.addEventListener('load', () => setTimeout(initMermaid, 100));
 
 // ============ DYNAMIC DATES (status sempre fresco) ============
-const LAST_UPDATE_ISO = '2026-06-02';
+const LAST_UPDATE_ISO = '2026-06-03';
 const GO_LIVE_ISO = '2026-07-30';
 const PROJECT_START_ISO = '2026-05-01';
 
@@ -3455,8 +3474,11 @@ document.addEventListener('keydown', (e) => {
 
   function cvRenderStats() {
     const s = CV_DATA.summary;
+    const resolved = (s.by_status && s.by_status.RESOLVED) || 0;
+    const open = (s.by_status && s.by_status.OPEN) || (s.total_findings - resolved);
     cvEl('cv-stats').innerHTML =
       '<div class="cv-stat accent"><div class="cv-label">Total de achados</div><div class="cv-value">' + s.total_findings + '</div><div class="cv-sub">cobertura ' + s.coverage_pct + '% inter-pilar</div></div>' +
+      '<div class="cv-stat" style="background:rgba(16,185,129,0.06);border-color:rgba(16,185,129,0.3);"><div class="cv-label">Status</div><div class="cv-value"><span style="color:#10b981;">' + resolved + '</span> <span style="color:var(--text-tertiary);font-size:18px;">/ ' + open + '</span></div><div class="cv-sub">RESOLVED · OPEN</div></div>' +
       '<div class="cv-stat"><div class="cv-label">Por severidade</div><div class="cv-value">' + (s.by_severity.HIGH || 0) + ' <span style="color:#f59e0b;font-size:18px;">/ ' + (s.by_severity.MEDIUM || 0) + '</span> <span style="color:var(--text-tertiary);font-size:14px;">/ ' + (s.by_severity.LOW || 0) + '</span></div><div class="cv-sub">HIGH · MED · LOW</div></div>' +
       '<div class="cv-stat"><div class="cv-label">Contradições · Gaps · Redund.</div><div class="cv-value">' + (s.by_category.contradiction || 0) + ' · ' + (s.by_category.gap || 0) + ' · ' + (s.by_category.redundancy || 0) + '</div><div class="cv-sub">categorias principais</div></div>' +
       '<div class="cv-stat"><div class="cv-label">Gaps reversos UE/RC</div><div class="cv-value" style="color:#a78bfa;">' + (s.by_category.reverse_gap || 0) + '</div><div class="cv-sub">UE/RC sem cobertura PURE</div></div>';
@@ -3542,11 +3564,24 @@ document.addEventListener('keydown', (e) => {
     return true;
   }
 
-  // ====== Triagem 👍/👎 (localStorage) ======
+  // ====== Triagem 👍/👎 (JSON wins, localStorage fallback) ======
   const CV_TRI_KEY = 'impactrakr_cv_triagem_v1';
   function cvLoadTri() { try { return JSON.parse(localStorage.getItem(CV_TRI_KEY) || '{}'); } catch(e) { return {}; } }
   function cvSaveTri(t) { localStorage.setItem(CV_TRI_KEY, JSON.stringify(t)); }
-  function cvGetTri(id) { return cvLoadTri()[id] || null; }
+  // Merge: triagem persistida no JSON tem prioridade sobre localStorage
+  function cvMergedTri() {
+    const local = cvLoadTri();
+    const merged = { ...local };
+    if (CV_DATA && Array.isArray(CV_DATA.findings)) {
+      CV_DATA.findings.forEach(f => {
+        if (f.triagem && f.triagem.value) {
+          merged[f.id] = { value: f.triagem.value, ts: f.triagem.ts || '', source: 'json', by: f.triagem.by || null };
+        }
+      });
+    }
+    return merged;
+  }
+  function cvGetTri(id) { return cvMergedTri()[id] || null; }
   function cvSetTri(id, value) {
     const t = cvLoadTri();
     if (value === null || value === undefined || t[id]?.value === value) {
@@ -3560,7 +3595,7 @@ document.addEventListener('keydown', (e) => {
   }
   function cvRenderTriBar() {
     if (!CV_DATA) return;
-    const t = cvLoadTri();
+    const t = cvMergedTri();
     const total = CV_DATA.findings.length;
     const up = Object.values(t).filter(v => v.value === 'up').length;
     const down = Object.values(t).filter(v => v.value === 'down').length;
@@ -3575,38 +3610,48 @@ document.addEventListener('keydown', (e) => {
   }
 
   function cvRenderFindings() {
-    const tri = cvLoadTri();
+    const tri = cvMergedTri();
     let filtered = CV_DATA.findings.filter(cvMatch);
     // filtro de triagem
     if (CV_F.tri === 'up') filtered = filtered.filter(f => tri[f.id]?.value === 'up');
     else if (CV_F.tri === 'down') filtered = filtered.filter(f => tri[f.id]?.value === 'down');
     else if (CV_F.tri === 'none') filtered = filtered.filter(f => !tri[f.id]);
 
-    // ordena por severidade (HIGH > MED > LOW), depois por categoria
+    // ordena: RESOLVED vai pro fim; depois severidade (HIGH > MED > LOW), depois categoria
     const sevOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
     const catOrder = { contradiction: 0, gap: 1, reverse_gap: 2, redundancy: 3 };
-    filtered.sort((a,b) => (sevOrder[a.severity] ?? 9) - (sevOrder[b.severity] ?? 9) || (catOrder[a.category] ?? 9) - (catOrder[b.category] ?? 9) || a.id.localeCompare(b.id));
+    filtered.sort((a,b) => {
+      const ra = a.status === 'RESOLVED' ? 1 : 0;
+      const rb = b.status === 'RESOLVED' ? 1 : 0;
+      if (ra !== rb) return ra - rb;
+      return (sevOrder[a.severity] ?? 9) - (sevOrder[b.severity] ?? 9) || (catOrder[a.category] ?? 9) - (catOrder[b.category] ?? 9) || a.id.localeCompare(b.id);
+    });
     const container = cvEl('cv-list');
     if (filtered.length === 0) {
       container.innerHTML = '<div class="vr-empty">Nenhum achado corresponde aos filtros.</div>';
       return;
     }
     container.innerHTML = filtered.map(f => {
-      const t = tri[f.id]?.value;
-      const cardClass = t === 'up' ? ' triaged-up' : (t === 'down' ? ' triaged-down' : '');
+      const triState = tri[f.id];
+      const t = triState?.value;
+      const triSource = triState?.source === 'json' ? ' · json' : (triState ? ' · local' : '');
+      const triBy = triState?.by ? ' (' + cvEsc(triState.by) + ')' : '';
+      const isResolved = f.status === 'RESOLVED';
+      const cardClass = isResolved ? ' is-resolved' : (t === 'up' ? ' triaged-up' : (t === 'down' ? ' triaged-down' : ''));
       const isNew = f.is_new === true;
-      return '<article class="cv-card cv-cat-' + f.category + cardClass + (isNew ? ' is-new' : '') + '">' +
+      return '<article class="cv-card cv-cat-' + f.category + cardClass + (isNew ? ' is-new' : '') + '"' + (isResolved ? ' style="opacity:0.85;border-left:4px solid #10b981;"' : '') + '>' +
         '<div class="cv-card-head">' +
           '<span class="cv-card-id">' + f.id + '</span>' +
           '<span class="cv-card-title">' + cvEsc(f.title) + (isNew && f.new_source ? '<span class="cv-card-new-src">★ ' + cvEsc(f.new_source) + '</span>' : '') + '</span>' +
           '<div class="cv-card-badges">' +
+            (isResolved ? '<span class="cv-b" style="background:#10b981;color:#fff;font-weight:700;">✓ RESOLVED</span>' : '') +
             (isNew ? '<span class="cv-b vr-b-new" title="Achado recém-adicionado">NEW</span>' : '') +
             '<span class="cv-b cv-cat-badge-' + f.category + '">' + f.category.replace('_',' ') + '</span>' +
             '<span class="cv-b cv-sev-' + f.severity + '">' + f.severity + '</span>' +
             (f.decision_by ? '<span class="cv-b" style="background:var(--bg-elevated, var(--bg-default));color:var(--text-secondary);">' + cvEsc(f.decision_by) + '</span>' : '') +
           '</div>' +
           '<div class="cv-triagem">' +
-            '<button class="cv-tri-btn up' + (t === 'up' ? ' active' : '') + '" data-cv-tri="up" data-cv-id="' + f.id + '" title="Concordo / aceito como está">👍</button>' +
+            '<button class="cv-tri-btn up' + (t === 'up' ? ' active' : '') + '" data-cv-tri="up" data-cv-id="' + f.id + '" title="Concordo / aceito como está' + (triSource ? ' [' + triSource.trim().replace(' · ','') + triBy + ']' : '') + '">👍</button>' +
             '<button class="cv-tri-btn down' + (t === 'down' ? ' active' : '') + '" data-cv-tri="down" data-cv-id="' + f.id + '" title="Discordo / precisa revisar">👎</button>' +
           '</div>' +
         '</div>' +
@@ -3615,6 +3660,7 @@ document.addEventListener('keydown', (e) => {
           (f.description ? '<div class="cv-card-block"><div class="cv-bl">Descrição</div><p>' + cvEsc(f.description) + '</p></div>' : '') +
           (f.evidence ? '<div class="cv-card-block evidence"><div class="cv-bl">Evidência</div><p>' + cvEsc(f.evidence) + '</p></div>' : '') +
           (f.resolution ? '<div class="cv-card-block"><div class="cv-bl">Resolução proposta</div><p>' + cvEsc(f.resolution) + '</p></div>' : '') +
+          (isResolved && f.resolution_applied ? '<div class="cv-card-block" style="background:rgba(16,185,129,0.08);border-left:3px solid #10b981;padding:10px 12px;border-radius:6px;"><div class="cv-bl" style="color:#10b981;">✓ Resolução aplicada' + (f.resolved_at ? ' · ' + cvEsc(f.resolved_at) : '') + '</div><p>' + cvEsc(f.resolution_applied) + '</p>' + (f.resolution_ref && f.resolution_ref.length ? '<p style="margin-top:6px;font-size:11.5px;color:var(--text-tertiary);">Refs: ' + f.resolution_ref.map(r => '<code>' + cvEsc(r) + '</code>').join(' · ') + '</p>' : '') + '</div>' : '') +
         '</div>' +
       '</article>';
     }).join('');

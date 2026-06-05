@@ -114,9 +114,12 @@
             "PRE_REGISTRY_SUBMIT",
             "TERMS_VERSION_PUBLISHED",
             "TRC_RETIREMENT",
-            "INCIDENT_TRIGGERED"
+            "INCIDENT_TRIGGERED",
+            "EXCEPTION_REQUEST_TIMEOUT",
+            "PERIODIC_RETENTION_CHECK",
+            "EVIDENCE_ATTACH"
           ],
-          "description": "When the rule fires. Registry-agnostic per ADR-033."
+          "description": "When the rule fires. Registry-agnostic per ADR-033. EXCEPTION_REQUEST_TIMEOUT (ADR-041) drives 30d timer for P-67/PG-12. PERIODIC_RETENTION_CHECK drives PG-25 retention sweep. EVIDENCE_ATTACH drives PG-24 document integrity at attach time."
         },
         "phase": {
           "type": "string",
@@ -128,7 +131,9 @@
             "POST_PUBLISH",
             "POST_RECYCLING",
             "MONTHLY",
-            "ENFORCEMENT"
+            "ENFORCEMENT",
+            "PERIODIC_JOB",
+            "POST_ATTACH"
           ],
           "description": "Phase within the event lifecycle. POST_CREATE/POST_UPDATE/POST_PUBLISH added in v0.2 to support PARTICIPANT_CREATE/UPDATE and TERMS_VERSION_PUBLISHED triggers."
         },
@@ -453,6 +458,19 @@
       },
       "description": "Cross-references to other rules or BV controls with overlap or dependency."
     },
+    "siblings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(P|PG|EU|RC|BV)-[0-9]{2}$"
+      },
+      "description": "Sibling rules that evaluate the same underlying signal in different pillars. Used by Validation Engine + severity_resolver to compute effective severity across the group. Sibling sets must be symmetric (rule A listing B as sibling implies B lists A). See ADR-037."
+    },
+    "severity_resolver": {
+      "type": "string",
+      "enum": ["max_among_pillars", "by_exception_class"],
+      "description": "Resolution strategy. 'max_among_pillars' (ADR-037) = effective severity = max declared among siblings that fired in same window. 'by_exception_class' (ADR-041) = effective severity = BLOCK when exception.severityClass='severe', else FLAG. Declared severity preserved for audit trail. See ADR-037 / ADR-041."
+    },
     "references": {
       "type": "array",
       "items": {
@@ -491,6 +509,11 @@
               "IMP_46_DOCUMENT_MATRIX",
               "ADR_002_REGIONAL_COMPLIANCE_ADAPTER",
               "ADR_033_REGISTRY_ABSTRACTION",
+              "ADR_037_SIBLING_RULES_SEVERITY_RESOLVER",
+              "ADR_038_PROCESS_TYPE_ORTHOGONAL_AXES",
+              "ADR_039_HAZARDOUS_EWC_CANONICAL",
+              "ADR_040_RECYCLER_LICENSING_SOURCE_OF_TRUTH",
+              "ADR_041_MIRROR_RULES_PATTERN",
               "OTHER"
             ]
           },
