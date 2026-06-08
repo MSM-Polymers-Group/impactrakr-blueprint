@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Impactrakr · Product Blueprint v0.4.4</title>
+    <title>Impactrakr · Product Blueprint v0.4.5</title>
     <meta
       name="description"
       content="Plataforma dMRV para validação de créditos de reciclagem de plástico. Cliente: MARE Foundation / MSM Polymers (Malta)."
@@ -2989,7 +2989,7 @@
             <span class="search-btn-label" lang="en">Search...</span>
             <kbd>⌘K</kbd>
           </button>
-          <span class="version-pill">v0.4.4 · 8 Jun 2026</span>
+          <span class="version-pill">v0.4.5 · 8 Jun 2026</span>
           <div class="lang-toggle" role="group" aria-label="Language">
             <button data-lang="pt" class="active" aria-label="Português">PT</button>
             <button data-lang="en" aria-label="English">EN</button>
@@ -3201,7 +3201,7 @@
           <div class="tab-pane active" id="pane-blueprint" role="tabpanel">
             <!-- ============ HERO ============ -->
             <section class="hero">
-              <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.4.4</div>
+              <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.4.5</div>
               <h1>
                 <span lang="pt">Plataforma dMRV para créditos de reciclagem de plástico</span>
                 <span lang="en">dMRV platform for plastic recycling credits</span>
@@ -3273,8 +3273,8 @@
                   </div>
                   <div class="kpi-value kpi-value-sm">23</div>
                   <div class="kpi-sub">
-                    <span lang="pt">7 metod. · 11 arq. · 8 ops.</span
-                    ><span lang="en">7 method. · 11 arch. · 8 ops.</span>
+                    <span lang="pt">11 metod. · 12 arq. · 8 ops.</span
+                    ><span lang="en">11 method. · 12 arch. · 8 ops.</span>
                   </div>
                 </div>
               </div>
@@ -3283,44 +3283,79 @@
                 <span class="callout-icon">◆</span>
                 <div>
                   <strong
-                    ><span lang="pt">Atualizações desta versão (v0.4.4 — 08/jun/2026)</span
-                    ><span lang="en">Updates in this version (v0.4.4 — Jun 8, 2026)</span></strong
+                    ><span lang="pt">Atualizações desta versão (v0.4.5 — 08/jun/2026 · tarde)</span
+                    ><span lang="en"
+                      >Updates in this version (v0.4.5 — Jun 8, 2026 · afternoon)</span
+                    ></strong
                   >
                   <p style="margin: 6px 0 0; color: inherit">
                     <span lang="pt"
-                      ><strong>Catálogo 100% APPROVED + convergência avançada + frontend em produção + validação Carrot na agenda de hoje.</strong> Catálogo promovido a
-                      <strong>v0.12.0</strong> com <strong>139 regras todas em APPROVED</strong>
-                      (Ondas 4 e 5 concluídas). Da rodada de convergência PURE × EU/RecyClass,
-                      <strong>17 dos 49 achados resolvidos</strong> (35%, incluindo 10 dos 13 HIGH),
-                      com 8 novas regras de processo (PG-21..PG-28) e 5 ADRs estabelecidos como
-                      vocabulário arquitetural (ADR-037 regras-irmãs, ADR-038 eixos ortogonais,
-                      ADR-039 perigo EWC canônico, ADR-040 fonte única de verdade, ADR-041
-                      regras-espelho). <strong>Frontend web em produção:</strong> telas de
-                      Participantes e Endereços (listagem, criação, detalhe) na <code>main</code>,
-                      storage S3, validação E2E via Playwright. <strong>Daily 08/jun:</strong> Gabriel
-                      mantém foco no core (Validation Engine + MassID);
-                      <strong>Rodrigo passa a construir o módulo de Homologação em paralelo</strong>
-                      aproveitando o mesmo layout.
-                      <strong>Validação final do catálogo com Laura (Carrot)</strong> hoje 10h antes
-                      de liberar implementação 1-a-1 (Carrot está migrando MvF v1 → v2 — alinhamento
-                      crítico).</span
+                      ><strong>Call Laura (Carrot, 16h) + correção arquitetural (ADR-046).</strong>
+                      A Laura validou o framing dos 3 pilares (PURE 67 + continental 27 + local 17 =
+                      139) e confirmou que <strong>Carrot só valida a metodologia PURE</strong> —
+                      regras continentais e locais ficam dentro da Impactrakr e viram um documento
+                      de homologação consolidado que viaja no payload (M15).
+                      <strong>Mudança de processo:</strong> Impactrakr passa a fazer a
+                      <strong>pré-homologação</strong> dos participantes (M16); Carrot só faz
+                      cadastro oficial + auditoria de 3ª parte — Laura vai falar com Rafa pra liberar
+                      a API. Nomenclatura geo renomeada: "EU rules" → "regras continentais/federais",
+                      "Malta rules" → "regras locais/país" (M17, ajuste em ADR-002). Pendência aberta:
+                      <strong>rewards do Bin Custodian</strong> — PURE define percentual? Carrot hoje
+                      não distribui pra B. <strong>Correção arquitetural (WhatsApp Gabriel):</strong>
+                      <code>targetRegistryId</code> e <code>roleType</code> saem de Participant e vão
+                      pra <strong>Homologation</strong> (A15). Participant vira identidade pura,
+                      Homologation owns o vínculo operacional + contrato Recycler↔Carrot + aceite de
+                      TOS. WeyServ (G+B) vira 2 Homologation rows, não array de enums.
+                      <strong>A14 resolvida</strong>: lifecycle agora vive em Homologation, identity
+                      é imutável. ADR-046 documenta a correção; ADR-033 §4 marcado como superseded.
+                      Cronograma confirmado: integração Carrot em julho, go-live 30/jul.</span
                     >
                     <span lang="en"
-                      ><strong>Catalog 100% APPROVED + convergence pass advanced + frontend live + Carrot validation on today's agenda.</strong> Catalog promoted to
-                      <strong>v0.12.0</strong> with <strong>139 rules all at APPROVED</strong>
-                      (Waves 4 and 5 complete). From the PURE × EU/RecyClass convergence pass,
-                      <strong>17 of 49 findings resolved</strong> (35%, including 10 of 13 HIGH),
-                      with 8 new process rules (PG-21..PG-28) and 5 ADRs established as architectural
-                      vocabulary (ADR-037 sibling rules, ADR-038 orthogonal axes, ADR-039
-                      EWC-canonical hazard, ADR-040 single source of truth, ADR-041 mirror rules).
-                      <strong>Web frontend live:</strong> Participant and Address screens (list,
-                      create, detail) on <code>main</code>, S3 storage, E2E validation via Playwright.
-                      <strong>Daily Jun 8:</strong> Gabriel stays on the core (Validation Engine +
-                      MassID); <strong>Rodrigo starts building the Homologation module in parallel</strong>
-                      reusing the same layout.
-                      <strong>Final catalog validation with Laura (Carrot)</strong> today 10am before
-                      releasing 1-to-1 implementation (Carrot is migrating MvF v1 → v2 — critical
-                      alignment).</span
+                      ><strong>Laura call (Carrot, 4pm) + architectural fix (ADR-046).</strong>
+                      Laura validated the 3-pillar framing (PURE 67 + continental 27 + local 17 =
+                      139) and confirmed that <strong>Carrot only validates PURE methodology</strong>
+                      — continental and local rules stay inside Impactrakr and become a consolidated
+                      homologation document carried in the payload (M15).
+                      <strong>Process change:</strong> Impactrakr takes over
+                      <strong>pre-homologation</strong> of participants (M16); Carrot just does
+                      official registration + 3rd party audit — Laura will talk to Rafa to enable
+                      that API. Geo naming renamed: "EU rules" → "continental/federal rules", "Malta
+                      rules" → "local/country rules" (M17, ADR-002 update). Open item:
+                      <strong>Bin Custodian rewards</strong> — does PURE define a percentage? Carrot
+                      currently doesn't pay B. <strong>Architectural fix (Gabriel WhatsApp):</strong>
+                      <code>targetRegistryId</code> and <code>roleType</code> move out of Participant
+                      and into <strong>Homologation</strong> (A15). Participant becomes pure
+                      identity; Homologation owns the operational binding + Recycler↔Carrot contract
+                      + TOS acceptance. WeyServ (G+B) becomes 2 Homologation rows, not an enum array.
+                      <strong>A14 resolved</strong>: lifecycle now lives in Homologation; identity is
+                      immutable. ADR-046 documents the fix; ADR-033 §4 marked superseded. Timeline
+                      confirmed: Carrot integration in July, go-live Jul 30.</span
+                    >
+                  </p>
+                </div>
+              </div>
+
+              <div class="callout callout-info" style="margin-top: 12px">
+                <span class="callout-icon">i</span>
+                <div>
+                  <strong
+                    ><span lang="pt">Versão anterior (v0.4.4 — 08/jun/2026 · manhã)</span
+                    ><span lang="en">Earlier version (v0.4.4 — Jun 8, 2026 · morning)</span></strong
+                  >
+                  <p style="margin: 6px 0 0; color: inherit">
+                    <span lang="pt"
+                      ><strong>Catálogo 100% APPROVED + convergência avançada + frontend em produção.</strong>
+                      Catálogo promovido a v0.12.0 com 139 regras todas em APPROVED. 17/49 findings
+                      resolvidos (35%, 10/13 HIGH). 8 novas regras PG-21..PG-28 + 5 ADRs (037..041).
+                      Frontend web Participant + Address publicado na main. Validação final com
+                      Laura agendada pra hoje 10h.</span
+                    >
+                    <span lang="en"
+                      ><strong>Catalog 100% APPROVED + convergence pass advanced + frontend live.</strong>
+                      Catalog promoted to v0.12.0 with 139 rules all at APPROVED. 17/49 findings
+                      resolved (35%, 10/13 HIGH). 8 new PG-21..PG-28 rules + 5 ADRs (037..041). Web
+                      frontend Participant + Address shipped to main. Final validation with Laura
+                      scheduled for today 10am.</span
                     >
                   </p>
                 </div>
@@ -6274,6 +6309,49 @@ flowchart LR
                     </div>
                   </div>
                 </div>
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id">08 Jun · 16h</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Call com Laura (Carrot Ops) + correção arquitetural via WhatsApp Gabriel</span
+                      ><span lang="en"
+                        >Call with Laura (Carrot Ops) + architectural fix via Gabriel WhatsApp</span
+                      >
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      <strong>Call Laura:</strong> validou os 3 pilares (PURE 67 + continental 27 +
+                      local 17 = 139). Confirmou nome "PURE" (M14). Confirmou que Carrot só valida
+                      metodologia (M15) — regras continentais/locais viram documento de homologação
+                      consolidado no payload. Mudança de responsabilidade: Impactrakr passa a fazer
+                      pré-homologação (M16). Renomeação geo-agnóstica (M17). Pendências abertas:
+                      Bin Custodian rewards (Rodrigo confirma percentual PURE; Laura conversa com
+                      Ian) e API Carrot pra documento de homologação (Laura → Rafa). Recorrência de
+                      alinhamento (semanal ou canal Slack) — Rodrigo responde. Cronograma:
+                      integração em julho, go-live 30/jul. <strong>WhatsApp Gabriel (16h):</strong>
+                      <code>targetRegistryId</code> e <code>roleType</code> devem morar em
+                      <code>Homologation</code>, não em <code>Participant</code>. Rodrigo concordou
+                      na hora. ADR-046 escrito + ADR-033 §4 marcado superseded. A14 resolvida como
+                      consequência (lifecycle vive em Homologation; identity é imutável). A15
+                      registrada.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      <strong>Laura call:</strong> validated the 3 pillars (PURE 67 + continental 27
+                      + local 17 = 139). Confirmed the "PURE" name (M14). Confirmed Carrot only
+                      validates methodology (M15) — continental/local rules become a consolidated
+                      homologation document in the payload. Responsibility shift: Impactrakr takes
+                      over pre-homologation (M16). Geo-agnostic renaming (M17). Open items: Bin
+                      Custodian rewards (Rodrigo confirms PURE percentage; Laura discusses with Ian)
+                      and Carrot API for homologation document (Laura → Rafa). Alignment cadence
+                      (weekly or Slack channel) — Rodrigo to reply. Timeline: integration in July,
+                      go-live Jul 30. <strong>Gabriel WhatsApp (4pm):</strong>
+                      <code>targetRegistryId</code> and <code>roleType</code> should live on
+                      <code>Homologation</code>, not <code>Participant</code>. Rodrigo agreed on the
+                      spot. ADR-046 written + ADR-033 §4 marked superseded. A14 resolved as a side
+                      effect (lifecycle lives on Homologation; identity is immutable). A15 logged.
+                    </div>
+                  </div>
+                </div>
                 <div class="decision" style="border-color: var(--danger)">
                   <div class="decision-id">01 Jun</div>
                   <div class="decision-body">
@@ -6330,16 +6408,16 @@ flowchart LR
               </div>
               <p class="lede">
                 <span lang="pt"
-                  >27 decisões fixadas até hoje — registro auditável para sustentar e justificar o
+                  >32 decisões fixadas até hoje — registro auditável para sustentar e justificar o
                   produto.</span
                 ><span lang="en"
-                  >27 decisions locked in so far — auditable record to back and justify the
+                  >32 decisions locked in so far — auditable record to back and justify the
                   product.</span
                 >
               </p>
 
               <h3>
-                <span lang="pt">Metodológicas</span><span lang="en">Methodological</span> (7)
+                <span lang="pt">Metodológicas</span><span lang="en">Methodological</span> (11)
                 <span class="badge badge-purple" style="margin-left: 8px">Lino + Gian + Julia</span>
               </h3>
               <div class="decision-list">
@@ -6571,10 +6649,106 @@ flowchart LR
                   </div>
                   <div class="decision-date">19 May</div>
                 </div>
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">M14</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Nome "PURE" confirmado oficialmente pela Carrot</span
+                      ><span lang="en">"PURE" name officially confirmed by Carrot</span>
+                    </div>
+                    <div class="decision-meta">
+                      <span lang="pt"
+                        >Laura na call: "vai ficar firme". Sem mais pendência de aprovação de
+                        nome — adotado em todas as superfícies (catalog, docs, ADRs).</span
+                      ><span lang="en"
+                        >Laura on the call: "it's locked in". No more naming approval pending —
+                        adopted across all surfaces (catalog, docs, ADRs).</span
+                      >
+                    </div>
+                  </div>
+                  <div class="decision-date">08 Jun</div>
+                </div>
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">M15</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Carrot só valida regras PURE; regras continentais + locais ficam internas
+                        e viram documento de homologação consolidado</span
+                      ><span lang="en"
+                        >Carrot only validates PURE rules; continental + local rules stay internal
+                        and become a consolidated homologation document</span
+                      >
+                    </div>
+                    <div class="decision-meta">
+                      <span lang="pt"
+                        >Laura: Carrot é "orientativa", não validativa. As 27 continentais + 17
+                        locais ficam internas; payload pra Carrot carrega só uma flag/documento de
+                        homologação consolidado. Atualiza M9 com nuance.</span
+                      ><span lang="en"
+                        >Laura: Carrot is "advisory", not validating. The 27 continental + 17 local
+                        rules stay internal; payload to Carrot carries just a consolidated
+                        homologation flag/document. Refines M9.</span
+                      >
+                    </div>
+                  </div>
+                  <div class="decision-date">08 Jun</div>
+                </div>
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">M16</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Impactrakr passa a fazer a pré-homologação dos participantes</span
+                      ><span lang="en"
+                        >Impactrakr takes over participant pre-homologation</span
+                      >
+                    </div>
+                    <div class="decision-meta">
+                      <span lang="pt"
+                        >Mudança em relação ao modelo Carrot atual. Carrot só faz cadastro oficial
+                        + auditoria de 3ª parte. Pendente do lado Carrot: liberar API pra receber
+                        documento de homologação criado por integrador (Laura → Rafa).</span
+                      ><span lang="en"
+                        >Change vs. current Carrot model. Carrot just does official registration +
+                        3rd party audit. Pending on Carrot side: enable API to accept homologation
+                        document created by integrator (Laura → Rafa).</span
+                      >
+                    </div>
+                  </div>
+                  <div class="decision-date">08 Jun</div>
+                </div>
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">M17</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Nomenclatura geo: "EU rules" → "continentais/federais", "Malta rules" →
+                        "locais/país"</span
+                      ><span lang="en"
+                        >Geo naming: "EU rules" → "continental/federal", "Malta rules" →
+                        "local/country"</span
+                      >
+                    </div>
+                    <div class="decision-meta">
+                      <span lang="pt"
+                        >Sugestão da Laura pra arquitetura ficar geo-agnóstica. Funciona pra UE
+                        hoje, Mercosul amanhã, Costa Rica depois. Ajuste vai pra ADR-002
+                        (Regional Compliance Adapter).</span
+                      ><span lang="en"
+                        >Laura's suggestion to keep the architecture geo-agnostic. Works for EU
+                        today, Mercosul tomorrow, Costa Rica next. Adjustment goes into ADR-002
+                        (Regional Compliance Adapter).</span
+                      >
+                    </div>
+                  </div>
+                  <div class="decision-date">08 Jun</div>
+                </div>
               </div>
 
               <h3 style="margin-top: 40px">
-                <span lang="pt">Arquiteturais</span><span lang="en">Architectural</span> (11)
+                <span lang="pt">Arquiteturais</span><span lang="en">Architectural</span> (12)
                 <span class="badge badge-purple" style="margin-left: 8px">Rodrigo + Gabriel</span>
               </h3>
               <div class="decision-list">
@@ -6741,30 +6915,68 @@ flowchart LR
                   </div>
                   <div class="decision-date">25 May</div>
                 </div>
-                <div class="decision" style="border-color: var(--accent)">
-                  <div class="decision-id" style="color: var(--accent)">A14</div>
+                <div class="decision" style="border-color: var(--success)">
+                  <div class="decision-id" style="color: var(--success)">A14 ✓</div>
                   <div class="decision-body">
                     <div class="decision-title">
                       <span lang="pt"
-                        >Participant: UPDATE/DELETE fora do MVP — fluxo pós-emissão sensível</span
+                        >Participant: UPDATE/DELETE fora do MVP — fluxo pós-emissão sensível
+                        <span style="color: var(--success); font-weight: 600"
+                          >· resolvido em 08/jun via ADR-046</span
+                        ></span
                       ><span lang="en"
-                        >Participant: UPDATE/DELETE out of MVP — post-issuance flow is
-                        sensitive</span
+                        >Participant: UPDATE/DELETE out of MVP — post-issuance flow is sensitive
+                        <span style="color: var(--success); font-weight: 600"
+                          >· resolved Jun 8 via ADR-046</span
+                        ></span
                       >
                     </div>
                     <div class="decision-meta">
                       <span lang="pt"
-                        >Após emitir TRC para uma cadeia, alterar/remover Participant pode invalidar
-                        a rastreabilidade. Decisão de produto: cancelar+recriar versus marcar
-                        inactive versus append-only ainda a alinhar entre Rodrigo + Gabriel.</span
+                        ><strong>Resolução (ADR-046):</strong> Participant vira identidade pura
+                        (imutável). Lifecycle migra inteiro pra Homologation — granted, suspended,
+                        revoked, expired — seguindo o padrão non_retroactive_revocation do ADR-040.
+                        Identity não muda pós-TRC; Homologation absorve o ciclo.</span
                       ><span lang="en"
-                        >After issuing TRC for a chain, altering/removing a Participant can
-                        invalidate traceability. Product decision: cancel+recreate vs mark inactive
-                        vs append-only — still to be aligned between Rodrigo + Gabriel.</span
+                        ><strong>Resolution (ADR-046):</strong> Participant becomes pure identity
+                        (immutable). Full lifecycle moves to Homologation — granted, suspended,
+                        revoked, expired — following the non_retroactive_revocation pattern from
+                        ADR-040. Identity is unchanged post-TRC; Homologation absorbs the
+                        cycle.</span
                       >
                     </div>
                   </div>
-                  <div class="decision-date">01 Jun</div>
+                  <div class="decision-date">01 Jun → 08 Jun</div>
+                </div>
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">A15</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        ><code>Homologation</code> owns <code>targetRegistryId</code> +
+                        <code>roleType</code>; Participant é identidade pura</span
+                      ><span lang="en"
+                        ><code>Homologation</code> owns <code>targetRegistryId</code> +
+                        <code>roleType</code>; Participant is pure identity</span
+                      >
+                    </div>
+                    <div class="decision-meta">
+                      <span lang="pt"
+                        >Correção do schema futuro do ADR-033 §4. Levantada pelo Gabriel no WhatsApp
+                        (08/jun 16h). Aceita imediatamente. Honra a abstração registry-agnostic.
+                        Permite multi-registry sem migração. WeyServ (G+B) vira 2 Homologation rows.
+                        Contrato Recycler↔Carrot e aceite de TOS são evidência da Homologation
+                        (conecta com a call da Laura). Documentado em ADR-046.</span
+                      ><span lang="en"
+                        >Correction to ADR-033 §4 future schema. Raised by Gabriel on WhatsApp
+                        (Jun 8, 4pm). Accepted immediately. Honors the registry-agnostic abstraction.
+                        Multi-registry without migration. WeyServ (G+B) becomes 2 Homologation rows.
+                        Recycler↔Carrot contract and TOS acceptance are evidence on Homologation
+                        (connects with Laura's call). Documented in ADR-046.</span
+                      >
+                    </div>
+                  </div>
+                  <div class="decision-date">08 Jun</div>
                 </div>
               </div>
 
@@ -6867,13 +7079,65 @@ flowchart LR
               </div>
               <p class="lede">
                 <span lang="pt"
-                  >8 itens com owner e prazo. Cada um destravado solta um pedaço do produto.</span
+                  >9 itens com owner e prazo. Cada um destravado solta um pedaço do produto.</span
                 ><span lang="en"
-                  >8 items with owner and deadline. Each one unlocks a piece of the product.</span
+                  >9 items with owner and deadline. Each one unlocks a piece of the product.</span
                 >
               </p>
 
               <div class="decision-list">
+                <div class="decision risk-high">
+                  <div class="decision-id" style="color: var(--danger)">RW1</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Rewards do Bin Custodian: PURE define percentual? Carrot hoje não
+                        distribui pra B</span
+                      ><span lang="en"
+                        >Bin Custodian rewards: does PURE define a percentage? Carrot currently
+                        doesn't pay B</span
+                      >
+                    </div>
+                    <div class="decision-meta">
+                      <span lang="pt"
+                        >Levantado na call Laura 08/jun. Rodrigo vai confirmar no WhatsApp se na
+                        PURE há percentual. Em paralelo Laura conversa com Ian pra revisar a
+                        estrutura de rewards do lado Carrot. Bloqueia smart contract de
+                        distribuição.</span
+                      ><span lang="en"
+                        >Raised on Laura's call Jun 8. Rodrigo to confirm via WhatsApp whether PURE
+                        defines a percentage. In parallel Laura discusses with Ian to revise the
+                        Carrot-side rewards structure. Blocks distribution smart contract.</span
+                      >
+                    </div>
+                  </div>
+                  <div class="decision-date">Rodrigo + Laura/Ian · 12 Jun</div>
+                </div>
+                <div class="decision risk-medium">
+                  <div class="decision-id" style="color: var(--warning)">CI1</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >API Carrot pra receber documento de homologação criado por
+                        integrador</span
+                      ><span lang="en"
+                        >Carrot API to accept homologation document created by integrator</span
+                      >
+                    </div>
+                    <div class="decision-meta">
+                      <span lang="pt"
+                        >Hoje só Carrot cria homologação. Pra M16 funcionar, precisa endpoint que
+                        aceite documento via integração. Laura → Rafa. Bloqueia integração de
+                        julho.</span
+                      ><span lang="en"
+                        >Today only Carrot creates homologation. For M16 to work, an endpoint that
+                        accepts the document via integration is needed. Laura → Rafa. Blocks July
+                        integration.</span
+                      >
+                    </div>
+                  </div>
+                  <div class="decision-date">Carrot (Rafa) · 15 Jun</div>
+                </div>
                 <div class="decision risk-high">
                   <div class="decision-id" style="color: var(--danger)">Q2</div>
                   <div class="decision-body">
@@ -8991,7 +9255,7 @@ flowchart LR
             <div class="footer-grid">
               <div>
                 <strong style="color: var(--text-secondary)"
-                  >Impactrakr · Product Blueprint <span id="footer-version">v0.4.4</span></strong
+                  >Impactrakr · Product Blueprint <span id="footer-version">v0.4.5</span></strong
                 >
                 <p style="margin: 4px 0 0; font-size: 12.5px" lang="pt">
                   Última atualização: <span id="footer-last-updated">8 de junho de 2026</span> ·
@@ -9005,7 +9269,7 @@ flowchart LR
                 </p>
               </div>
               <div style="font-size: 12.5px; text-align: right">
-                <div class="mono" id="footer-version-pill">v0.4.4 · 2026-06-08</div>
+                <div class="mono" id="footer-version-pill">v0.4.5 · 2026-06-08</div>
                 <div
                   class="mono"
                   style="color: var(--accent); margin-top: 4px"
