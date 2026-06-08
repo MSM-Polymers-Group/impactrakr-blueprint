@@ -28,19 +28,19 @@
     }
   ],
   "stats": {
-    "total": 131,
+    "total": 139,
     "by_pillar": {
       "PURE": 67,
-      "PURE_GAP": 20,
+      "PURE_GAP": 28,
       "EU": 27,
       "RECYCLASS": 17
     },
     "by_severity": {
-      "BLOCK": 111,
-      "FLAG": 20
+      "BLOCK": 115,
+      "FLAG": 24
     },
     "by_status": {
-      "APPROVED": 131
+      "APPROVED": 139
     },
     "by_cluster": {
       "RECYCLER_OUTCOME": 19,

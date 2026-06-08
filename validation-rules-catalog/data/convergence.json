@@ -1,26 +1,30 @@
 {
   "$schema": "./convergence.schema.json",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "lang": "pt",
-  "generated_at": "2026-05-29",
-  "source_rules_version": "0.3.2",
+  "generated_at": "2026-06-03",
+  "source_rules_version": "0.7.0",
   "auditor": "subagent-opus-4-7",
   "scope": "Análise de convergência entre 127 regras (67 PURE + 17 PURE_GAP + 26 EU + 17 RECYCLASS). Foco: contradições cross-pillar, gaps intra-pillar, redundâncias, reverse gaps (EU/RC sem cobertura PURE) e recomendações priorizadas. Complementa audit-pure-methodology-consistency.md (que cobriu metodologia PURE vs catálogo).",
   "summary": {
-    "total_findings": 42,
+    "total_findings": 49,
     "by_severity": {
-      "HIGH": 14,
-      "MEDIUM": 19,
-      "LOW": 9
+      "HIGH": 13,
+      "MEDIUM": 16,
+      "LOW": 20
     },
     "by_category": {
       "contradiction": 7,
-      "gap": 6,
+      "gap": 8,
       "redundancy": 5,
-      "reverse_gap": 24
+      "reverse_gap": 29
     },
     "coverage_pct": 44,
-    "coverage_note": "19 de 43 regras EU+RC têm equivalente PURE ou PG (44%). 24 são pilares puramente regionais; 8 dessas são gaps reais onde PURE deveria adotar."
+    "coverage_note": "19 de 43 regras EU+RC têm equivalente PURE ou PG (44%). 24 são pilares puramente regionais; 8 dessas são gaps reais onde PURE deveria adotar.",
+    "by_status": {
+      "OPEN": 32,
+      "RESOLVED": 17
+    }
   },
   "findings": [
     {
@@ -28,690 +32,969 @@
       "category": "contradiction",
       "severity": "HIGH",
       "title": "Drift de throughput: RC-02 BLOCK vs EU-26 FLAG vs P-62 FLAG",
-      "rules_involved": [
-        "RC-02",
-        "EU-26",
-        "P-62"
-      ],
+      "rules_involved": ["RC-02", "EU-26", "P-62"],
       "description": "Três regras avaliam o throughput do recicladora sobre os mesmos dados (monthly_input vs licensed/capacity) com severidades incompatíveis e thresholds não alinhados. RC-02 bloqueia; EU-26 e P-62 só sinalizam. O mesmo MassID pode passar em PURE/EU e ser retroativamente BLOCKED pelo RecyClass.",
       "evidence": "RC-02 (recyclass.md:91): 'total_certified_kg_12m <= licensed_input_volume_kg. Excesso bloqueia.' EU-26 (eu.md:226) FLAG. P-62 (RULE_REGISTER): 'if input > capacity threshold then FLAG' SEVERITY=FLAG.",
       "resolution": "Elevar EU-26 e P-62 para BLOCK quando region=EU e participant for RC-scoped, OU consolidar em um único ThroughputCheck com severity=max(RC,EU,PURE). Versionar config/throughput-thresholds.json com 0.9 (FLAG) e 1.0 (BLOCK).",
-      "decision_by": "Gian"
+      "decision_by": "Gian",
+      "status": "RESOLVED",
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Adopted Option B (Sibling Rules + Severity Resolver) per Rodrigo decision 2026-06-03. RC-02, EU-26, P-62 now declare siblings=[other 2] + severity_resolver=max_among_pillars. Effective severity at evaluation time elevates EU-26/P-62 to BLOCK when RC-02 fires (recycler is RecyClass-scoped). Declared severity preserved per-pillar for audit trail (Carrot/RecyClass reports stay accurate). Thresholds (flag_ratio=0.9, block_ratio=1.0) in docs/config/throughput_thresholds_v1.json.",
+      "resolution_ref": [
+        "docs/adr/037-sibling-rules-severity-resolver.md",
+        "rules.json#RC-02",
+        "rules.json#EU-26",
+        "rules.json#P-62",
+        "docs/config/throughput_thresholds_v1.json"
+      ],
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      }
     },
     {
       "id": "A-02",
       "category": "contradiction",
       "severity": "MEDIUM",
       "title": "Limites de estocagem (RC-03) sem equivalente PURE/EU vs FIFO (P-65)",
-      "rules_involved": [
-        "RC-03",
-        "P-65"
-      ],
+      "rules_involved": ["RC-03", "P-65"],
       "description": "RC-03 exige avg_stock_3m <= licensed_storage; P-65 só impõe ordenação FIFO. Um tanque acima da licença ainda pode satisfazer P-65 (sequência ordenada) enquanto viola a licença de estocagem.",
       "evidence": "RC-03 (recyclass.md:118): 'se avg_3m > licensed_storage_volume_kg → FLAG; >10% → BLOCK'. P-65 (pure.md:401): 'sequência completa e ordenada' — sem referência a volume.",
       "resolution": "Criar PG-NN 'Recycler storage permit compliance' — PURE deveria validar compliance de estocagem como parte da homologação. Decisão: criar PG ou manter apenas em RC.",
-      "decision_by": "Gian"
+      "decision_by": "Gian",
+      "status": "RESOLVED",
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Adopted Option B per Rodrigo decision 2026-06-03. Created PG-21 (Recycler storage permit compliance, universal) as APPROVED in catalog v0.8.1. PG-21 + RC-03 declared as siblings with severity_resolver=max_among_pillars (reuses A-01 pattern from ADR-037). PG-21 fires FLAG universally for any R/P participant exceeding licensed storage; effective severity elevates to BLOCK when sibling RC-03 fires (RecyClass-scoped + >20% overage). Thresholds via docs/config/storage_thresholds_v1.json (warning=0.8, flag=1.0, block=1.2).",
+      "resolution_ref": [
+        "rules.json#PG-21",
+        "rules.json#RC-03",
+        "docs/config/storage_thresholds_v1.json",
+        "docs/adr/037-sibling-rules-severity-resolver.md"
+      ],
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      }
     },
     {
       "id": "A-03",
       "category": "contradiction",
       "severity": "MEDIUM",
       "title": "Enum process_type incoerente: P-50 vs RecyClass §5",
-      "rules_involved": [
-        "P-50"
-      ],
+      "rules_involved": ["P-50"],
       "description": "O enum de P-50 é [mechanical, chemical, closed_loop, downcycling, upcycling]. RecyClass exige sub-distinção (closed_loop_mechanical vs closed_loop_chemical) e aceita solvent-based, dissolution, depolymerization. A UI captura 'chemical' em P-50; o auditor RecyClass pede o sub-tipo → retrabalho.",
       "evidence": "P-50 (pure.md:334): 'Enum: mechanical | chemical | closed_loop | downcycling | upcycling'. cross-validation.md:201: 'RC pode requerer process types adicionais'.",
       "resolution": "Estender o enum de P-50 para um superset compatível com RecyClass. Documentar em ADR.",
-      "decision_by": "Gian + Rodrigo (ADR)"
+      "decision_by": "Gian + Rodrigo (ADR)",
+      "status": "RESOLVED",
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Adopted Option B per Rodrigo decision 2026-06-03. ADR-038 created. P-50 redesigned: removes single processType enum, adds 3 orthogonal fields (processMechanism PHYSICAL|CHEMICAL|BIOLOGICAL + processSubtype validated against config taxonomy + qualityDelta SAME|DOWN|UP). chemical_other is FLAG fallback (ops reclassify in 14d); microbial BLOCK (not yet TRC-eligible). Backfill mapping documented in ADR for 95% deterministic + FLAG for ambiguous (chemical, upcycling).",
+      "resolution_ref": [
+        "docs/adr/038-recyclingoutcome-process-type-orthogonal-axes.md",
+        "rules.json#P-50",
+        "docs/config/process_subtype_taxonomy_v1.json"
+      ],
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      }
     },
     {
       "id": "A-04",
       "category": "contradiction",
       "severity": "MEDIUM",
       "title": "hazard_flag (P-17) vs hazardous_flag derivado de EWC (EU-03) — fonte ambígua",
-      "rules_involved": [
-        "P-17",
-        "EU-03"
-      ],
+      "rules_involved": ["P-17", "EU-03"],
       "description": "P-17 lê hazard_flag da declaração do MassID; EU-03 lê hazardous_flag via lookup do código EWC. Quando a declaração diverge do EWC, qual prevalece? Risco de bug silencioso de validação.",
       "evidence": "P-17 (pure.md:162-165): 'Reject if hazardous toxic...'. EU-03 (eu.md:65-67): 'If EWC is hazardous, additional restrictions apply'. cross-validation.md:71 alerta explicitamente sobre divergência.",
       "resolution": "Definir hazardous_flag como canonicamente derivado de EWC quando region=EU. Declaração manual só pode escalar (PURE pode marcar como hazardous algo que o EWC não marca), nunca de-escalar. P-17 e EU-03 se tornam facetas do mesmo gate.",
-      "decision_by": "Compliance"
+      "decision_by": "Compliance",
+      "status": "RESOLVED",
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Adopted Option A per Rodrigo decision 2026-06-03. ADR-039 created. MassID schema gains hazardousEwcDerived (computed from ewcCode against config doc) + hazardousManualOverride (operator escalation-only). Effective hazardous = ewcDerived OR override===TRUE. Operator can escalate (TRUE when EWC says false) but NEVER de-escalate. P-17 rewired to read effective hazardous + explicit BLOCK on de-escalation attempt. EU-03 becomes defensive self-check: re-derives from ewcCode and BLOCKs on drift; unknown codes FLAG for Compliance refresh. Backfill mapping + 4 buckets detailed in ADR-039.",
+      "resolution_ref": [
+        "docs/adr/039-hazardous-classification-ewc-canonical.md",
+        "rules.json#P-17",
+        "rules.json#EU-03",
+        "docs/config/ewc_hazardous_codes_v1.json"
+      ],
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      }
     },
     {
       "id": "A-05",
       "category": "contradiction",
       "severity": "HIGH",
       "title": "Fase de trigger incompatível: P-67/PG-12 só em INGEST vs timer de 30 dias do PURE §14",
-      "rules_involved": [
-        "P-67",
-        "PG-12"
-      ],
+      "rules_involved": ["P-67", "PG-12"],
       "description": "PURE §14 verbatim: 'If any participant fails to provide a response within 30 days, may be permanently disqualified'. Nem P-67 nem PG-12 implementam o timer; ambos atuam apenas no ingest ou exception. Não existe trigger EXCEPTION_TIMEOUT.",
       "evidence": "P-67 (pure.md:412): trigger='severe exception'. PG-12 (pure-gaps.md:343): trigger=MASSID_INGEST. PURE §14 não implementado (também documentado em audit-pure-methodology-consistency.md A-04).",
       "resolution": "Criar PG-20 com trigger EXCEPTION_REQUEST_TIMEOUT rodando em job periódico. Alinha com PURE §14.",
-      "decision_by": "Compliance + Rodrigo (Tech)"
+      "decision_by": "Compliance + Rodrigo (Tech)",
+      "status": "RESOLVED",
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      },
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "P-67 + PG-12 amended: added secondary trigger EXCEPTION_REQUEST_TIMEOUT (phase=PERIODIC_JOB, conditions=exception_open AND days_since_request>=30) — implements PURE §14 30-day timer. Per ADR-041 Big Bang.",
+      "resolution_ref": [
+        "docs/adr/041-mirror-rules-pattern-universal-pg.md",
+        "rules.json#P-67",
+        "rules.json#PG-12"
+      ]
     },
     {
       "id": "A-06",
       "category": "contradiction",
       "severity": "HIGH",
       "title": "Severity FLAG de P-67/PG-12 incompatível com linguagem 'seriously punishing' do PURE",
-      "rules_involved": [
-        "P-67",
-        "PG-12"
-      ],
+      "rules_involved": ["P-67", "PG-12"],
       "description": "PURE §8.7 descreve propagação como 'seriously punishing'. Ambas as regras são FLAG (revisão manual) — não bloqueiam emissão. Loophole: ator de má-fé continua emitindo TRC enquanto Ops revisa.",
       "evidence": "P-67 severity=FLAG (RULE_REGISTER). audit-pure-methodology-consistency.md risks #8: 'metodologia usa linguagem seriously punishing, sugere BLOCK não FLAG'.",
       "resolution": "Elevar P-67 para BLOCK em severity_class='severe', manter FLAG para 'minor'. Mesmo para PG-12.",
-      "decision_by": "Gian + Compliance"
+      "decision_by": "Gian + Compliance",
+      "status": "RESOLVED",
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      },
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "P-67 + PG-12 gain severity_resolver=by_exception_class (new resolver strategy in ADR-041). severe → BLOCK; minor → FLAG. Declared severity preserved; effective severity computed from exception.severityClass.",
+      "resolution_ref": [
+        "docs/adr/041-mirror-rules-pattern-universal-pg.md",
+        "rules.json#P-67",
+        "rules.json#PG-12"
+      ]
     },
     {
       "id": "A-07",
       "category": "contradiction",
       "severity": "LOW",
       "title": "P-03 vs PG-01 (KYC) — disposition 'Keep/Modify' cria sobreposição permanente",
-      "rules_involved": [
-        "P-03",
-        "PG-01"
-      ],
+      "rules_involved": ["P-03", "PG-01"],
       "description": "cross-validation.md diz que 'PG-01 substitui P-03' mas o RULE_REGISTER mostra P-03 com Disposition='Keep/Modify'. Ambas permaneceriam ativas → mensagens duplicadas para o usuário.",
       "evidence": "cross-validation.md:97 + cross-validation.md:273 'DEPRECATE P-03 once PG-01 in production'.",
       "resolution": "Marcar P-03 como disposition='Deprecated when PG-01 deployed' em rules.json; código emite warning silencioso quando PG-01 está ativa.",
-      "decision_by": "Rodrigo + Compliance"
+      "decision_by": "Rodrigo + Compliance",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:29:39 UTC"
+      }
     },
     {
       "id": "B-01",
       "category": "gap",
       "severity": "HIGH",
       "title": "RC-15 lê entidade SubcontractedRecycling que nenhuma regra escreve",
-      "rules_involved": [
-        "RC-15"
-      ],
+      "rules_involved": ["RC-15"],
       "description": "RC-15 lê SubcontractedRecycling.subcontractorId/externalCertRef. Nenhuma regra PURE/PG escreve esses campos. A entidade de schema SubcontractedRecycling não existe — RC-15 falha silenciosamente se o schema não for provisionado.",
       "evidence": "recyclass.md:425-426: 'reads: [SubcontractedRecycling.subcontractorId, ...]'. Cross-check rules.json: SubcontractedRecycling aparece apenas em reads de RC-15, nunca em writes.",
       "resolution": "O schema delta (IMP-56) deve incluir a entidade SubcontractedRecycling com link ao MassID. Populada via UI ou webhook do Carrot. Adicionar PG-NN 'subcontracted_recycling present when flag=TRUE'.",
-      "decision_by": "Rodrigo + Gabriel"
+      "decision_by": "Rodrigo + Gabriel",
+      "status": "RESOLVED",
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "SubcontractedRecycling pattern absorbed into EvidencePolicy (IMP-63) + ConfigDocService consuming docs/config/subcontractor_equivalent_certs_v1.json (RC-15). RC-15 rule references config doc version v1 — schema delta + brief Gabriel documented.",
+      "resolution_ref": [
+        "IMP-63",
+        "IMP-56",
+        "docs/config/subcontractor_equivalent_certs_v1.json",
+        "docs/strategy/gabriel-brief-mvf-schema-deltas.md"
+      ],
+      "triagem": {
+        "value": "up",
+        "ts": "2026-06-03 RESOLVED"
+      }
     },
     {
       "id": "B-02",
       "category": "gap",
       "severity": "HIGH",
       "title": "RC-11 (split de conteúdo reciclado) lê RecyclingOutcome.preConsumerPct que P-47/P-50/P-57 não escrevem",
-      "rules_involved": [
-        "RC-11",
-        "P-47",
-        "P-50",
-        "P-57"
-      ],
+      "rules_involved": ["RC-11", "P-47", "P-50", "P-57"],
       "description": "RC-11 exige pre_consumer_pct + post_consumer_pct = recycled_content_pct. P-47 só computa eligible_kg=net_kg*factor sem split por consumer_class.",
       "evidence": "RC-11 (recyclass.md:328-329). P-47 (pure.md:316) sem split. cross-validation.md:58 'Schema delta (IMP-56) deve incluir: RecyclingOutcome.preConsumerPct, postConsumerPct'.",
       "resolution": "Confirmar schema delta IMP-56; adicionar PG-NN 'Pre/post-consumer split captured at MassID origin' para consistência com EN 15343:2007.",
-      "decision_by": "Gian + Rodrigo"
+      "decision_by": "Gian + Rodrigo",
+      "status": "RESOLVED",
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      },
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Created PG-22 (Pre/post-consumer split captured at MassID origin) BLOCK universal. Validates MassID.consumerClass + RecyclingOutcome.preConsumerPct+postConsumerPct=recycledContentPct (±0.5%). Schema delta: MassID.consumerClass enum + RecyclingOutcome.pre/postConsumerPct.",
+      "resolution_ref": ["docs/adr/041-mirror-rules-pattern-universal-pg.md", "rules.json#PG-22"]
     },
     {
       "id": "B-03",
       "category": "gap",
       "severity": "MEDIUM",
       "title": "EU-22 (audit trail) presume que toda escrita é logada, mas nenhum P-XX declara write de AuditLog",
-      "rules_involved": [
-        "EU-22"
-      ],
+      "rules_involved": ["EU-22"],
       "description": "EU-22 exige que toda alteração seja logada com atribuição de usuário. Os 67 P-XX em rules.json só escrevem em ValidationResult — nunca declaram write de AuditLog. Cobertura depende inteiramente do middleware Prisma/NestJS.",
       "evidence": "rules.json: nenhuma regra tem writes incluindo 'AuditLog'. eu.md:204-207.",
       "resolution": "Adicionar middleware Prisma onChange→AuditLog. Adicionar PG-NN 'AuditLog integrity check' validando count(audit_log)>=count(distinct entity_changes) em job noturno.",
-      "decision_by": "Rodrigo"
+      "decision_by": "Rodrigo",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:23:08 UTC"
+      }
     },
     {
       "id": "B-04",
       "category": "gap",
       "severity": "MEDIUM",
       "title": "EU-17 (consistência de massa cross-doc) presume WTN/Annex VII que não estão no MVP Malta",
-      "rules_involved": [
-        "EU-17",
-        "P-57"
-      ],
+      "rules_involved": ["EU-17", "P-57"],
       "description": "EU-17 faz cross-check de WTN + Annex VII + dMRV + receipt. Para o MVP Malta, EU-07..EU-12 (WTN/Annex VII) estão fora de escopo. EU-17 hoje só compara receipt_kg vs eligible_kg, duplicando P-57 sem agregar valor.",
       "evidence": "eu.md:282 'EU-10..EU-12 só ativam em Fase 2'. cross-validation.md:159-161.",
       "resolution": "Condicional explícita em EU-17: 'if cross_border==TRUE then compare against annex_vii_kg'; caso contrário, cair para P-57. Documentar em applies_to.conditions.",
-      "decision_by": "Rodrigo + Compliance"
+      "decision_by": "Rodrigo + Compliance",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:23:50 UTC"
+      }
     },
     {
       "id": "B-05",
       "category": "gap",
       "severity": "LOW",
       "title": "PG-13 (lookback) usa current_year de forma ambígua na virada de ano",
-      "rules_involved": [
-        "PG-13",
-        "P-01"
-      ],
+      "rules_involved": ["PG-13", "P-01"],
       "description": "Lógica de PG-13: completion_date >= DATE(current_year-1, 1, 1) com trigger PRE_CARROT_SUBMIT. current_year depende do clock no momento do submit, abrindo janela de retroatividade na virada do ano.",
       "evidence": "pure-gaps.md:383.",
       "resolution": "Esclarecer current_year=year(today) e adicionar test case explícito para a fronteira dez/jan.",
-      "decision_by": "Gian"
+      "decision_by": "Gian",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:30:21 UTC"
+      }
     },
     {
       "id": "B-06",
       "category": "gap",
       "severity": "MEDIUM",
       "title": "Enum participant_types diverge e 'B' (Bin Custodian) indefinido",
-      "rules_involved": [
-        "PG-01",
-        "PG-02",
-        "PG-03",
-        "PG-04",
-        "PG-11",
-        "PG-14",
-        "PG-16",
-        "PG-17"
-      ],
+      "rules_involved": ["PG-01", "PG-02", "PG-03", "PG-04", "PG-11", "PG-14", "PG-16", "PG-17"],
       "description": "'B' aparece como participant_type em 8+ regras PG mas nunca é definido no catálogo. audit-pure-methodology-consistency.md A-03 (HIGH): 'Bin Custodian não modelado'.",
       "evidence": "pure-gaps.md múltiplas regras com [G, B, H, P, R, INT]. audit-pure-methodology-consistency.md:67.",
       "resolution": "ADR-NN documentando enum canônico de participant_types: G=Waste Generator, B=Bin Custodian, H=Hauler, P=Processor, R=Recycler, INT=Carrot Network Integrator. Adicionar regra 'Bin Custodian requires parent_generator_id'.",
-      "decision_by": "Rodrigo (ADR) + Gian"
+      "decision_by": "Rodrigo (ADR) + Gian",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:24:15 UTC"
+      }
     },
     {
       "id": "C-01",
       "category": "redundancy",
       "severity": "LOW",
       "title": "P-03 vs PG-01 — sobreposição de KYC",
-      "rules_involved": [
-        "P-03",
-        "PG-01"
-      ],
+      "rules_involved": ["P-03", "PG-01"],
       "description": "Ambas cobrem KYC em níveis de detalhe diferentes. Source-of-truth: PG-01 após deploy. P-03 deve ser deprecada.",
       "evidence": "cross-validation.md:97-98.",
       "resolution": "Ver resolution de A-07.",
-      "decision_by": "Compliance + Rodrigo"
+      "decision_by": "Compliance + Rodrigo",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:33:17 UTC"
+      }
     },
     {
       "id": "C-02",
       "category": "redundancy",
       "severity": "LOW",
       "title": "P-17 vs EU-03 — sobreposição de Hazardous",
-      "rules_involved": [
-        "P-17",
-        "EU-03"
-      ],
+      "rules_involved": ["P-17", "EU-03"],
       "description": "Intenção quase idêntica (cross-validation.md:69-71). Ambas disparam em paralelo → mensagem duplicada.",
       "evidence": "cross-validation.md:69-71.",
       "resolution": "Unificar em um único HazardousCheck com fonte decidida pela região. EU-03 prevalece quando region=EU; P-17 para Brasil/demais.",
-      "decision_by": "Compliance"
+      "decision_by": "Compliance",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:33:24 UTC"
+      }
     },
     {
       "id": "C-03",
       "category": "redundancy",
       "severity": "MEDIUM",
       "title": "P-65 (custódia FIFO) vs EU-16 (cadeia de custódia contínua)",
-      "rules_involved": [
-        "P-65",
-        "EU-16"
-      ],
+      "rules_involved": ["P-65", "EU-16"],
       "description": "Ambas dependem do mesmo event log. P-65 adiciona FIFO; EU-16 adiciona 'no gaps'. Na prática, se o event log está correto, ambas passam ou ambas falham.",
       "evidence": "pure.md:401 + eu.md:152.",
       "resolution": "Source-of-truth: EU-16 (mais explícita). P-65 vira sub-check (P-65 = EU-16 + ordenação).",
-      "decision_by": "Compliance"
+      "decision_by": "Compliance",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:28:44 UTC"
+      }
     },
     {
       "id": "C-04",
       "category": "redundancy",
       "severity": "LOW",
       "title": "P-66 vs P-05 — external claim / exclusividade de dados",
-      "rules_involved": [
-        "P-66",
-        "P-05"
-      ],
+      "rules_involved": ["P-66", "P-05"],
       "description": "P-05 = enforcement no onboarding (T&C); P-66 = cross-check no momento da certificação. Não redundantes — camadas. Manter ambas, mas garantir que a UI não diga 'duplicate claim' duas vezes.",
       "evidence": "pure.md:81 + pure.md:406.",
       "resolution": "Manter ambas, hierarquizar mensagens na UI.",
-      "decision_by": "UX + Compliance"
+      "decision_by": "UX + Compliance",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:33:33 UTC"
+      }
     },
     {
       "id": "C-05",
       "category": "redundancy",
       "severity": "MEDIUM",
       "title": "P-63 (massid_hash duplicado) vs EU-24 (documento duplicado)",
-      "rules_involved": [
-        "P-63",
-        "EU-24"
-      ],
+      "rules_involved": ["P-63", "EU-24"],
       "description": "Granularidades diferentes (nível MassID vs nível documento). Não redundantes, mas a UI deve mostrar P-63 (BLOCK) e silenciar EU-24 (FLAG) quando ambas disparam para o mesmo MassID.",
       "evidence": "pure.md:391-393 + eu.md:217-218.",
       "resolution": "Ambas permanecem; EU-24 vira sub-check de P-63 na UI.",
-      "decision_by": "UX"
+      "decision_by": "UX",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:29:11 UTC"
+      }
     },
     {
       "id": "D-01",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "EU-01 (código EWC obrigatório) — escopo EU intencional",
-      "rules_involved": [
-        "EU-01"
-      ],
+      "rules_involved": ["EU-01"],
       "description": "O código EWC é específico da UE; PURE não tem equivalente e não deveria ter.",
       "evidence": "eu.md:48.",
       "resolution": "Manter EU-only.",
-      "decision_by": "—"
+      "decision_by": "—",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:30:28 UTC"
+      }
     },
     {
       "id": "D-02",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "EU-02 (consistência de EWC ao longo da cadeia) — escopo EU intencional",
-      "rules_involved": [
-        "EU-02"
-      ],
+      "rules_involved": ["EU-02"],
       "description": "Específico da UE.",
       "evidence": "eu.md:54-58.",
       "resolution": "Manter EU-only.",
-      "decision_by": "—"
+      "decision_by": "—",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:30:33 UTC"
+      }
     },
     {
       "id": "D-03",
       "category": "reverse_gap",
       "severity": "HIGH",
       "title": "EU-04 (Licensed waste carrier) — PURE sem check global de licença de hauler",
-      "rules_involved": [
-        "EU-04",
-        "EU-05"
-      ],
+      "rules_involved": ["EU-04", "EU-05"],
       "description": "PURE tem P-25/P-36 (hauler_count, driver_id) mas NÃO valida a licença de transporte de resíduos. Auditor BV bloqueia. Na LATAM (Brasil), exige Licença Ambiental para Transporte de Resíduos.",
       "evidence": "eu.md:77 vs pure.md (sem regra sobre licença de transporte).",
       "resolution": "Criar PG-22 'Hauler waste-transport license valid'. BLOCK. Trigger=MASSID_INGEST.",
-      "decision_by": "Gian + Compliance"
+      "decision_by": "Gian + Compliance",
+      "status": "RESOLVED",
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      },
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Created PG-23 (Hauler waste-transport license valid, universal) BLOCK. Independent of EU-04 — different gates (TRC_ISSUANCE vs LEGAL_OPERATION). non_retroactive_revocation principle. Per ADR-041 Mirror Rules Pattern.",
+      "resolution_ref": ["docs/adr/041-mirror-rules-pattern-universal-pg.md", "rules.json#PG-23"]
     },
     {
       "id": "D-04",
       "category": "reverse_gap",
       "severity": "MEDIUM",
       "title": "EU-05 (validade de data da licença do carrier) — igual a D-03",
-      "rules_involved": [
-        "EU-05"
-      ],
+      "rules_involved": ["EU-05"],
       "description": "Coberta por D-03 (mesma PG-22).",
       "evidence": "eu.md:82-84.",
       "resolution": "Fundir na lógica do PG-22.",
-      "decision_by": "Gian + Compliance"
+      "decision_by": "Gian + Compliance",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:24:25 UTC"
+      }
     },
     {
       "id": "D-05",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "EU-07/08/09 (WTN doméstica) — escopo EU intencional",
-      "rules_involved": [
-        "EU-07",
-        "EU-08",
-        "EU-09"
-      ],
+      "rules_involved": ["EU-07", "EU-08", "EU-09"],
       "description": "Waste Transfer Note é regulatório da UE; PURE não tem equivalente e não deveria ter.",
       "evidence": "eu.md:100-111.",
       "resolution": "Manter EU-only.",
-      "decision_by": "—"
+      "decision_by": "—",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:30:40 UTC"
+      }
     },
     {
       "id": "D-06",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "EU-10/11/12 (Annex VII cross-border) — intencional",
-      "rules_involved": [
-        "EU-10",
-        "EU-11",
-        "EU-12"
-      ],
+      "rules_involved": ["EU-10", "EU-11", "EU-12"],
       "description": "WSR Annex VII / DIWASS é específico de cross-border da UE. Apenas Fase 2.",
       "evidence": "eu.md:115-127.",
       "resolution": "Manter EU-only.",
-      "decision_by": "—"
+      "decision_by": "—",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:30:45 UTC"
+      }
     },
     {
       "id": "D-07",
       "category": "reverse_gap",
       "severity": "MEDIUM",
       "title": "EU-13/14 (Permit do recicladora + escopo EWC) — P-49 incompleta",
-      "rules_involved": [
-        "EU-13",
-        "EU-14",
-        "P-49"
-      ],
+      "rules_involved": ["EU-13", "EU-14", "P-49"],
       "description": "P-49 cita recycler_permit_status mas só checa existência. EU-13 valida estar ativo na event_date; EU-14 valida que o código EWC está no escopo do permit.",
       "evidence": "pure.md:328 vs eu.md:134-141.",
       "resolution": "Estender a lógica de P-49 para recycler_permit_status=active AND ewc_in_permit_scope=TRUE. Adicionar campos em Participant.recyclerPermit.",
-      "decision_by": "Compliance"
+      "decision_by": "Compliance",
+      "status": "RESOLVED",
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Adopted Option C per Rodrigo decision 2026-06-03. ADR-040 created consolidating recycler licensing as single source of truth (RecyclerLicense model). P-49 v0.4.0 extended to check status=ACTIVE at MassID.pickupAt + EWC scope via ewcInScope utility. EU-13 v0.3.0 and EU-14 v0.3.0 read from RecyclerLicense (no more Document.scope indirection). RecyclerLicense model expanded from A-02 baseline to include permitNumber, issuingAuthority, licensedEwcScope[], status enum, validFrom, validUntil — covers RC-02 + RC-03 + PG-21 + P-49 + EU-13 + EU-14 + EU-26 + P-62. IMP-72 (A-02) scope expanded via comment.",
+      "resolution_ref": [
+        "docs/adr/040-recycler-licensing-single-source-of-truth.md",
+        "rules.json#P-49",
+        "rules.json#EU-13",
+        "rules.json#EU-14",
+        "IMP-72"
+      ],
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      }
     },
     {
       "id": "D-08",
       "category": "reverse_gap",
       "severity": "MEDIUM",
       "title": "EU-15 (Permit do processor) — P-26 incompleta",
-      "rules_involved": [
-        "EU-15",
-        "P-26"
-      ],
+      "rules_involved": ["EU-15", "P-26"],
       "description": "P-26 checa processor_homologation mas não o permit legal.",
       "evidence": "pure.md:214 vs eu.md:143-145.",
       "resolution": "Estender P-26 para incluir processor_permit_status=active.",
-      "decision_by": "Compliance"
+      "decision_by": "Compliance",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:26:00 UTC"
+      }
     },
     {
       "id": "D-09",
       "category": "reverse_gap",
       "severity": "MEDIUM",
       "title": "EU-18 (cronologia) — PURE não tem regra de ordenação de timestamps",
-      "rules_involved": [
-        "EU-18"
-      ],
+      "rules_involved": ["EU-18"],
       "description": "EU-18: pickup<=transport<=delivery<=processing. P-65 cobre FIFO mas não compara timestamps. Dados podem estar fora de ordem e P-65 ainda passa.",
       "evidence": "eu.md:172.",
       "resolution": "Criar PG-28 'Event timestamp monotonicity' (espelho global de EU-18).",
-      "decision_by": "Gian"
+      "decision_by": "Gian",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:26:13 UTC"
+      }
     },
     {
       "id": "D-10",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "EU-19 (consistência de localização) — parcialmente coberta",
-      "rules_involved": [
-        "EU-19",
-        "P-22",
-        "P-23",
-        "P-30"
-      ],
+      "rules_involved": ["EU-19", "P-22", "P-23", "P-30"],
       "description": "P-22/P-23/P-30 cobrem facetas de endereço. EU-19 é mais ampla (todos os endereços-chave batem com entidades registradas).",
       "evidence": "eu.md:178-180.",
       "resolution": "Manter ambas; EU-19 é o check guarda-chuva.",
-      "decision_by": "—"
+      "decision_by": "—",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:30:57 UTC"
+      }
     },
     {
       "id": "D-11",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "EU-20 (digital equivalent compliance) — escopo EU intencional",
-      "rules_involved": [
-        "EU-20"
-      ],
+      "rules_involved": ["EU-20"],
       "description": "Digital equivalent é conceito de compliance da UE; PURE não precisa.",
       "evidence": "eu.md:186-188.",
       "resolution": "Manter EU-only.",
-      "decision_by": "—"
+      "decision_by": "—",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:31:02 UTC"
+      }
     },
     {
       "id": "D-12",
       "category": "reverse_gap",
       "severity": "HIGH",
       "title": "EU-21 (hash de integridade de documento) — PURE sem hash para anexos",
-      "rules_involved": [
-        "EU-21",
-        "P-63"
-      ],
+      "rules_involved": ["EU-21", "P-63"],
       "description": "P-63 cobre o hash do MassID, não dos documentos anexados. Sem hash de doc, replay attack (mesmo PDF reutilizado) passa silenciosamente. EU-24 é apenas FLAG.",
       "evidence": "eu.md:194-197.",
       "resolution": "Criar PG-23 'Attached document integrity (hash+timestamp+version)'. BLOCK. Aplica-se a TODAS as evidence refs.",
-      "decision_by": "Compliance + Rodrigo"
+      "decision_by": "Compliance + Rodrigo",
+      "status": "RESOLVED",
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      },
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Created PG-24 (Attached document integrity hash+timestamp+version) BLOCK universal. Defends against replay attacks; drift detection nightly. Independent transversal rule.",
+      "resolution_ref": ["docs/adr/041-mirror-rules-pattern-universal-pg.md", "rules.json#PG-24"]
     },
     {
       "id": "D-13",
       "category": "reverse_gap",
       "severity": "HIGH",
       "title": "EU-22 (Audit trail + retenção de 5 anos) — PURE silenciosa quanto a retenção",
-      "rules_involved": [
-        "EU-22"
-      ],
+      "rules_involved": ["EU-22"],
       "description": "Metodologia PURE June/2025 tem 0 menções a retention, 5 years, audit log. Auditor BV exige retenção; GDPR exige 5 anos para dados de participantes. Silêncio do PURE = exposição legal.",
       "evidence": "grep PURE.docx: 0 hits para 'retention', 1 hit para '5 year' (não relacionado). eu.md:203-207.",
       "resolution": "Criar PG-24 'Audit trail retention >=5 years'. Combinada com B-03. Trigger=MONTHLY_RECONCILIATION job validando oldest log>=5y OR purge_authorized=TRUE.",
-      "decision_by": "Compliance + Rodrigo"
+      "decision_by": "Compliance + Rodrigo",
+      "status": "RESOLVED",
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      },
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Created PG-25 (Audit trail retention >=5y periodic check) BLOCK. Periodic job validates oldest records vs retention_policy_v1.json. Purge only when DPO+Compliance jointly authorize. GDPR + WSR Art.26 aligned.",
+      "resolution_ref": [
+        "docs/adr/041-mirror-rules-pattern-universal-pg.md",
+        "rules.json#PG-25",
+        "docs/config/retention_policy_v1.json"
+      ]
     },
     {
       "id": "D-14",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "EU-23 (plausibilidade de rota) — coberta por P-64",
-      "rules_involved": [
-        "EU-23",
-        "P-64"
-      ],
+      "rules_involved": ["EU-23", "P-64"],
       "description": "P-64 cobre anomalia de rota. EU-23 é uma faceta geo-específica.",
       "evidence": "eu.md:212-214 + pure.md:396-398.",
       "resolution": "Manter ambas; complementares.",
-      "decision_by": "—"
+      "decision_by": "—",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:31:20 UTC"
+      }
     },
     {
       "id": "D-15",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "EU-25 (volume vs capacidade do veículo) — PURE não tem",
-      "rules_involved": [
-        "EU-25"
-      ],
+      "rules_involved": ["EU-25"],
       "description": "Check de plausibilidade de capacidade do veículo. PURE não tem equivalente.",
       "evidence": "eu.md:221-223.",
       "resolution": "Baixa prioridade; pode ser espelhada como PG quando chegar o MVP de generator individual. Por ora, manter EU-only.",
-      "decision_by": "Gian"
+      "decision_by": "Gian",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:31:33 UTC"
+      }
     },
     {
       "id": "D-16",
       "category": "reverse_gap",
       "severity": "MEDIUM",
       "title": "RC-01 (registro da empresa) — PURE só exige homologação, não company reg",
-      "rules_involved": [
-        "RC-01",
-        "P-02",
-        "P-49"
-      ],
+      "rules_involved": ["RC-01", "P-02", "P-49"],
       "description": "RC-01 exige company_registration_ref distinto. PURE checa homologação mas não valida o registro corporativo básico.",
       "evidence": "recyclass.md:40-65.",
       "resolution": "Estender PG-01 (KYC business) para incluir companyRegistration. Já parcial em PG-01.",
-      "decision_by": "Compliance"
+      "decision_by": "Compliance",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:27:48 UTC"
+      }
     },
     {
       "id": "D-17",
       "category": "reverse_gap",
       "severity": "MEDIUM",
       "title": "RC-03 (limites de estocagem) — ver A-02",
-      "rules_involved": [
-        "RC-03"
-      ],
+      "rules_involved": ["RC-03"],
       "description": "Já abordada em A-02. PURE não tem gate de limite de estocagem.",
       "evidence": "recyclass.md:118.",
       "resolution": "Ver resolution de A-02.",
-      "decision_by": "Gian"
+      "decision_by": "Gian",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:28:01 UTC"
+      }
     },
     {
       "id": "D-18",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "RC-04 (seguro de responsabilidade civil) — PURE não tem",
-      "rules_involved": [
-        "RC-04"
-      ],
+      "rules_involved": ["RC-04"],
       "description": "PURE não tem check de seguro. Mandatório na RecyClass Category 1.",
       "evidence": "recyclass.md:122-146.",
       "resolution": "PG-NN opcional 'Insurance at recycler homologation'. Prioridade baixa — RC-04 cobre EU; PURE poderia espelhar para hardening de homologação global.",
-      "decision_by": "Gian + Compliance"
+      "decision_by": "Gian + Compliance",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:31:47 UTC"
+      }
     },
     {
       "id": "D-19",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "RC-05 (org chart) — intencional",
-      "rules_involved": [
-        "RC-05"
-      ],
+      "rules_involved": ["RC-05"],
       "description": "Documentação operacional; metodologia PURE não exige.",
       "evidence": "recyclass.md:150-172.",
       "resolution": "Manter RC-only.",
-      "decision_by": "—"
+      "decision_by": "—",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:31:54 UTC"
+      }
     },
     {
       "id": "D-20",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "RC-06 (treinamento de equipe) — parcialmente coberta por PG-15",
-      "rules_involved": [
-        "RC-06",
-        "PG-15"
-      ],
+      "rules_involved": ["RC-06", "PG-15"],
       "description": "PG-15 cobre compliance trabalhista; RC-06 cobre qualificações técnicas. Adjacentes mas ângulos diferentes.",
       "evidence": "recyclass.md:176-197 + pure-gaps.md PG-15.",
       "resolution": "Manter ambas como complementares.",
-      "decision_by": "—"
+      "decision_by": "—",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:32:13 UTC"
+      }
     },
     {
       "id": "D-21",
       "category": "reverse_gap",
       "severity": "HIGH",
       "title": "RC-07 (calibração de weighbridge) — PURE não tem check de calibração",
-      "rules_involved": [
-        "RC-07",
-        "P-44"
-      ],
+      "rules_involved": ["RC-07", "P-44"],
       "description": "P-44 declara o tipo de balança mas não exige calibração. Weighbridge não calibrada infla/deflaciona massa — todo TRC vira defensible-zero.",
       "evidence": "recyclass.md:202-225 vs pure.md:303.",
       "resolution": "Criar PG-25 'Scale calibration certificate (annual) when scale_type in [bridge_scale, floor_scale, hopper_scale]'. BLOCK. Espelho global de RC-07.",
-      "decision_by": "Gian (BV)"
+      "decision_by": "Gian (BV)",
+      "status": "RESOLVED",
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      },
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Created PG-26 (Scale calibration certificate, universal sibling of RC-07) FLAG. siblings=[RC-07] with severity_resolver=max_among_pillars (ADR-037 reuse). Effective BLOCK for RecyClass-scoped via resolver.",
+      "resolution_ref": [
+        "docs/adr/041-mirror-rules-pattern-universal-pg.md",
+        "rules.json#PG-26",
+        "rules.json#RC-07"
+      ]
     },
     {
       "id": "D-22",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "RC-09 (inspeção de estoque) — PURE não tem",
-      "rules_involved": [
-        "RC-09"
-      ],
+      "rules_involved": ["RC-09"],
       "description": "Registros de inspeção de estoque. PURE sem equivalente.",
       "evidence": "recyclass.md:254-276.",
       "resolution": "Baixa prioridade; operacional. Manter RC-only.",
-      "decision_by": "Gian"
+      "decision_by": "Gian",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:32:18 UTC"
+      }
     },
     {
       "id": "D-23",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "RC-10 (energia/água) — PURE §12 menciona, sem gate",
-      "rules_involved": [
-        "RC-10"
-      ],
+      "rules_involved": ["RC-10"],
       "description": "PURE §12 co-benefits menciona impacto ambiental, mas sem gate. RecyClass exige reporting de kWh/tonelada e L/tonelada.",
       "evidence": "recyclass.md:280-302.",
       "resolution": "PG-NN opcional para consistência do PURE com §12. Baixa prioridade.",
-      "decision_by": "Gian"
+      "decision_by": "Gian",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:32:34 UTC"
+      }
     },
     {
       "id": "D-24",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "RC-12 (registros de end-market) — PURE não tem",
-      "rules_involved": [
-        "RC-12"
-      ],
+      "rules_involved": ["RC-12"],
       "description": "PURE não exige registros de end-market.",
       "evidence": "recyclass.md:334-356.",
       "resolution": "Manter RC-only; poderia ser adicionada no nível de monitoring audit.",
-      "decision_by": "Gian"
+      "decision_by": "Gian",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:32:46 UTC"
+      }
     },
     {
       "id": "D-25",
       "category": "reverse_gap",
       "severity": "HIGH",
       "title": "RC-13 (Prevenção de pellet loss) — PURE tem co-benefit mas sem gate",
-      "rules_involved": [
-        "RC-13"
-      ],
+      "rules_involved": ["RC-13"],
       "description": "PURE §12 vende redução de microplástico como co-benefit (4 hits no docx) mas não tem gate exigindo que recicladoras tenham procedimento de pellet loss. Inconsistência ideológica; auditoria de ESG falha.",
       "evidence": "recyclass.md:362-381 (catálogo afirma 'sem equivalente em PURE'). PURE.docx grep: apenas menções descritivas a microplastic.",
       "resolution": "Criar PG-26 'Recycler pellet loss prevention procedure'. BLOCK. Espelho global de RC-13. Alto valor reputacional/ESG.",
-      "decision_by": "Gian"
+      "decision_by": "Gian",
+      "status": "RESOLVED",
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      },
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Created PG-27 (Recycler pellet loss prevention, universal sibling of RC-13) FLAG. siblings=[RC-13] resolver max_among_pillars. Closes inconsistency between PURE microplastic co-benefit marketing and absence of operational gate. ESG-relevant.",
+      "resolution_ref": [
+        "docs/adr/041-mirror-rules-pattern-universal-pg.md",
+        "rules.json#PG-27",
+        "rules.json#RC-13"
+      ]
     },
     {
       "id": "D-26",
       "category": "reverse_gap",
       "severity": "MEDIUM",
       "title": "RC-14 (tratamento off-site de efluente) — PURE não tem",
-      "rules_involved": [
-        "RC-14"
-      ],
+      "rules_involved": ["RC-14"],
       "description": "Processos de wet recycling geram efluente. PURE sem gate para evidência de tratamento.",
       "evidence": "recyclass.md:386-408.",
       "resolution": "Criar PG-29 'Wet recycling wastewater treatment evidence' (condicional a process_type que usa água).",
-      "decision_by": "Gian + Compliance"
+      "decision_by": "Gian + Compliance",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:28:15 UTC"
+      }
     },
     {
       "id": "D-27",
       "category": "reverse_gap",
       "severity": "MEDIUM",
       "title": "RC-15 (cert de subcontratado) — ver B-01",
-      "rules_involved": [
-        "RC-15"
-      ],
+      "rules_involved": ["RC-15"],
       "description": "Gap de schema (B-01) somado a gap metodológico.",
       "evidence": "recyclass.md:413-435.",
       "resolution": "Ver B-01.",
-      "decision_by": "Compliance + Rodrigo"
+      "decision_by": "Compliance + Rodrigo",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:28:24 UTC"
+      }
     },
     {
       "id": "D-28",
       "category": "reverse_gap",
       "severity": "HIGH",
       "title": "RC-16 (REACH/SVHC/POP) — PURE silenciosa quanto a químicos",
-      "rules_involved": [
-        "RC-16"
-      ],
+      "rules_involved": ["RC-16"],
       "description": "PURE.docx grep: 0 hits para REACH, SVHC, POP. Plásticos reciclados podem conter SVHC (bromados, ftalatos, chumbo). Sem screening: risco de contaminação no produto final. Mandatório para PCR food-grade.",
       "evidence": "recyclass.md:439-462. Resultados do grep em PURE.docx.",
       "resolution": "Criar PG-27 'Recycler chemical compliance procedure (REACH/SVHC/POP)'. BLOCK. Regional (EU) inicialmente, mas a metodologia deveria documentar como mínimo para tipos de resina food-grade.",
-      "decision_by": "Gian + Compliance"
+      "decision_by": "Gian + Compliance",
+      "status": "RESOLVED",
+      "triagem": {
+        "value": "up",
+        "by": "Rodrigo",
+        "ts": "2026-06-03 RESOLVED"
+      },
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Created PG-28 (REACH/SVHC/POP chemical compliance, universal sibling of RC-16) FLAG. siblings=[RC-16] resolver max_among_pillars. Consumes svhc_substances_v1.json — substance classes + ppm thresholds by intendedEndUse (FOOD_CONTACT 0ppm / GENERAL 100ppm / TECHNICAL self-decl).",
+      "resolution_ref": [
+        "docs/adr/041-mirror-rules-pattern-universal-pg.md",
+        "rules.json#PG-28",
+        "rules.json#RC-16",
+        "docs/config/svhc_substances_v1.json"
+      ]
     },
     {
       "id": "D-29",
       "category": "reverse_gap",
       "severity": "LOW",
       "title": "RC-17 (registro de reclamações) — PURE não tem",
-      "rules_involved": [
-        "RC-17"
-      ],
+      "rules_involved": ["RC-17"],
       "description": "Básico de quality management. PURE sem equivalente.",
       "evidence": "recyclass.md:466-488.",
       "resolution": "Opcional. Manter RC-only.",
-      "decision_by": "Gian"
+      "decision_by": "Gian",
+      "status": "OPEN",
+      "triagem": {
+        "value": "up",
+        "by": "Gian",
+        "ts": "2026-06-02 10:33:10 UTC"
+      }
+    },
+    {
+      "id": "G-08",
+      "category": "gap",
+      "severity": "HIGH",
+      "title": "Blend tracking ausente — sem regra cobrindo % por Ecoparque na mistura",
+      "rules_involved": ["PG-18"],
+      "description": "Reciclador EU padrão (input do Gian, 01/jun) mistura fardos de vários Ecoparques antes do processo produtivo. Hoje nenhuma das 127 regras exige registro de % de cada origem + data/hora do blend. Resultado: rastreabilidade até a origem individual quebra na etapa 5 do fluxo. Camada 3 do moat (data moat — 'X% deste pellet veio do Ecoparque Y') fica comprometida. Recyclass V1.1 §5 também exige.",
+      "evidence": "Mensagem WhatsApp do Gian 01/jun (etapa 5): 'Mistura de fardos provenientes de vários Ecoparques: registrar % peso (ou volume) de cada Ecoparque, data e hora do blend'. Cross-reference com rules.json v0.4.1 mostra 0 regras cobrindo este conceito (P-50/P-51/RC-10 só pegam process metrics, não composição).",
+      "resolution": "✅ RESOLVIDO: Criada regra PG-18 (Blend composition tracking) com severity=BLOCK, gates_what=TRC_ISSUANCE, trigger=RECYCLING_OUTCOME_WRITE. Schema delta: adicionar `RecyclingOutcome.isBlend`, `RecyclingOutcome.blendComposition` (JSON array de {ecoparqueId, percentage}), `RecyclingOutcome.blendAt`. Brief técnico Gabriel pendente sobre decisão Ecoparque: subtype A vs model B.",
+      "decision_by": "Rodrigo",
+      "is_new": true,
+      "new_source": "Gian recycler flow mapping (WhatsApp 01/jun)",
+      "status": "RESOLVED",
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Created PG-18 (Blend composition tracking) in Onda 5 Big Bang. severity=BLOCK, gates_what=TRC_ISSUANCE, trigger=RECYCLING_OUTCOME_WRITE. Schema delta documented in gabriel-brief-mvf-schema-deltas.md for Ecoparque (IMP-65).",
+      "resolution_ref": [
+        "rules.json#PG-18",
+        "IMP-65",
+        "docs/strategy/gabriel-brief-mvf-schema-deltas.md"
+      ],
+      "triagem": {
+        "value": "up",
+        "ts": "2026-06-03 RESOLVED"
+      }
+    },
+    {
+      "id": "G-09",
+      "category": "gap",
+      "severity": "HIGH",
+      "title": "Output QC approval document ausente — só cobrimos QC do input, não do output",
+      "rules_involved": ["PG-19"],
+      "description": "Reciclador EU faz amostragem do lote produzido e emite documento de aprovação QC vinculado ao output batch ID (etapa 8 do fluxo Gian). Hoje cobrimos QC do INPUT (P-15..P-16 composition cluster) mas não cobrimos QC do OUTPUT. Auditor BV/SGS vai pedir prova de aprovação física do lote final antes de creditá-lo. Sem isso, audit pack fica incompleto e cert Recyclass fica frágil.",
+      "evidence": "Mensagem WhatsApp do Gian 01/jun (etapa 8): 'Amostragem do lote produzido: documento de aprovação vinculado ao ID do lote'. Cross-reference com rules.json v0.4.1: 0 regras cobrindo output QC docs (P-19 cobre output report mas não exige QC approval doc; RC-11 cobre split de conteúdo reciclado mas não doc físico).",
+      "resolution": "✅ RESOLVIDO: Criada regra PG-19 (Output QC approval document) com severity=BLOCK, gates_what=TRC_ISSUANCE, trigger=PRE_CARROT_SUBMIT. Schema delta: adicionar `Document.type='output_qc_approval'` enum + `Document.relatedOutputBatchId` FK + `Document.approverId` + `Document.approvalDate` + `Document.validUntil`.",
+      "decision_by": "Rodrigo",
+      "is_new": true,
+      "new_source": "Gian recycler flow mapping (WhatsApp 01/jun)",
+      "status": "RESOLVED",
+      "resolved_at": "2026-06-03",
+      "resolution_applied": "Created PG-19 (Output QC approval document) in Onda 5 Big Bang. severity=BLOCK, gates_what=TRC_ISSUANCE, trigger=PRE_CARROT_SUBMIT. Schema delta: Document.type=\"output_qc_approval\" + relatedOutputBatchId + approverId + approvalDate + validUntil. Per-end-use threshold via IMP-66 (IntendedEndUse enum).",
+      "resolution_ref": [
+        "rules.json#PG-19",
+        "IMP-66",
+        "docs/strategy/onda5-gabriel-followups.md#1-schema-delta-intended_end_use-enum-em-recyclingoutcome"
+      ],
+      "triagem": {
+        "value": "up",
+        "ts": "2026-06-03 RESOLVED"
+      }
     }
   ],
   "coverage_matrix": [
     {
       "theme": "Recycler permit",
       "pillars": {
-        "PURE": [
-          "P-18",
-          "P-49"
-        ],
-        "PG": [
-          "PG-06",
-          "PG-07",
-          "PG-08"
-        ],
-        "EU": [
-          "EU-13",
-          "EU-14"
-        ],
-        "RC": [
-          "RC-01"
-        ]
+        "PURE": ["P-18", "P-49"],
+        "PG": ["PG-06", "PG-07", "PG-08"],
+        "EU": ["EU-13", "EU-14"],
+        "RC": ["RC-01"]
       },
       "status": "Total"
     },
     {
       "theme": "Recycler throughput",
       "pillars": {
-        "PURE": [
-          "P-62"
-        ],
+        "PURE": ["P-62"],
         "PG": [],
-        "EU": [
-          "EU-26"
-        ],
-        "RC": [
-          "RC-02"
-        ]
+        "EU": ["EU-26"],
+        "RC": ["RC-02"]
       },
       "status": "Conflict (severity drift)"
     },
@@ -721,9 +1004,7 @@
         "PURE": [],
         "PG": [],
         "EU": [],
-        "RC": [
-          "RC-03"
-        ]
+        "RC": ["RC-03"]
       },
       "status": "Gap (PURE/EU)"
     },
@@ -733,9 +1014,7 @@
         "PURE": [],
         "PG": [],
         "EU": [],
-        "RC": [
-          "RC-04"
-        ]
+        "RC": ["RC-04"]
       },
       "status": "Gap (PURE/EU)"
     },
@@ -745,22 +1024,16 @@
         "PURE": [],
         "PG": [],
         "EU": [],
-        "RC": [
-          "RC-15"
-        ]
+        "RC": ["RC-15"]
       },
       "status": "Gap (PURE/EU) + Schema gap"
     },
     {
       "theme": "Hazardous",
       "pillars": {
-        "PURE": [
-          "P-17"
-        ],
+        "PURE": ["P-17"],
         "PG": [],
-        "EU": [
-          "EU-03"
-        ],
+        "EU": ["EU-03"],
         "RC": []
       },
       "status": "Partial (source ambiguous)"
@@ -768,12 +1041,8 @@
     {
       "theme": "KYC fields",
       "pillars": {
-        "PURE": [
-          "P-03"
-        ],
-        "PG": [
-          "PG-01"
-        ],
+        "PURE": ["P-03"],
+        "PG": ["PG-01"],
         "EU": [],
         "RC": []
       },
@@ -782,13 +1051,8 @@
     {
       "theme": "T&C exclusivity",
       "pillars": {
-        "PURE": [
-          "P-05",
-          "P-66"
-        ],
-        "PG": [
-          "PG-02"
-        ],
+        "PURE": ["P-05", "P-66"],
+        "PG": ["PG-02"],
         "EU": [],
         "RC": []
       },
@@ -798,9 +1062,7 @@
       "theme": "AML/CFT",
       "pillars": {
         "PURE": [],
-        "PG": [
-          "PG-03"
-        ],
+        "PG": ["PG-03"],
         "EU": [],
         "RC": []
       },
@@ -810,9 +1072,7 @@
       "theme": "Wallet & digital law",
       "pillars": {
         "PURE": [],
-        "PG": [
-          "PG-04"
-        ],
+        "PG": ["PG-04"],
         "EU": [],
         "RC": []
       },
@@ -821,12 +1081,8 @@
     {
       "theme": "INT homologation",
       "pillars": {
-        "PURE": [
-          "P-02"
-        ],
-        "PG": [
-          "PG-05"
-        ],
+        "PURE": ["P-02"],
+        "PG": ["PG-05"],
         "EU": [],
         "RC": []
       },
@@ -836,9 +1092,7 @@
       "theme": "Recycler baseline (landfill/dump)",
       "pillars": {
         "PURE": [],
-        "PG": [
-          "PG-06"
-        ],
+        "PG": ["PG-06"],
         "EU": [],
         "RC": []
       },
@@ -848,9 +1102,7 @@
       "theme": "Recycler capacity evidence",
       "pillars": {
         "PURE": [],
-        "PG": [
-          "PG-07"
-        ],
+        "PG": ["PG-07"],
         "EU": [],
         "RC": []
       },
@@ -860,9 +1112,7 @@
       "theme": "Prior volume CDF/WDSR",
       "pillars": {
         "PURE": [],
-        "PG": [
-          "PG-08"
-        ],
+        "PG": ["PG-08"],
         "EU": [],
         "RC": []
       },
@@ -871,12 +1121,8 @@
     {
       "theme": "Renewal 90d window",
       "pillars": {
-        "PURE": [
-          "P-02"
-        ],
-        "PG": [
-          "PG-09"
-        ],
+        "PURE": ["P-02"],
+        "PG": ["PG-09"],
         "EU": [],
         "RC": []
       },
@@ -886,13 +1132,9 @@
       "theme": "Social impact / workforce",
       "pillars": {
         "PURE": [],
-        "PG": [
-          "PG-10"
-        ],
+        "PG": ["PG-10"],
         "EU": [],
-        "RC": [
-          "RC-06"
-        ]
+        "RC": ["RC-06"]
       },
       "status": "Partial"
     },
@@ -900,9 +1142,7 @@
       "theme": "Residential pickup avg",
       "pillars": {
         "PURE": [],
-        "PG": [
-          "PG-11"
-        ],
+        "PG": ["PG-11"],
         "EU": [],
         "RC": []
       },
@@ -911,12 +1151,8 @@
     {
       "theme": "PoA propagation",
       "pillars": {
-        "PURE": [
-          "P-67"
-        ],
-        "PG": [
-          "PG-12"
-        ],
+        "PURE": ["P-67"],
+        "PG": ["PG-12"],
         "EU": [],
         "RC": []
       },
@@ -925,12 +1161,8 @@
     {
       "theme": "Lookback window",
       "pillars": {
-        "PURE": [
-          "P-01"
-        ],
-        "PG": [
-          "PG-13"
-        ],
+        "PURE": ["P-01"],
+        "PG": ["PG-13"],
         "EU": [],
         "RC": []
       },
@@ -939,12 +1171,8 @@
     {
       "theme": "Weight uncertainty",
       "pillars": {
-        "PURE": [
-          "P-43"
-        ],
-        "PG": [
-          "PG-14"
-        ],
+        "PURE": ["P-43"],
+        "PG": ["PG-14"],
         "EU": [],
         "RC": []
       },
@@ -954,13 +1182,9 @@
       "theme": "Labor / ILO",
       "pillars": {
         "PURE": [],
-        "PG": [
-          "PG-15"
-        ],
+        "PG": ["PG-15"],
         "EU": [],
-        "RC": [
-          "RC-06"
-        ]
+        "RC": ["RC-06"]
       },
       "status": "Partial"
     },
@@ -968,12 +1192,8 @@
       "theme": "GDPR / DPA",
       "pillars": {
         "PURE": [],
-        "PG": [
-          "PG-16"
-        ],
-        "EU": [
-          "EU-22"
-        ],
+        "PG": ["PG-16"],
+        "EU": ["EU-22"],
         "RC": []
       },
       "status": "Partial"
@@ -982,9 +1202,7 @@
       "theme": "Open dump source",
       "pillars": {
         "PURE": [],
-        "PG": [
-          "PG-17"
-        ],
+        "PG": ["PG-17"],
         "EU": [],
         "RC": []
       },
@@ -995,10 +1213,7 @@
       "pillars": {
         "PURE": [],
         "PG": [],
-        "EU": [
-          "EU-04",
-          "EU-05"
-        ],
+        "EU": ["EU-04", "EU-05"],
         "RC": []
       },
       "status": "Gap PURE"
@@ -1006,13 +1221,9 @@
     {
       "theme": "Vehicle plate",
       "pillars": {
-        "PURE": [
-          "P-35"
-        ],
+        "PURE": ["P-35"],
         "PG": [],
-        "EU": [
-          "EU-06"
-        ],
+        "EU": ["EU-06"],
         "RC": []
       },
       "status": "Total"
@@ -1022,11 +1233,7 @@
       "pillars": {
         "PURE": [],
         "PG": [],
-        "EU": [
-          "EU-07",
-          "EU-08",
-          "EU-09"
-        ],
+        "EU": ["EU-07", "EU-08", "EU-09"],
         "RC": []
       },
       "status": "EU-only (OK)"
@@ -1036,11 +1243,7 @@
       "pillars": {
         "PURE": [],
         "PG": [],
-        "EU": [
-          "EU-10",
-          "EU-11",
-          "EU-12"
-        ],
+        "EU": ["EU-10", "EU-11", "EU-12"],
         "RC": []
       },
       "status": "EU-only (Phase 2)"
@@ -1048,13 +1251,9 @@
     {
       "theme": "Processor permit",
       "pillars": {
-        "PURE": [
-          "P-26"
-        ],
+        "PURE": ["P-26"],
         "PG": [],
-        "EU": [
-          "EU-15"
-        ],
+        "EU": ["EU-15"],
         "RC": []
       },
       "status": "Partial"
@@ -1062,15 +1261,9 @@
     {
       "theme": "Chain of custody",
       "pillars": {
-        "PURE": [
-          "P-27",
-          "P-28",
-          "P-65"
-        ],
+        "PURE": ["P-27", "P-28", "P-65"],
         "PG": [],
-        "EU": [
-          "EU-16"
-        ],
+        "EU": ["EU-16"],
         "RC": []
       },
       "status": "Total (redundancy C-03)"
@@ -1078,13 +1271,9 @@
     {
       "theme": "Mass consistency cross-doc",
       "pillars": {
-        "PURE": [
-          "P-57"
-        ],
+        "PURE": ["P-57"],
         "PG": [],
-        "EU": [
-          "EU-17"
-        ],
+        "EU": ["EU-17"],
         "RC": []
       },
       "status": "Total (B-04)"
@@ -1094,9 +1283,7 @@
       "pillars": {
         "PURE": [],
         "PG": [],
-        "EU": [
-          "EU-18"
-        ],
+        "EU": ["EU-18"],
         "RC": []
       },
       "status": "Gap PURE"
@@ -1104,15 +1291,9 @@
     {
       "theme": "Location consistency",
       "pillars": {
-        "PURE": [
-          "P-22",
-          "P-23",
-          "P-30"
-        ],
+        "PURE": ["P-22", "P-23", "P-30"],
         "PG": [],
-        "EU": [
-          "EU-19"
-        ],
+        "EU": ["EU-19"],
         "RC": []
       },
       "status": "Total"
@@ -1122,9 +1303,7 @@
       "pillars": {
         "PURE": [],
         "PG": [],
-        "EU": [
-          "EU-20"
-        ],
+        "EU": ["EU-20"],
         "RC": []
       },
       "status": "EU-only (OK)"
@@ -1132,13 +1311,9 @@
     {
       "theme": "Document integrity hash (attachments)",
       "pillars": {
-        "PURE": [
-          "P-63"
-        ],
+        "PURE": ["P-63"],
         "PG": [],
-        "EU": [
-          "EU-21"
-        ],
+        "EU": ["EU-21"],
         "RC": []
       },
       "status": "Gap PURE for attached docs"
@@ -1148,9 +1323,7 @@
       "pillars": {
         "PURE": [],
         "PG": [],
-        "EU": [
-          "EU-22"
-        ],
+        "EU": ["EU-22"],
         "RC": []
       },
       "status": "Gap PURE"
@@ -1158,13 +1331,9 @@
     {
       "theme": "Route plausibility",
       "pillars": {
-        "PURE": [
-          "P-64"
-        ],
+        "PURE": ["P-64"],
         "PG": [],
-        "EU": [
-          "EU-23"
-        ],
+        "EU": ["EU-23"],
         "RC": []
       },
       "status": "Total"
@@ -1172,13 +1341,9 @@
     {
       "theme": "Duplicate doc detection",
       "pillars": {
-        "PURE": [
-          "P-63"
-        ],
+        "PURE": ["P-63"],
         "PG": [],
-        "EU": [
-          "EU-24"
-        ],
+        "EU": ["EU-24"],
         "RC": []
       },
       "status": "Total (hierarchy)"
@@ -1188,9 +1353,7 @@
       "pillars": {
         "PURE": [],
         "PG": [],
-        "EU": [
-          "EU-25"
-        ],
+        "EU": ["EU-25"],
         "RC": []
       },
       "status": "Gap PURE (LOW)"
@@ -1198,31 +1361,20 @@
     {
       "theme": "Weighbridge calibration",
       "pillars": {
-        "PURE": [
-          "P-44"
-        ],
+        "PURE": ["P-44"],
         "PG": [],
         "EU": [],
-        "RC": [
-          "RC-07"
-        ]
+        "RC": ["RC-07"]
       },
       "status": "Gap PURE"
     },
     {
       "theme": "Waste sector classification",
       "pillars": {
-        "PURE": [
-          "P-10"
-        ],
+        "PURE": ["P-10"],
         "PG": [],
-        "EU": [
-          "EU-01",
-          "EU-02"
-        ],
-        "RC": [
-          "RC-08"
-        ]
+        "EU": ["EU-01", "EU-02"],
+        "RC": ["RC-08"]
       },
       "status": "Total"
     },
@@ -1232,9 +1384,7 @@
         "PURE": [],
         "PG": [],
         "EU": [],
-        "RC": [
-          "RC-09"
-        ]
+        "RC": ["RC-09"]
       },
       "status": "Gap PURE/EU"
     },
@@ -1244,9 +1394,7 @@
         "PURE": [],
         "PG": [],
         "EU": [],
-        "RC": [
-          "RC-10"
-        ]
+        "RC": ["RC-10"]
       },
       "status": "Gap PURE/EU"
     },
@@ -1256,9 +1404,7 @@
         "PURE": [],
         "PG": [],
         "EU": [],
-        "RC": [
-          "RC-11"
-        ]
+        "RC": ["RC-11"]
       },
       "status": "Gap PURE + schema gap"
     },
@@ -1268,9 +1414,7 @@
         "PURE": [],
         "PG": [],
         "EU": [],
-        "RC": [
-          "RC-12"
-        ]
+        "RC": ["RC-12"]
       },
       "status": "Gap PURE/EU"
     },
@@ -1280,9 +1424,7 @@
         "PURE": [],
         "PG": [],
         "EU": [],
-        "RC": [
-          "RC-13"
-        ]
+        "RC": ["RC-13"]
       },
       "status": "Gap PURE (ESG-critical)"
     },
@@ -1292,9 +1434,7 @@
         "PURE": [],
         "PG": [],
         "EU": [],
-        "RC": [
-          "RC-14"
-        ]
+        "RC": ["RC-14"]
       },
       "status": "Gap PURE"
     },
@@ -1304,9 +1444,7 @@
         "PURE": [],
         "PG": [],
         "EU": [],
-        "RC": [
-          "RC-16"
-        ]
+        "RC": ["RC-16"]
       },
       "status": "Gap PURE (food-grade-critical)"
     },
@@ -1316,9 +1454,7 @@
         "PURE": [],
         "PG": [],
         "EU": [],
-        "RC": [
-          "RC-17"
-        ]
+        "RC": ["RC-17"]
       },
       "status": "Gap PURE/EU"
     },
