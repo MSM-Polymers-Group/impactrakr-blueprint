@@ -233,9 +233,9 @@
       "fields": {
         "reads": [
           "Participant.id",
-          "Participant.role",
-          "Participant.homologationStatus",
-          "Participant.homologationExpiry",
+          "Homologation.roleType",
+          "Homologation.status",
+          "Homologation.validUntil",
           "Document.type",
           "Document.participantId"
         ],
@@ -258,7 +258,7 @@
         "idempotent": true,
         "on_fail": "Em produção: BLOCK MASSID_INGEST; lista participants com motivo (status/expiry/doc); AuditLog; notifica Compliance e cada participant via email. Em sandbox: FLAG visível, pipeline segue para permitir testes downstream.",
         "on_pass": "Silencioso; pipeline prossegue.",
-        "revalidation": "Re-roda em cada MASSID_INGEST e em cada update de Participant.homologationStatus/Expiry. Daily job 'p02-expiry-scan' detecta vencimentos no dia.",
+        "revalidation": "Re-roda em cada MASSID_INGEST e em cada update de Homologation.status/Expiry. Daily job 'p02-expiry-scan' detecta vencimentos no dia.",
         "retry_window": "Renovação via UI; revalidação automática 1h após upload de novo homologation_record.",
         "escalation": "Homologação expirada > 30 dias → participant suspenso (status='suspended'); MassIDs dependentes vão para review queue Compliance (espelha §14 da metodologia).",
         "performance": "Batch lookup via getChainParticipants (single query); Document lookup indexado por (participantId, type).",
@@ -586,10 +586,10 @@
         "regions": ["GLOBAL"]
       },
       "purpose": "Bloqueia emissão de TRC duplicado para a mesma MassID. Um MassID só pode gerar UM Tokenized Recycling Credit ao longo de toda sua vida — qualquer tentativa de re-emissão (mesmo após retire/burn) é fraude por design. É o gate de unicidade core do sistema rede de registries. Sem P-04, o protocolo perde a propriedade fundamental de cada token corresponder a 1 kg específico e único de plástico reciclado.",
-      "logic_human": "BLOCK se já existir um TRC vinculado ao MassID.hash (consulta registry de destino). PASS se nenhum token foi emitido antes.",
+      "logic_human": "BLOCK se já existir um TRC vinculado ao MassID.massidHash (consulta registry de destino). PASS se nenhum token foi emitido antes.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-04'>): Promise<RuleResult> {\n  const massid = ctx.input.massid;\n  if (!massid.hash) {\n    return ctx.fail({ ruleId: 'P-04', severity: 'BLOCK',\n      message: 'MassID hash missing — cannot verify uniqueness', field: 'hash' });\n  }\n  const existing = await ctx.targetRegistry.findTokenByMassidHash(massid.hash);\n  if (existing) {\n    return ctx.fail({ ruleId: 'P-04', severity: 'BLOCK',\n      message: `TRC already issued for this MassID (token ${existing.tokenId})`,\n      field: 'hash' });\n  }\n  const localToken = await ctx.db.tokenRegistry.findFirst({ where: { massidHash: massid.hash }});\n  if (localToken) {\n    return ctx.fail({ ruleId: 'P-04', severity: 'BLOCK',\n      message: `TRC issuance in flight for this MassID (local token ${localToken.id})`,\n      field: 'hash' });\n  }\n  return ctx.pass({ ruleId: 'P-04' });\n}",
       "fields": {
-        "reads": ["MassID.hash", "MassID.payloadHash", "TokenRegistry.massidHash"],
+        "reads": ["MassID.massidHash", "MassID.payloadHash", "TokenRegistry.massidHash"],
         "writes": ["ValidationResult"]
       },
       "evidence": [
@@ -615,7 +615,7 @@
       "test_cases": {
         "positive": {
           "name": "MassID virgem sem token prévio",
-          "given": "MassID.hash único; targetRegistry.findTokenByMassidHash retorna null; tokenRegistry local também vazio.",
+          "given": "MassID.massidHash único; targetRegistry.findTokenByMassidHash retorna null; tokenRegistry local também vazio.",
           "expected": "ValidationResult(passed=true, ruleId='P-04'). Submissão prossegue."
         },
         "negative": [
@@ -630,7 +630,7 @@
             "expected": "BLOCK 'TRC issuance in flight for this MassID (local token ...)'. Evita race condition."
           },
           {
-            "name": "MassID.hash null",
+            "name": "MassID.massidHash null",
             "given": "Hash chain não foi calculado para esta MassID.",
             "expected": "BLOCK 'MassID hash missing — cannot verify uniqueness'. Bloqueia preventivamente."
           }
@@ -1554,10 +1554,10 @@
         "regions": ["GLOBAL"]
       },
       "purpose": "Restringe os créditos PURE às famílias de resina elegíveis: PET, HDPE, PVC, LDPE, PP, PS, EPS e 'Other' (com sub-tipo via P-12). Materiais fora destas famílias (biopolímeros experimentais, resinas não reconhecidas por padrão internacional) podem ter contagem GHG, yield e mercado downstream incertos — não cabem na metodologia. Regra é o gate de elegibilidade material por resina, complementar a P-09 (plastic vs other).",
-      "logic_human": "BLOCK se MassID.resinType não for um dos valores aprovados (PET, HDPE, PVC, LDPE, PP, PS, EPS, Other). PASS caso contrário.",
+      "logic_human": "BLOCK se MassID.polymerType não for um dos valores aprovados (PET, HDPE, PVC, LDPE, PP, PS, EPS, Other). PASS caso contrário.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-11'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  const value = massid.resinType;\n  if (value == null || String(value).trim() === '') {\n    return ctx.fail({ ruleId: 'P-11', severity: 'BLOCK',\n      message: 'resin_type is required', field: 'resinType' });\n  }\n  const APPROVED = ['PET','HDPE','PVC','LDPE','PP','PS','EPS','Other'];\n  if (!APPROVED.includes(value)) {\n    return ctx.fail({ ruleId: 'P-11', severity: 'BLOCK',\n      message: `resin_type '${value}' not in approved enum [${APPROVED.join(', ')}]`,\n      field: 'resinType' });\n  }\n  return ctx.pass({ ruleId: 'P-11' });\n}",
       "fields": {
-        "reads": ["MassID.resinType"],
+        "reads": ["MassID.polymerType"],
         "writes": ["ValidationResult"]
       },
       "evidence": [
@@ -1583,23 +1583,23 @@
       "test_cases": {
         "positive": {
           "name": "Resina PET",
-          "given": "MassID.resinType='PET'.",
+          "given": "MassID.polymerType='PET'.",
           "expected": "PASS."
         },
         "negative": [
           {
             "name": "Resina não-aprovada",
-            "given": "MassID.resinType='PLA'.",
+            "given": "MassID.polymerType='PLA'.",
             "expected": "BLOCK 'resin_type PLA not in approved enum'."
           },
           {
             "name": "resinType NULL",
-            "given": "MassID.resinType=null.",
+            "given": "MassID.polymerType=null.",
             "expected": "BLOCK 'resin_type is required'."
           },
           {
             "name": "Case mismatch",
-            "given": "MassID.resinType='pet'.",
+            "given": "MassID.polymerType='pet'.",
             "expected": "BLOCK (enum estrito uppercase)."
           }
         ]
@@ -1683,7 +1683,7 @@
       "logic_human": "BLOCK se resin_type='Other' AND resinSubtype está NULL/blank. PASS caso contrário.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-12'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  if (massid.resinType !== 'Other') {\n    return ctx.skip({ reason: 'resinType is not Other; rule does not apply.' });\n  }\n  const subtype = massid.resinSubtype;\n  if (subtype == null || String(subtype).trim() === '') {\n    return ctx.fail({ ruleId: 'P-12', severity: 'BLOCK',\n      message: 'resin_subtype is required when resin_type=Other',\n      field: 'resinSubtype' });\n  }\n  if (String(subtype).trim().length < 3) {\n    return ctx.fail({ ruleId: 'P-12', severity: 'BLOCK',\n      message: 'resin_subtype must be descriptive (>=3 chars)',\n      field: 'resinSubtype' });\n  }\n  return ctx.pass({ ruleId: 'P-12' });\n}",
       "fields": {
-        "reads": ["MassID.resinType", "MassID.resinSubtype"],
+        "reads": ["MassID.polymerType", "MassID.resinSubtype"],
         "writes": ["ValidationResult"]
       },
       "evidence": [
@@ -1709,7 +1709,7 @@
       "test_cases": {
         "positive": {
           "name": "Other com subtype descritivo",
-          "given": "MassID.resinType='Other', resinSubtype='ABS (acrylonitrile butadiene styrene)'.",
+          "given": "MassID.polymerType='Other', resinSubtype='ABS (acrylonitrile butadiene styrene)'.",
           "expected": "PASS."
         },
         "negative": [
@@ -1938,7 +1938,7 @@
       "logic_human": "BLOCK quando MassID.isMixed=TRUE se Recycler.acceptsMixed ≠ TRUE. PASS caso contrário.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-14'>): Promise<RuleResult> {\n  const massid = await ctx.db.massID.findById(ctx.input.massidId);\n  if (!massid.isMixed) {\n    return ctx.skip({ reason: 'Not a mixed MassID; rule does not apply.' });\n  }\n  const recycler = await ctx.db.participant.findById(massid.recyclerId);\n  if (!recycler) {\n    return ctx.fail({ ruleId: 'P-14', severity: 'BLOCK',\n      message: 'Recycler not found for mixed MassID', field: 'recyclerId' });\n  }\n  if (recycler.acceptsMixed !== true) {\n    return ctx.fail({ ruleId: 'P-14', severity: 'BLOCK',\n      message: `Recycler ${recycler.id} does not accept mixed plastic input`,\n      field: 'recycler.acceptsMixed' });\n  }\n  return ctx.pass({ ruleId: 'P-14' });\n}",
       "fields": {
-        "reads": ["MassID.isMixed", "MassID.recyclerId", "Participant.acceptsMixed"],
+        "reads": ["MassID.isMixed", "MassID.recyclerId", "Participant.recyclerAcceptsMixed"],
         "writes": ["ValidationResult"]
       },
       "evidence": [
@@ -1961,7 +1961,7 @@
         "idempotent": true,
         "on_fail": "BLOCK MASSID_INGEST; AuditLog com recyclerId e isMixed=true; UI sugere recyclers alternativos com acceptsMixed=true.",
         "on_pass": "Silencioso.",
-        "revalidation": "Re-roda em update de MassID.recyclerId, MassID.isMixed ou Participant.acceptsMixed.",
+        "revalidation": "Re-roda em update de MassID.recyclerId, MassID.isMixed ou Participant.recyclerAcceptsMixed.",
         "retry_window": "Imediato após re-routing.",
         "escalation": "Pattern de BLOCK no mesmo Generator/Hauler → revisar processo de routing automático.",
         "performance": "Lookup O(1) por massid + Participant join."
@@ -2759,7 +2759,7 @@
         "reads": [
           "MassID.id",
           "MassID.originKnownFlag",
-          "Participant.role",
+          "Homologation.roleType",
           "Participant.massidId"
         ],
         "writes": ["ValidationResult", "AuditLog"]
@@ -2885,7 +2885,7 @@
       "logic_human": "BLOCK se MassID.originKnownFlag=TRUE AND count(Participant role=G) ≠ 1. PASS se exatamente 1 Generator. SKIP se originKnownFlag=FALSE (P-20 já tratou).",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-21'>): Promise<RuleResult> {\n  const m = await ctx.db.massID.findById(ctx.input.massidId);\n  if (m.originKnownFlag !== true) {\n    return ctx.skip({ reason: 'origin_known_flag != TRUE; delegated to P-20' });\n  }\n  const generators = await ctx.db.participant.count({ where: {\n    massidId: m.id, role: 'G'\n  }});\n  if (generators !== 1) {\n    return ctx.fail({ ruleId: 'P-21', severity: 'BLOCK',\n      message: `generator_count=${generators}, expected exactly 1 when origin is identified`,\n      field: 'participants' });\n  }\n  return ctx.pass({ ruleId: 'P-21' });\n}",
       "fields": {
-        "reads": ["MassID.originKnownFlag", "Participant.role", "Participant.massidId"],
+        "reads": ["MassID.originKnownFlag", "Homologation.roleType", "Participant.massidId"],
         "writes": ["ValidationResult", "AuditLog"]
       },
       "evidence": [
@@ -3241,7 +3241,7 @@
       "logic_human": "BLOCK se count(Participant role=R) na chain ≠ 1. PASS se exatamente 1 Recycler.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-24'>): Promise<RuleResult> {\n  const m = await ctx.db.massID.findById(ctx.input.massidId);\n  const recyclers = await ctx.db.participant.count({ where: {\n    massidId: m.id, role: 'R'\n  }});\n  if (recyclers !== 1) {\n    return ctx.fail({ ruleId: 'P-24', severity: 'BLOCK',\n      message: `recycler_count=${recyclers}, expected exactly 1`,\n      field: 'participants' });\n  }\n  return ctx.pass({ ruleId: 'P-24' });\n}",
       "fields": {
-        "reads": ["MassID.id", "Participant.role", "Participant.massidId"],
+        "reads": ["MassID.id", "Homologation.roleType", "Participant.massidId"],
         "writes": ["ValidationResult", "AuditLog"]
       },
       "evidence": [
@@ -3366,7 +3366,7 @@
         "reads": [
           "MassID.id",
           "MassID.generatorAsHaulerFlag",
-          "Participant.role",
+          "Homologation.roleType",
           "Participant.massidId",
           "TransportLeg.massidId"
         ],
@@ -3503,8 +3503,8 @@
         "reads": [
           "MassID.id",
           "MassID.processorStepExists",
-          "Participant.role",
-          "Participant.homologationStatus",
+          "Homologation.roleType",
+          "Homologation.status",
           "Document.type",
           "Document.participantId"
         ],
@@ -6459,7 +6459,7 @@
         "regions": ["GLOBAL"]
       },
       "purpose": "Trinity check do Recycler como endpoint do crédito: homologação ativa + audit em dia + permit válido. Falha em qualquer uma das três invalida o outcome — o Recycler é onde o ato de reciclagem ocorre, então sua qualificação legal e técnica é o gate mais crítico do POST_RECYCLING. P-49 agrega checks atomicos para falhar rápido com mensagem específica de qual aspecto está faltando.",
-      "logic_human": "BLOCK if no RecyclerLicense for participant OR license.status != ACTIVE at MassID.pickupAt OR ewcCode not in license.licensedEwcScope OR Participant.homologationStatus != APPROVED. non_retroactive_revocation principle: license validity computed at pickupAt, not at evaluation time.",
+      "logic_human": "BLOCK if no RecyclerLicense for participant OR license.status != ACTIVE at MassID.pickupAt OR ewcCode not in license.licensedEwcScope OR Homologation.status != APPROVED. non_retroactive_revocation principle: license validity computed at pickupAt, not at evaluation time.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-49'>): Promise<RuleResult> {\n  const m = ctx.massid;\n  const p = await ctx.db.participant.findUnique({ where: { id: m.recyclerId } });\n  if (!p) return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK', message: 'Recycler participant missing.', field: 'recyclerId' });\n  if (p.homologationStatus !== 'APPROVED') {\n    return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK', message: 'Recycler not homologated (status=' + p.homologationStatus + ').', field: 'homologationStatus' });\n  }\n  const license = await ctx.db.recyclerLicense.findUnique({ where: { participantId: p.id } });\n  if (!license) {\n    return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK', message: 'RecyclerLicense missing — required per ADR-040.', field: 'recyclerLicense' });\n  }\n  // non_retroactive_revocation: status valid at pickupAt\n  const event = m.pickupAt;\n  if (license.validFrom > event || license.validUntil < event) {\n    return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK', message: 'Recycler permit not valid at pickup date ' + event.toISOString() + ' (validFrom=' + license.validFrom.toISOString() + ', validUntil=' + license.validUntil.toISOString() + ').', field: 'validFrom/Until' });\n  }\n  // status check at evaluation time still uses event-anchor for non_retroactive\n  if (license.status !== 'ACTIVE') {\n    return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK', message: 'Recycler permit status=' + license.status + ' (expected ACTIVE).', field: 'status' });\n  }\n  // EWC scope check via shared utility\n  if (!ewcInScope(m.ewcCode, license.licensedEwcScope)) {\n    return ctx.fail({ ruleId: 'P-49', severity: 'BLOCK', message: 'EWC code ' + m.ewcCode + ' not in recycler permit scope ' + JSON.stringify(license.licensedEwcScope) + '.', field: 'ewcCode' });\n  }\n  return ctx.pass({ ruleId: 'P-49' });\n}",
       "fields": {
         "reads": [
@@ -6468,8 +6468,8 @@
           "MassID.ewcCode",
           "MassID.pickupAt",
           "Participant.id",
-          "Participant.role",
-          "Participant.homologationStatus",
+          "Homologation.roleType",
+          "Homologation.status",
           "RecyclerLicense.participantId",
           "RecyclerLicense.licensedEwcScope",
           "RecyclerLicense.status",
@@ -6504,7 +6504,7 @@
       "test_cases": {
         "positive": {
           "name": "Recycler homologated, permit ACTIVE at pickupAt, EWC in scope",
-          "given": "Participant.homologationStatus=APPROVED; RecyclerLicense.status=ACTIVE, validFrom=2026-01-01, validUntil=2027-01-01; licensedEwcScope=['15 01 02','07 02 *']; MassID.ewcCode='07 02 13'; pickupAt=2026-06-01.",
+          "given": "Homologation.status=APPROVED; RecyclerLicense.status=ACTIVE, validFrom=2026-01-01, validUntil=2027-01-01; licensedEwcScope=['15 01 02','07 02 *']; MassID.ewcCode='07 02 13'; pickupAt=2026-06-01.",
           "expected": "PASS."
         },
         "negative": [
@@ -7307,7 +7307,7 @@
         "reads": [
           "MassID.id",
           "Document.metadata.destinationAddressId",
-          "Participant.role",
+          "Homologation.roleType",
           "Participant.siteAddressId"
         ],
         "writes": ["ValidationResult", "AuditLog"]
@@ -8109,7 +8109,7 @@
           "MassID.netKg",
           "MassID.completionDate",
           "Participant.id",
-          "Participant.role",
+          "Homologation.roleType",
           "Document.type",
           "Document.metadata.threshold"
         ],
@@ -8236,7 +8236,7 @@
           "MassID.netKg",
           "MassID.completionDate",
           "Participant.id",
-          "Participant.role",
+          "Homologation.roleType",
           "Document.metadata.capacity_value"
         ],
         "writes": ["ValidationResult", "AuditLog"]
@@ -8756,7 +8756,7 @@
       "logic_human": "BLOCK em prod (FLAG em sandbox) se external_claim_check.reviewStatus = 'confirmed' OR external_claim_flag = TRUE. PASS se flag ausente, false, OR reviewStatus = 'false_positive'.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'P-66'>): Promise<RuleResult> {\n  const isProd = ctx.environment === 'production';\n  const sev: 'BLOCK' | 'FLAG' = isProd ? 'BLOCK' : 'FLAG';\n\n  const claim = await ctx.db.document.findOne({ where: {\n    type: 'external_claim_check', massIdId: ctx.massId.id\n  }});\n\n  // Default seguro: sem flag = passa.\n  if (!claim || claim.reviewStatus === 'false_positive') {\n    return ctx.pass({ ruleId: 'P-66' });\n  }\n\n  if (claim.reviewStatus === 'confirmed') {\n    // Bloqueia MassID atual.\n    const result = ctx.fail({ ruleId: 'P-66', severity: sev,\n      message: `Double-counting confirmado (source: ${claim.flagSource}, by: ${claim.reviewedBy})`,\n      field: 'external_claim_check.reviewStatus' });\n\n    // Dispara P-67 (Bad Actor propagation) — FLAG todos os MassIDs do mesmo participant.\n    await ctx.dispatchRule({\n      ruleId: 'P-67',\n      participantId: ctx.massId.participantId,\n      reason: `P-66 confirmed double-counting (MassID ${ctx.massId.id})`,\n      scope: 'ALL_FROM_SAME_PARTICIPANT'\n    });\n    return result;\n  }\n\n  // reviewStatus = 'pending': aguarda decisão Compliance. Não bloqueia ainda.\n  return ctx.flag({ ruleId: 'P-66', severity: 'FLAG',\n    message: 'External claim em revisão pelo Compliance. Aguardando decisão.',\n    field: 'external_claim_check.reviewStatus' });\n}",
       "fields": {
-        "reads": ["MassID.hash", "MassID.payloadHash", "MassID.externalClaimFlag"],
+        "reads": ["MassID.massidHash", "MassID.payloadHash", "MassID.externalClaimFlag"],
         "writes": ["ValidationResult", "MassID.externalClaimFlag", "MassID.exceptionState"]
       },
       "evidence": [
@@ -9853,14 +9853,14 @@
         "regions": ["GLOBAL"]
       },
       "purpose": "INT (Network Integrator) é a porta de entrada do dMRV no ecossistema do registry — quem assina o submission payload é sempre um INT. PURE §7.1.2 exige homologation prévia do INT (data quality + security audit) antes de qualquer ingestão valer. Se INT não está homologado (status != active) ou expirou, todo o payload é inválido — o registry não consegue auditar a origem técnica dos dados. PG-05 é o gate de governance MAIS upstream do pipeline pré-submissão: precede todos os outros checks porque sem INT válido nada faz sentido downstream.",
-      "logic_human": "BLOCK se Participant.participantType='INT' AND (intHomologationStatus != 'active' OR intHomologationExpiry < submissionDate OR intHomologationStatus IS NULL). PASS caso contrário.",
+      "logic_human": "BLOCK se Homologation.roleType='INT' AND (intHomologationStatus != 'active' OR intHomologationExpiry < submissionDate OR intHomologationStatus IS NULL). PASS caso contrário.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-05'>): Promise<RuleResult> {\n  const int = await ctx.db.participant.findById(ctx.input.intId);\n  if (!int || int.participantType !== 'INT') {\n    return ctx.fail({ ruleId: 'PG-05', severity: 'BLOCK',\n      message: 'Submitting actor is not an INT', field: 'participantType' });\n  }\n  if (int.intHomologationStatus !== 'active') {\n    return ctx.fail({ ruleId: 'PG-05', severity: 'BLOCK',\n      message: `INT homologation not active (status=${int.intHomologationStatus ?? 'null'})`,\n      field: 'intHomologationStatus' });\n  }\n  if (!int.intHomologationExpiry || int.intHomologationExpiry < ctx.input.submissionDate) {\n    return ctx.fail({ ruleId: 'PG-05', severity: 'BLOCK',\n      message: `INT homologation expired on ${int.intHomologationExpiry?.toISOString() ?? 'never set'}`,\n      field: 'intHomologationExpiry' });\n  }\n  return ctx.pass({ ruleId: 'PG-05' });\n}",
       "fields": {
         "reads": [
           "Participant.intId",
-          "Participant.participantType",
-          "Participant.intHomologationStatus",
-          "Participant.intHomologationExpiry",
+          "Homologation.roleType",
+          "Homologation.status",
+          "Homologation.validUntil",
           "MassID.submittedByIntId",
           "Submission.submissionDate"
         ],
@@ -9896,7 +9896,7 @@
       "test_cases": {
         "positive": {
           "name": "INT homologado e válido",
-          "given": "Participant.participantType='INT' com intHomologationStatus='active' AND intHomologationExpiry='2027-01-01' (futuro).",
+          "given": "Homologation.roleType='INT' com intHomologationStatus='active' AND intHomologationExpiry='2027-01-01' (futuro).",
           "expected": "PASS."
         },
         "negative": [
@@ -9999,7 +9999,7 @@
       "logic_pseudocode": "const ACCEPTED_DESTINATIONS = [\n  'landfill',\n  'open_dump',\n  'incineration_no_recovery',\n  'incineration_w_energy_recovery'\n];\n\nasync function evaluate(ctx: RuleContext<'PG-06'>): Promise<RuleResult> {\n  if (ctx.participant.role !== 'R') return ctx.skip({ ruleId: 'PG-06', reason: 'Não-Recycler' });\n\n  const dest = ctx.participant.counterfactualDestination;\n  const facilityName = ctx.participant.counterfactualFacilityName;\n\n  if (!dest || !ACCEPTED_DESTINATIONS.includes(dest)) {\n    return ctx.fail({ ruleId: 'PG-06', severity: 'BLOCK',\n      message: 'counterfactualDestination ausente ou inválido (aceitos: landfill, open_dump, incineration_no_recovery, incineration_w_energy_recovery)',\n      field: 'participant.counterfactualDestination' });\n  }\n  if (!facilityName) {\n    return ctx.fail({ ruleId: 'PG-06', severity: 'BLOCK',\n      message: 'Nome da instalação de destinação contrafactual ausente',\n      field: 'participant.counterfactualFacilityName' });\n  }\n\n  // Open dump exige evidência adicional (foto geo-tagged + auditor visit) per PG-17\n  if (dest === 'open_dump') {\n    const dumpEvidence = await ctx.db.document.findOne({ where: {\n      type: 'open_dump_evidence', participantId: ctx.participant.id\n    }});\n    if (!dumpEvidence) {\n      return ctx.flag({ ruleId: 'PG-06', severity: 'FLAG',\n        message: 'Open dump declarado mas open_dump_evidence ausente (fotografia geo-tagged + relatório auditor exigidos)',\n        field: 'documents.open_dump_evidence' });\n    }\n  }\n\n  // Incineração exige documentação da instalação receptora\n  if (dest === 'incineration_no_recovery' || dest === 'incineration_w_energy_recovery') {\n    const incinDoc = await ctx.db.document.findOne({ where: {\n      type: 'incineration_facility_doc', participantId: ctx.participant.id\n    }});\n    if (!incinDoc) {\n      return ctx.flag({ ruleId: 'PG-06', severity: 'FLAG',\n        message: 'Incineração declarada mas incineration_facility_doc ausente',\n        field: 'documents.incineration_facility_doc' });\n    }\n  }\n\n  return ctx.pass({ ruleId: 'PG-06' });\n}",
       "fields": {
         "reads": [
-          "Participant.role",
+          "Homologation.roleType",
           "Participant.counterfactualDestination",
           "Participant.counterfactualFacilityName",
           "Document.type"
@@ -10169,7 +10169,7 @@
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-07'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  if (p.participantType !== 'R') return ctx.skip({ reason: 'Only applies to Recyclers.' });\n  if (!p.recyclerCapacityEvidenceRef) {\n    return ctx.fail({ ruleId: 'PG-07', severity: 'BLOCK',\n      message: 'Recycler capacity evidence (business plan) missing',\n      field: 'recyclerCapacityEvidenceRef' });\n  }\n  if (!p.recyclerCapacity || p.recyclerCapacity <= 0) {\n    return ctx.fail({ ruleId: 'PG-07', severity: 'BLOCK',\n      message: 'recyclerCapacity must be > 0', field: 'recyclerCapacity' });\n  }\n  const priorVolume = await ctx.db.recyclingOutcome.aggregate({\n    _sum: { certifiedMassKg: true },\n    where: { recyclerId: p.id, periodEnd: { gte: subPeriod(ctx.now, '12 months') } }\n  });\n  const prior = priorVolume._sum.certifiedMassKg ?? 0;\n  if (prior > 0 && p.recyclerCapacity > prior * 1.20) {\n    return ctx.fail({ ruleId: 'PG-07', severity: 'FLAG',\n      message: `Declared capacity ${p.recyclerCapacity}kg exceeds 1.20× prior-period certified ${prior}kg; updated evidence required`,\n      field: 'recyclerCapacity' });\n  }\n  return ctx.pass({ ruleId: 'PG-07' });\n}",
       "fields": {
         "reads": [
-          "Participant.participantType",
+          "Homologation.roleType",
           "Participant.recyclerCapacity",
           "Participant.recyclerCapacityEvidenceRef",
           "Participant.recyclerSiteArea",
@@ -10327,7 +10327,7 @@
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-08'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  if (p.participantType !== 'R') return ctx.skip({ reason: 'Only applies to Recyclers.' });\n  if (p.certificationType !== 'full') {\n    return ctx.skip({ reason: `certificationType=${p.certificationType} does not require prior volume evidence.` });\n  }\n  if (!p.recyclerPriorVolumeEvidenceRef) {\n    return ctx.fail({ ruleId: 'PG-08', severity: 'BLOCK',\n      message: 'Prior volume records (CDF/WDSR) missing for Full Certification',\n      field: 'recyclerPriorVolumeEvidenceRef' });\n  }\n  if (!p.recyclerDeclaredAnnualVolumeKg || p.recyclerDeclaredAnnualVolumeKg <= 0) {\n    return ctx.fail({ ruleId: 'PG-08', severity: 'BLOCK',\n      message: 'recyclerDeclaredAnnualVolumeKg must be > 0',\n      field: 'recyclerDeclaredAnnualVolumeKg' });\n  }\n  return ctx.pass({ ruleId: 'PG-08' });\n}",
       "fields": {
         "reads": [
-          "Participant.participantType",
+          "Homologation.roleType",
           "Participant.certificationType",
           "Participant.recyclerPriorVolumeEvidenceRef",
           "Participant.recyclerDeclaredAnnualVolumeKg"
@@ -10465,8 +10465,8 @@
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-09'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  if (!['R', 'P', 'INT'].includes(p.participantType)) return ctx.skip({ reason: 'Renewal only applies to R/P/INT.' });\n  if (!p.homologationExpiry) {\n    return ctx.fail({ ruleId: 'PG-09', severity: 'FLAG',\n      message: 'homologationExpiry not set', field: 'homologationExpiry' });\n  }\n  const daysUntilExpiry = Math.floor((p.homologationExpiry.getTime() - ctx.now.getTime()) / (1000 * 60 * 60 * 24));\n  if (daysUntilExpiry < 0) {\n    return ctx.skip({ reason: 'Already expired — delegated to P-02 (BLOCK).' });\n  }\n  if (daysUntilExpiry <= 90) {\n    return ctx.fail({ ruleId: 'PG-09', severity: 'FLAG',\n      message: `Homologation expires in ${daysUntilExpiry} days; reach out to renew now`,\n      field: 'homologationExpiry' });\n  }\n  return ctx.pass({ ruleId: 'PG-09' });\n}",
       "fields": {
         "reads": [
-          "Participant.participantType",
-          "Participant.homologationExpiry",
+          "Homologation.roleType",
+          "Homologation.validUntil",
           "Participant.id"
         ],
         "writes": ["ValidationResult", "ReviewQueue.status"]
@@ -10591,7 +10591,7 @@
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-10'>): Promise<RuleResult> {\n  if (ctx.participant.role !== 'R') return ctx.skip({ ruleId: 'PG-10', reason: 'Não-Recycler' });\n  const p = ctx.participant;\n\n  const fields = [\n    p.workforceLowIncomePct,\n    p.workforceMinorityPct,\n    p.workforceWomenPct,\n    p.communityBenefitFlag\n  ];\n\n  const allNull = fields.every(f => f === null || f === undefined);\n  if (allNull) {\n    return ctx.flag({ ruleId: 'PG-10', severity: 'FLAG',\n      message: 'Recycler sem dados sociais cadastrados (PURE §7.1.1 + §12)',\n      field: 'participant.workforceSocial.*' });\n  }\n\n  // Zero-pattern detection: bad actor pode preencher tudo com 0 pra silenciar regra\n  const headcount = p.workforceTotalHeadcount;\n  const allZero = fields.every(f => f === 0 || f === false);\n  if (headcount && headcount > 1 && allZero) {\n    return ctx.flag({ ruleId: 'PG-10', severity: 'FLAG',\n      message: 'Padrão suspeito: workforce > 1 mas todos os campos sociais = 0 (possível silenciamento da regra)',\n      field: 'participant.workforceSocial.*',\n      metadata: { suspicious_zero_pattern: true } });\n  }\n\n  return ctx.pass({ ruleId: 'PG-10' });\n}",
       "fields": {
         "reads": [
-          "Participant.participantType",
+          "Homologation.roleType",
           "Participant.workforceLowIncomePct",
           "Participant.workforceMinorityPct",
           "Participant.workforceWomenPct",
@@ -10886,14 +10886,14 @@
       "fields": {
         "reads": [
           "Participant.intId",
-          "Participant.participantType",
+          "Homologation.roleType",
           "Participant.intDataQualityFlag",
           "Participant.intSecurityBreachFlag",
-          "Participant.intHomologationStatus",
+          "Homologation.status",
           "MassID.submittedByIntId",
           "MassID.status"
         ],
-        "writes": ["ValidationResult", "MassID.exceptionState", "Participant.intHomologationStatus"]
+        "writes": ["ValidationResult", "MassID.exceptionState", "Homologation.status"]
       },
       "evidence": [],
       "messages": {
@@ -11294,7 +11294,7 @@
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-15'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  if (p.laborComplianceAckFlag !== true) {\n    return ctx.fail({ ruleId: 'PG-15', severity: 'FLAG',\n      message: 'ILO labor compliance acknowledgement missing', field: 'laborComplianceAckFlag' });\n  }\n  if (['R', 'P'].includes(p.participantType) && !p.laborComplianceDocRef) {\n    return ctx.fail({ ruleId: 'PG-15', severity: 'BLOCK',\n      message: 'Labor compliance documentation missing for Recycler/Processor',\n      field: 'laborComplianceDocRef' });\n  }\n  return ctx.pass({ ruleId: 'PG-15' });\n}",
       "fields": {
         "reads": [
-          "Participant.participantType",
+          "Homologation.roleType",
           "Participant.laborComplianceAckFlag",
           "Participant.laborComplianceDocRef",
           "Participant.childLaborPolicyRef"
@@ -11437,7 +11437,7 @@
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-16'>): Promise<RuleResult> {\n  const p = await ctx.db.participant.findById(ctx.input.participantId);\n  if (p.dataPrivacyAckFlag !== true) {\n    return ctx.fail({ ruleId: 'PG-16', severity: 'FLAG',\n      message: 'Data privacy acknowledgement missing', field: 'dataPrivacyAckFlag' });\n  }\n  if (p.participantType === 'INT' && !p.dpaRef) {\n    return ctx.fail({ ruleId: 'PG-16', severity: 'BLOCK',\n      message: 'DPA (Data Processing Agreement) missing for INT', field: 'dpaRef' });\n  }\n  return ctx.pass({ ruleId: 'PG-16' });\n}",
       "fields": {
         "reads": [
-          "Participant.participantType",
+          "Homologation.roleType",
           "Participant.dataPrivacyAckFlag",
           "Participant.dataPrivacyAckDate",
           "Participant.dpaRef"
@@ -12014,7 +12014,7 @@
       "logic_human": "BLOCK em prod (FLAG em sandbox) se accreditation_record do role do participant ausente OR accreditation_record.validUntil < now OR documentos requeridos por role ausentes.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'PG-20'>): Promise<RuleResult> {\n  const p = ctx.participant;\n  const isProd = ctx.environment === 'production';\n  const sev: 'BLOCK' | 'FLAG' = isProd ? 'BLOCK' : 'FLAG';\n  const role = p.role;\n\n  // Mapeamento role → doc_type esperado\n  const REQUIRED_DOCS: Record<string, { type: string; renewalMonths: number; optional?: boolean }[]> = {\n    'H': [{ type: 'hauler_license', renewalMonths: 24 }],\n    'P': [{ type: 'environmental_operation_license', renewalMonths: 12 }],\n    'R': [\n      { type: 'environmental_operation_license', renewalMonths: 12 },\n      { type: 'recyclass_certificate', renewalMonths: 12, optional: !p.recyclassOptIn }\n    ],\n    'INT': [{ type: 'integrator_contract', renewalMonths: 12 }]\n  };\n\n  const required = REQUIRED_DOCS[role] || [];\n  if (required.length === 0) return ctx.skip({ ruleId: 'PG-20', reason: `Role ${role} sem accreditation requirement` });\n\n  const missing: { docType: string; reason: string }[] = [];\n  for (const req of required) {\n    if (req.optional) continue;\n    const doc = await ctx.db.document.findOne({ where: {\n      type: req.type, participantId: p.id\n    }});\n    if (!doc) {\n      missing.push({ docType: req.type, reason: 'missing' });\n      continue;\n    }\n    if (doc.validUntil && doc.validUntil < ctx.now) {\n      missing.push({ docType: req.type, reason: `expired on ${doc.validUntil.toISOString()}` });\n    }\n  }\n\n  if (missing.length > 0) {\n    return ctx.fail({ ruleId: 'PG-20', severity: sev,\n      message: `${missing.length} accreditation doc(s) ausente(s) ou expirado(s): ${missing.map(m=>m.docType).join(', ')}`,\n      field: 'documents.accreditation',\n      metadata: { missing } });\n  }\n  return ctx.pass({ ruleId: 'PG-20' });\n}",
       "fields": {
-        "reads": ["Participant.role", "Document.type", "Document.validUntil"],
+        "reads": ["Homologation.roleType", "Document.type", "Document.validUntil"],
         "writes": ["ValidationResult"]
       },
       "evidence": [
@@ -14638,7 +14638,7 @@
       "fields": {
         "reads": [
           "MassID.pickupAddressId",
-          "MassID.dropOffAddressId",
+          "MassID.dropoffAddressId",
           "MassID.processingSiteAddressId",
           "MassID.recyclerSiteAddressId",
           "Address.participantId",
@@ -19008,7 +19008,7 @@
       "trigger": {
         "event": "PARTICIPANT_ONBOARDING",
         "phase": "PRE_VALIDATION",
-        "conditions": ["Participant.role='R'"],
+        "conditions": ["Homologation.roleType='R'"],
         "secondary_triggers": [
           {
             "event": "PARTICIPANT_UPDATE",
@@ -19028,7 +19028,7 @@
       "fields": {
         "reads": [
           "Participant.id",
-          "Participant.role",
+          "Homologation.roleType",
           "Document.type",
           "Document.participantId",
           "Document.validUntil",
