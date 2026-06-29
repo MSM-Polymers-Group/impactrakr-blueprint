@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Impactrakr · Product Blueprint v0.4.5</title>
+    <title>Impactrakr · Product Blueprint v0.4.6</title>
     <meta
       name="description"
       content="Plataforma dMRV para validação de créditos de reciclagem de plástico. Cliente: MARE Foundation / MSM Polymers (Malta)."
@@ -2989,7 +2989,7 @@
             <span class="search-btn-label" lang="en">Search...</span>
             <kbd>⌘K</kbd>
           </button>
-          <span class="version-pill">v0.4.5 · 8 Jun 2026</span>
+          <span class="version-pill">v0.4.6 · 29 Jun 2026</span>
           <div class="lang-toggle" role="group" aria-label="Language">
             <button data-lang="pt" class="active" aria-label="Português">PT</button>
             <button data-lang="en" aria-label="English">EN</button>
@@ -3201,7 +3201,7 @@
           <div class="tab-pane active" id="pane-blueprint" role="tabpanel">
             <!-- ============ HERO ============ -->
             <section class="hero">
-              <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.4.5</div>
+              <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.4.6</div>
               <h1>
                 <span lang="pt">Plataforma dMRV para créditos de reciclagem de plástico</span>
                 <span lang="en">dMRV platform for plastic recycling credits</span>
@@ -3283,9 +3283,9 @@
                 <span class="callout-icon">◆</span>
                 <div>
                   <strong
-                    ><span lang="pt">Atualizações desta versão (v0.4.5 — 08/jun/2026 · tarde)</span
+                    ><span lang="pt">Atualizações desta versão (v0.4.6 — 08/jun/2026 · tarde)</span
                     ><span lang="en"
-                      >Updates in this version (v0.4.5 — Jun 8, 2026 · afternoon)</span
+                      >Updates in this version (v0.4.6 — Jun 8, 2026 · afternoon)</span
                     ></strong
                   >
                   <p style="margin: 6px 0 0; color: inherit">
@@ -3456,7 +3456,7 @@
                       domínio de identidade pronto, AWS Cognito provisionado, contextos de negócio
                       reorganizados em pacotes (identity + participant), pipeline CI/CD modernizado
                       e suíte de testes com testcontainers + e2e. §07 ganhou um registro completo
-                      dos <strong>31 ADRs</strong> — toda decisão técnica relevante agora aparece
+                      dos <strong>46 ADRs</strong> — toda decisão técnica relevante agora aparece
                       como linha auditável.</span
                     >
                     <span lang="en"
@@ -3465,7 +3465,7 @@
                       complete, AWS Cognito provisioned, business contexts reorganized into packages
                       (identity + participant), modernized CI/CD pipeline, and test suite with
                       testcontainers + e2e. §07 now includes a full registry of the
-                      <strong>31 ADRs</strong> — every relevant technical decision now appears as an
+                      <strong>46 ADRs</strong> — every relevant technical decision now appears as an
                       auditable line.</span
                     >
                   </p>
@@ -3683,17 +3683,17 @@
               </div>
 
               <h3>
-                <span lang="pt">Status hoje (2026-06-08)</span
-                ><span lang="en">Status today (2026-06-08)</span>
+                <span lang="pt">Status hoje (2026-06-29)</span
+                ><span lang="en">Status today (2026-06-29)</span>
               </h3>
               <div class="kpi-grid" style="margin-top: 16px">
                 <div class="kpi">
                   <div class="kpi-label">
                     <span lang="pt">Concluído</span><span lang="en">Done</span>
                   </div>
-                  <div class="kpi-value kpi-value-sm" style="color: var(--success)">7</div>
+                  <div class="kpi-value kpi-value-sm" style="color: var(--success)">13</div>
                   <div class="kpi-sub">
-                    schema · auth · hash chain · feature flags · MassID CRUD · CI · Doppler
+                    schema · auth · hash chain · feature flags · MassID CRUD · CI · Doppler · 46 ADRs · Participant · Address · homologation · pitch site público · regras UE + RecyClass implementadas
                   </div>
                 </div>
                 <div class="kpi">
@@ -3702,19 +3702,69 @@
                   </div>
                   <div class="kpi-value kpi-value-sm" style="color: var(--warning)">3</div>
                   <div class="kpi-sub">
-                    <span lang="pt">sync DTOs · refinamento Carrot · migração Zod</span
-                    ><span lang="en">sync DTOs · Carrot refinement · Zod migration</span>
+                    <span lang="pt">eventos de cadastro · health check de QA · UI/UX para painel do auditor</span
+                    ><span lang="en">registration events · QA health check · auditor panel UI/UX</span>
                   </div>
                 </div>
                 <div class="kpi">
                   <div class="kpi-label">
                     <span lang="pt">A começar</span><span lang="en">To start</span>
                   </div>
-                  <div class="kpi-value kpi-value-sm" style="color: var(--info)">5</div>
+                  <div class="kpi-value kpi-value-sm" style="color: var(--info)">4</div>
                   <div class="kpi-sub">
-                    validation engine · documents · carrot · dashboards · audit pack
+                    painel do auditor com RBAC · validação documental automatizada · audit pack export · integração com registries parceiros (pós-MVP)
                   </div>
                 </div>
+              </div>
+
+              <div class="card" style="margin-top: 24px; border-left: 4px solid var(--info)">
+                <div class="card-title">
+                  <span lang="pt">⚡ Reposicionamento estratégico (29/jun)</span
+                  ><span lang="en">⚡ Strategic repositioning (Jun 29)</span>
+                </div>
+                <p style="margin: 8px 0 0" lang="pt">
+                  Prioridade #1 da plataforma é <strong>validação regulatória EU 2024/1157
+                  + RecyClass</strong> (backbone), com PURE e integração com registries parceiros
+                  como camada adicional. ImpacTrakr é <strong>SaaS dMRV registry-agnostic</strong>,
+                  gera dados verificados e IDs DPP-compatíveis. O que cada cliente decide fazer com
+                  esses dados (registrar como crédito financeiro num registry parceiro, demonstrar
+                  compliance regulatório, anexar a um relatório CSRD) é decisão dele.
+                </p>
+                <p style="margin: 8px 0 0" lang="en">
+                  Platform priority #1 is <strong>EU 2024/1157 + RecyClass regulatory
+                  validation</strong> (backbone), with PURE and partner-registry integration as an
+                  add-on layer. ImpacTrakr is a <strong>registry-agnostic dMRV SaaS</strong> that
+                  generates verified data and DPP-compatible IDs. What each customer decides to do
+                  with that data (register as a financial credit via a partner registry, demonstrate
+                  regulatory compliance, attach to a CSRD report) is their decision.
+                </p>
+              </div>
+
+              <div class="card" style="margin-top: 16px; border-left: 4px solid var(--warning)">
+                <div class="card-title">
+                  <span lang="pt">📌 Decisão de roadmap (29/jun): integração com registry parceiro adiada para pós-MVP</span
+                  ><span lang="en">📌 Roadmap decision (Jun 29): partner-registry integration postponed to post-MVP</span>
+                </div>
+                <p style="margin: 8px 0 0" lang="pt">
+                  No último mês do MVP atual a equipe não atacará a integração com o registry
+                  parceiro. Razão: a codificação das regras no lado do registry leva cerca de 90
+                  dias e a primeira operação real em Malta só começa em outubro, quando as máquinas
+                  chegarem. Pacote pronto para envio do nosso lado fica preparado, a integração com
+                  o registry parceiro será reativada em setembro/outubro, com a opção de chamamento
+                  interno ou edital externo. Foco do MVP redireciona para o <strong>painel do
+                  auditor</strong>, que destrava o primeiro cliente real (organismo de auditoria
+                  acreditado em RecyClass).
+                </p>
+                <p style="margin: 8px 0 0" lang="en">
+                  In the last month of the current MVP the team will not work on the partner-
+                  registry integration. Reason: coding the rules on the registry side takes about 90
+                  days and the first real operation in Malta only starts in October, when the
+                  machinery arrives. The send-ready package on our side stays prepared, and the
+                  partner-registry integration will be reactivated in September/October, with the
+                  option of an internal call or an external bid. The MVP focus redirects to the
+                  <strong>auditor panel</strong>, which unlocks the first real customer (a
+                  RecyClass-accredited audit body).
+                </p>
               </div>
             </section>
 
@@ -3734,24 +3784,62 @@
               </div>
 
               <h3>
-                <span lang="pt">Cliente direto — MSM Polymers Group (Malta)</span
-                ><span lang="en">Direct client — MSM Polymers Group (Malta)</span>
+                <span lang="pt">Primeira cliente — MARE Foundation</span
+                ><span lang="en">First customer — MARE Foundation</span>
               </h3>
               <div class="card">
-                <div class="card-title">MSM Polymers Group Limited</div>
+                <div class="card-title">MARE Foundation (Malta)</div>
                 <p style="margin: 8px 0 0" lang="pt">
-                  País: Malta · Diretor / contato: <strong>Lino Dorcelles Marini</strong>. Opera a
-                  cadeia de PET reciclado em Malta via Foundation parceira (MARE Foundation).
+                  Primeira cliente da plataforma e <strong>off-taker dos primeiros DPP units</strong>
+                  emitidos. Opera a operação física de reciclagem em Malta (CRDC Malta) sob a
+                  regulação EU 2024/1157 + DIWASS + certificação técnica RecyClass.
                 </p>
                 <p style="margin: 8px 0 0" lang="en">
-                  Country: Malta · Director / contact: <strong>Lino Dorcelles Marini</strong>.
-                  Operates the recycled PET chain in Malta via partner Foundation (MARE Foundation).
+                  First customer of the platform and <strong>off-taker of the initial DPP units</strong>
+                  issued. Operates the physical recycling operation in Malta (CRDC Malta) under
+                  EU Regulation 2024/1157 + DIWASS + RecyClass technical certification.
+                </p>
+              </div>
+
+              <div class="card" style="margin-top: 16px">
+                <div class="card-title">
+                  <span lang="pt">Cliente #2 — CRDC Guatemala (Q3 2026)</span
+                  ><span lang="en">Customer #2 — CRDC Guatemala (Q3 2026)</span>
+                </div>
+                <p style="margin: 8px 0 0" lang="pt">
+                  Mesma plataforma, configuração diferente: sem regulação UE, sem RecyClass.
+                  Demonstra a arquitetura registry-agnostic e jurisdição-multi.
+                </p>
+                <p style="margin: 8px 0 0" lang="en">
+                  Same platform, different configuration: no EU regulation, no RecyClass.
+                  Demonstrates the registry-agnostic and multi-jurisdiction architecture.
+                </p>
+              </div>
+
+              <div class="card" style="margin-top: 16px">
+                <div class="card-title">
+                  <span lang="pt">Cliente em validação — organismo de auditoria (Q3 2026)</span
+                  ><span lang="en">Customer in validation — audit body (Q3 2026)</span>
+                </div>
+                <p style="margin: 8px 0 0" lang="pt">
+                  Organismo de auditoria europeu acreditado em RecyClass em fase de validação para
+                  uso da plataforma. Hoje auditam manualmente apenas <strong>0,1% das massas</strong>
+                  processadas pelos clientes deles; com a plataforma conseguem cobrir 100%. Modelo
+                  do contrato inclui certificação da própria plataforma ImpacTrakr antes da
+                  operação. NDA assinado.
+                </p>
+                <p style="margin: 8px 0 0" lang="en">
+                  European RecyClass-accredited audit body in validation phase for platform usage.
+                  Today they manually audit only <strong>0.1% of the masses</strong> processed by
+                  their customers; with the platform they can cover 100%. The contract model
+                  includes certification of the ImpacTrakr platform itself before live operation.
+                  NDA signed.
                 </p>
               </div>
 
               <h3>
-                <span lang="pt">Operadora da cadeia — MARE Foundation</span
-                ><span lang="en">Chain operator — MARE Foundation</span>
+                <span lang="pt">Operação local — CRDC Malta</span
+                ><span lang="en">Local operation — CRDC Malta</span>
               </h3>
               <p lang="pt">
                 A MARE Foundation opera a cadeia física (coleta, transporte, processamento,
@@ -3856,20 +3944,26 @@
                   ><span lang="en">Overview</span>
                 </div>
                 <h2>
-                  <span lang="pt">Posicionamento — Impactrakr é o INT</span
-                  ><span lang="en">Positioning — Impactrakr is the INT</span>
+                  <span lang="pt">Posicionamento — SaaS dMRV registry-agnostic</span
+                  ><span lang="en">Positioning — Registry-agnostic dMRV SaaS</span>
                 </h2>
               </div>
 
               <p lang="pt">
-                A Impactrakr ocupa um papel específico e único no ecossistema PURE/Carrot: somos o
-                <strong>Integrator (INT)</strong> entre o operador físico (MARE/MSM) e a Carrot
-                Network.
+                A ImpacTrakr é uma <strong>plataforma de rastreabilidade, dMRV e compliance
+                regulatório</strong> independente. Gera dados verificados e IDs DPP-compatíveis sob
+                regras UE 2024/1157 + RecyClass como backbone, com a metodologia PURE (autoria
+                EcoCircle) como camada adicional de impacto. Integra com registries parceiros para
+                que cada cliente decida o que fazer com os dados: registrar como crédito financeiro,
+                comprovar compliance regulatório, anexar a um relatório CSRD.
               </p>
               <p lang="en">
-                Impactrakr plays a specific and unique role in the PURE/Carrot ecosystem: we are the
-                <strong>Integrator (INT)</strong> between the physical operator (MARE/MSM) and
-                Carrot Network.
+                ImpacTrakr is an independent platform for <strong>traceability, dMRV and regulatory
+                compliance</strong>. It generates verified data and DPP-compatible IDs under EU
+                2024/1157 + RecyClass rules as backbone, with the PURE methodology (authored by
+                EcoCircle) as an additional impact layer. It integrates with partner registries so
+                each customer decides what to do with the data: register as a financial credit,
+                demonstrate regulatory compliance, attach to a CSRD report.
               </p>
 
               <h3>
@@ -5114,7 +5208,7 @@ flowchart LR
 │   ├── testing/            → fixtures, stubs, testcontainers (ADR-026)
 │   └── config/             → tsconfig + eslint
 ├── docs/
-│   ├── adr/                → 31 ADRs (decisões técnicas auditáveis)
+│   ├── adr/                → 46 ADRs (decisões técnicas auditáveis)
 │   └── index.html          → este Blueprint
 ├── infra/                  → Pulumi (VPC, RDS, ECS, Cognito, API Gateway)
 └── .github/workflows/      → CI/CD (build em CI, deploy via Pulumi · ADR-031)</code></pre>
@@ -6390,6 +6484,105 @@ flowchart LR
                     </div>
                   </div>
                 </div>
+                <div class="decision">
+                  <div class="decision-id">16 Jun</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Call alinhamento (Lino, Gian, Stefano, Julia, Gabriel, Rodrigo)</span
+                      ><span lang="en">Alignment call (Lino, Gian, Stefano, Julia, Gabriel, Rodrigo)</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      <strong>CRDC Guatemala confirmado como cliente #2</strong> (Q3 2026) — paga
+                      infra. Modularidade vira pitch #1. Discussão sobre certificadores aceitos
+                      (organismos acreditados em RecyClass ou equivalente). Pitch site aprovado em
+                      conceito.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      <strong>CRDC Guatemala confirmed as customer #2</strong> (Q3 2026) — pays
+                      infra. Modularity becomes pitch #1. Discussion on accepted certifiers
+                      (RecyClass-accredited bodies or equivalent). Pitch site approved in concept.
+                    </div>
+                  </div>
+                </div>
+                <div class="decision">
+                  <div class="decision-id">22 Jun</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Daily com Gabriel + Julia — 6ª semana MVP</span
+                      ><span lang="en">Daily with Gabriel + Julia — MVP week 6</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Gabriel atacando 3 validações em paralelo. Imutabilidade de eventos confirmada
+                      como decisão. Pitch site aprovado no conteúdo.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Gabriel attacking 3 parallel validations. Event immutability confirmed as
+                      decision. Pitch site approved on content.
+                    </div>
+                  </div>
+                </div>
+                <div class="decision" style="border-color: var(--info)">
+                  <div class="decision-id">24 Jun</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Daily Gabriel + call alinhamento técnico com registry parceiro</span
+                      ><span lang="en">Daily with Gabriel + technical alignment call with partner registry</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      <strong>Reposicionamento estratégico confirmado:</strong> prioridade #1 = UE
+                      2024/1157 + RecyClass; PURE e integração com registry parceiro tornam-se
+                      add-on. Gabriel propôs <strong>simplificação de entidades</strong> (~15
+                      entidades específicas viram <code>Participant + Homologation + Event</code>
+                      genéricos) — aprovado, dá flexibilidade pra expansão geográfica. Registry
+                      parceiro vai liberar credenciais de teste sob demanda; pré-homologação pela
+                      ImpacTrakr aceita; aceite GDPR de auditor discutido. Pendência aberta:
+                      framework Excel da EcoCircle a ser preenchido pelos autores.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      <strong>Strategic repositioning confirmed:</strong> priority #1 = EU 2024/1157
+                      + RecyClass; PURE and partner-registry integration become add-on. Gabriel
+                      proposed <strong>entity simplification</strong> (~15 specific entities
+                      collapse into generic <code>Participant + Homologation + Event</code>) —
+                      approved, gives flexibility for geographic expansion. Partner registry will
+                      release test credentials on demand; pre-homologation by ImpacTrakr accepted;
+                      auditor GDPR consent discussed. Open pending: EcoCircle's framework Excel to
+                      be filled by the methodology authors.
+                    </div>
+                  </div>
+                </div>
+                <div class="decision" style="border-color: var(--info)">
+                  <div class="decision-id">29 Jun</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Daily técnico + priorização de roadmap (Gabriel, Julia, Giancarlo, Lino, Rodrigo)</span
+                      ><span lang="en">Technical daily + roadmap prioritisation (Gabriel, Julia, Giancarlo, Lino, Rodrigo)</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      <strong>Integração com registry parceiro adiada pra pós-MVP.</strong> Razão:
+                      90 dias de codificação no lado do registry e operação real em Malta só em
+                      outubro. <strong>Organismo de auditoria europeu como primeiro cliente
+                      candidato</strong> — NDA assinado, em fase de validação. Hoje auditam
+                      manualmente 0,1% das massas; plataforma cobre 100%. Modelo de contrato
+                      inclui certificar a plataforma ImpacTrakr antes da operação. Foco do MVP
+                      redireciona para painel do auditor + RBAC + UI/UX. Definidas 4 pendências
+                      novas (KW1, AU1, AU2, DOC1). Discussão sobre carbon footprint por massa como
+                      diferencial futuro. Gabriel demonstrou produto em estado quase pronto;
+                      acessos de teste serão liberados para Lino, Gian, Julia.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      <strong>Partner-registry integration postponed to post-MVP.</strong> Reason:
+                      90 days of coding on the registry side and real operation in Malta only in
+                      October. <strong>European audit body as the first candidate customer</strong>
+                      — NDA signed, in validation phase. Today they manually audit 0.1% of the
+                      masses; the platform covers 100%. The contract model includes certifying the
+                      ImpacTrakr platform itself before live operation. MVP focus redirects to the
+                      auditor panel + RBAC + UI/UX. 4 new pending items defined (KW1, AU1, AU2,
+                      DOC1). Discussion of carbon footprint per mass as a future differentiator.
+                      Gabriel demoed the product in near-ready state; test access will be released
+                      to Lino, Gian, Julia.
+                    </div>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -7079,13 +7272,95 @@ flowchart LR
               </div>
               <p class="lede">
                 <span lang="pt"
-                  >9 itens com owner e prazo. Cada um destravado solta um pedaço do produto.</span
+                  >13 itens com owner e prazo. Cada um destravado solta um pedaço do produto.</span
                 ><span lang="en"
-                  >9 items with owner and deadline. Each one unlocks a piece of the product.</span
+                  >13 items with owner and deadline. Each one unlocks a piece of the product.</span
                 >
               </p>
 
               <div class="decision-list">
+                <div class="decision risk-high">
+                  <div class="decision-id" style="color: var(--danger)">KW1</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Reunião de fechamento com organismo de auditoria candidato</span
+                      ><span lang="en">Closing meeting with candidate audit body</span>
+                    </div>
+                    <div class="decision-meta">
+                      <span lang="pt">Levantado na daily 29/jun. NDA já assinado. Cara responsável
+                      em férias, retorno previsto 22/jul. Quando voltar, traz time multidisciplinar
+                      pra reunião de avaliação do beta. Owner do nosso lado fecha apresentação do
+                      produto + plano de certificação da plataforma + cronograma de pilot.</span
+                      ><span lang="en">Raised in the Jun 29 daily. NDA already signed. Lead
+                      contact on holiday, expected back Jul 22. When back, brings a cross-functional
+                      team for the beta evaluation meeting. Owner on our side finalises product
+                      walkthrough + platform certification plan + pilot timeline.</span
+                      >
+                    </div>
+                  </div>
+                  <div class="decision-date">Rodrigo + Jean · 25 Jul</div>
+                </div>
+                <div class="decision risk-high">
+                  <div class="decision-id" style="color: var(--danger)">AU1</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Modelo de RBAC do Painel do Auditor</span
+                      ><span lang="en">Auditor panel RBAC model</span>
+                    </div>
+                    <div class="decision-meta">
+                      <span lang="pt">Auditor vê só organizações que ele audita. Definir se será
+                      tipo de usuário <code>auditor</code> com mapeamento many-to-many pra
+                      organizações, ou se será grupo de usuários da própria empresa auditora com
+                      acesso de leitura cross-org. Bloqueia desenvolvimento do painel do auditor.</span
+                      ><span lang="en">Auditor sees only organisations they audit. Decide whether
+                      it will be an <code>auditor</code> user type with many-to-many mapping to
+                      organisations, or a user group from the audit company itself with cross-org
+                      read access. Blocks the auditor panel development.</span
+                      >
+                    </div>
+                  </div>
+                  <div class="decision-date">Rodrigo + Gabriel · 5 Jul</div>
+                </div>
+                <div class="decision risk-medium">
+                  <div class="decision-id" style="color: var(--warning)">AU2</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Mapear relatório de auditoria de campo para refletir na plataforma</span
+                      ><span lang="en">Map field audit report to reflect on the platform</span>
+                    </div>
+                    <div class="decision-meta">
+                      <span lang="pt">Cada auditoria de campo gera relatório com itens próprios.
+                      Pegar template usado por organismos acreditados em RecyClass e refletir como
+                      formulário/checklist na plataforma. Acelera adoção e reduz fricção de
+                      transição manual → digital.</span
+                      ><span lang="en">Each field audit generates a report with its own items. Get
+                      the template used by RecyClass-accredited bodies and reflect it as form/
+                      checklist on the platform. Accelerates adoption and reduces friction of the
+                      manual → digital transition.</span
+                      >
+                    </div>
+                  </div>
+                  <div class="decision-date">Rodrigo · 10 Jul</div>
+                </div>
+                <div class="decision risk-medium">
+                  <div class="decision-id" style="color: var(--warning)">DOC1</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Estratégia de validação documental no MVP</span
+                      ><span lang="en">Document validation strategy in the MVP</span>
+                    </div>
+                    <div class="decision-meta">
+                      <span lang="pt">Hoje validação manual: pessoa checa cada documento. Decidir
+                      se MVP entrega só manual ou já com OCR/regra automatizada parcial. Trade-off:
+                      tempo de implementação vs experiência do auditor/cliente.</span
+                      ><span lang="en">Today validation is manual: person checks each document.
+                      Decide if MVP ships manual-only or already with partial OCR/automated rules.
+                      Trade-off: implementation time vs auditor/customer experience.</span
+                      >
+                    </div>
+                  </div>
+                  <div class="decision-date">Time + Julia · fórum sexta</div>
+                </div>
                 <div class="decision risk-high">
                   <div class="decision-id" style="color: var(--danger)">RW1</div>
                   <div class="decision-body">
@@ -9255,7 +9530,7 @@ flowchart LR
             <div class="footer-grid">
               <div>
                 <strong style="color: var(--text-secondary)"
-                  >Impactrakr · Product Blueprint <span id="footer-version">v0.4.5</span></strong
+                  >Impactrakr · Product Blueprint <span id="footer-version">v0.4.6</span></strong
                 >
                 <p style="margin: 4px 0 0; font-size: 12.5px" lang="pt">
                   Última atualização: <span id="footer-last-updated">8 de junho de 2026</span> ·
@@ -9269,7 +9544,7 @@ flowchart LR
                 </p>
               </div>
               <div style="font-size: 12.5px; text-align: right">
-                <div class="mono" id="footer-version-pill">v0.4.5 · 2026-06-08</div>
+                <div class="mono" id="footer-version-pill">v0.4.6 · 2026-06-29</div>
                 <div
                   class="mono"
                   style="color: var(--accent); margin-top: 4px"
@@ -9403,7 +9678,7 @@ flowchart LR
       window.addEventListener('load', () => setTimeout(initMermaid, 100));
 
       // ============ DYNAMIC DATES (status sempre fresco) ============
-      const LAST_UPDATE_ISO = '2026-06-08';
+      const LAST_UPDATE_ISO = '2026-06-29';
       const GO_LIVE_ISO = '2026-07-30';
       const PROJECT_START_ISO = '2026-05-01';
 
