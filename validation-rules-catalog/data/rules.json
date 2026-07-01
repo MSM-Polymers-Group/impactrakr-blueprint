@@ -15096,19 +15096,43 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-06"
-        },
-        {
           "source": "WSR_2024_1157",
-          "section": "Art. 18(4) — Annex VII document identification of carrier and vehicle"
+          "section": "Article 18(4) - Annex VII identifies carrier and means of transport"
         },
         {
           "source": "WFD_2008_98_EC",
-          "section": "Art. 26 (register)"
+          "section": "Article 26(a) - register of establishments/undertakings (carrier level, not vehicle level directly)"
+        },
+        {
+          "source": "MT_ERA_GBR_12",
+          "section": "Guidance Note §1.2, §1.6, §1.20 - vehicle-level registration requirement (Malta)"
+        },
+        {
+          "source": "UK_EPA_1990",
+          "section": "Waste Duty of Care register (carrier-level)"
+        },
+        {
+          "source": "DE_KrWG_NachwV_eANV",
+          "section": "Begleitschein traces vehicle per leg (Germany)"
+        },
+        {
+          "source": "IT_DM_59_2023",
+          "section": "RENTRi Formulario - targa mezzo required (Italy)"
+        },
+        {
+          "source": "PT_Portaria_145_2017",
+          "section": "e-GAR - matricula required (Portugal)"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-06 MED finding - previous references cited WFD Art. 26 as vehicle register (incorrect - Art. 26 is carrier register); real basis is national law transposition"
+        },
+        {
+          "source": "ADR-064",
+          "section": "EU-27 and EU-06 methodology_quote/references citation correction"
         }
       ],
-      "methodology_quote": "Vehicle plate must match authorized vehicle where applicable.",
+      "methodology_quote": "The Annex VII document identifies the carrier and, where the transport uses a motorised vehicle, the vehicle (WSR (EU) 2024/1157 Art. 18(4)). Vehicle-level authorization (specific plate registered against a carrier permit) is a national-law requirement transposing the carrier register of WFD 2008/98/EC Art. 26 - e.g. ERA Malta GBR-12 §§1.2/1.6/1.20 requires each waste-carrying vehicle to be registered for the appropriate class of waste, and the permit is non-transferable. UK EA / DE eANV / IT / PT vary in the depth of vehicle-level registration; this rule enforces the strictest common denominator (plate-in-registry) as the MVP baseline.",
       "status": "APPROVED",
       "owner": "Ops",
       "manual_review": false,
@@ -15121,7 +15145,7 @@
       "domain": "EU Legal",
       "subdomain": "Vehicle Registration",
       "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "last_reviewed": "2026-07-01",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
@@ -18460,11 +18484,10 @@
         ]
       },
       "edge_cases": [
-        "Hauler em fase de expansão de área operacional: pode registrar zonas provisórias com validade temporal antes de operar.",
-        "Geo-fence em cross-border (e.g., zona registrada cobre IT+CH): suportado se Hauler tem polígonos multi-país. Verificar EU-21 (border legal compliance) em paralelo.",
-        "Pickup geo com baixa precisão (lat/lon = 0,0 ou rounded para 2 decimais): regra reporta como SKIP — P-29 cobre 'geo precision' separadamente.",
-        "Sandbox flag intencional: equipe pode testar fluxos com zonas fictícias sem o burocrático cadastro formal pre-prod.",
-        "Decisão Rodrigo 2026-06-03 (Option A): EU-27 separada de EU-06 — geo-fence agora tem mensagem precisa + pode ser environment_aware (BLOCK prod / FLAG sandbox), o que era incompatível com checks de tamper detection no EU-06 antigo."
+        "Hauler.registeredZones e um modelo interno ImpacTrakr, nao um campo regulatorio direto. Representa o Member State (ou subset) onde a licenca do carrier e valida.",
+        "Cross-border operacoes onde o carrier tem multiplas licencas em MS diferentes: aceitar match em qualquer polygon associado a uma licenca ativa. Nao implementado no MVP.",
+        "Se pickup e proximo de fronteira (a definir tolerancia), pode ser FLAG em vez de BLOCK. Nao implementado no MVP.",
+        "Prod: BLOCK. Sandbox: FLAG. Preservado no code."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -18482,19 +18505,27 @@
       ],
       "references": [
         {
+          "source": "WFD_2008_98_EC",
+          "section": "Article 26(a) - register of establishments/undertakings that collect or transport waste on a professional basis"
+        },
+        {
           "source": "WSR_2024_1157",
-          "section": "Art. 26 — carrier authorization scope"
+          "section": "Article 25 - cross-border transit requirements; Articles 4-15 - notification and consent procedure"
         },
         {
-          "source": "PURE_DMRV_GAP_REGISTER_JUN2025",
-          "section": "EU-27 — split from EU-06 (decisão Rodrigo 2026-06-03 Option A)"
+          "source": "MT_ERA_GBR_12",
+          "section": "Waste Carriers Guidance Note (Apr 2016) - vehicle-level registration Malta example"
         },
         {
-          "source": "OTHER",
-          "section": "Onda 3 review — atomic controls preference, environment_aware compatibility"
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-27 MED-HIGH finding - previous METHODOLOGY_QUOTE incorrectly cited WSR Art. 26 (notification procedure between CAs, not carrier geographic scope)"
+        },
+        {
+          "source": "ADR-064",
+          "section": "EU-27 and EU-06 methodology_quote/references citation correction"
         }
       ],
-      "methodology_quote": "Carrier authorization must apply to the specific geographic scope of operation (WSR Art. 26).",
+      "methodology_quote": "Waste carrier authorization is issued per Member State (WFD 2008/98/EC Art. 26 register of establishments/undertakings). Operation outside the registered territory constitutes unauthorized transport under national law; cross-border operation requires compliance with WSR (EU) 2024/1157 Art. 25 (transit) and the notification/consent procedure of Art. 4-15. The polygon/zone model persisted by ImpacTrakr is an internal representation of that per-Member-State scope, not a canonical regulatory field.",
       "status": "APPROVED",
       "owner": "Compliance",
       "manual_review": false,
@@ -18504,8 +18535,8 @@
       "dmrv_output": "geo_fence_valid",
       "domain": "Transport / Geo-fence",
       "subdomain": "Hauler operational zone validation",
-      "version": "0.1.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.3.0",
+      "last_reviewed": "2026-07-01",
       "audit_findings": [],
       "is_new": true,
       "new_source": "Onda 3 review — EU-06 split (decisão Rodrigo 2026-06-03)",
