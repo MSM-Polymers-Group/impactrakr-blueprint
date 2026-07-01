@@ -15318,18 +15318,18 @@
           "EU"
         ]
       },
-      "purpose": "EU-07 garante que o WTN existe; EU-08 garante que o WTN está PREENCHIDO com os fields legalmente obrigatórios: description, EWC code, quantity, date, origin, destination, carrier. WTN incompleto é juridicamente equivalente a WTN inexistente para fins regulatórios — Member State authorities (ERA Malta, UK EA, etc.) rejeitam.",
-      "logic_human": "BLOCK se WTN existe mas algum field obrigatório (description, ewcCode, quantityKg, date, originId, destinationId, carrierId) estiver vazio. PASS caso contrário.",
+      "purpose": "Verifica que o Waste Transfer Note domestico (transposicao nacional do WFD Art. 35(1)) tem os campos obrigatorios preenchidos. Como nao existe schema WTN canonico ao nivel UE, o rule usa uma tabela de schemas por jurisdicao; no MVP somente EU_MINIMAL e nao-placeholder. WTN em papel (WASTE_TRANSFER_NOTE) nao tem payload OCR-processado e portanto e SKIP; EU-07 cobre existencia. Somente DIGITAL_EQUIVALENT e content-validated aqui. Ver ADR-062.",
+      "logic_human": "SKIP se MassID.domesticTransfer != TRUE ou se nao ha attachment DIGITAL_EQUIVALENT. BLOCK se attachment DIGITAL_EQUIVALENT presente mas payload estruturado ausente, ou se algum campo obrigatorio do schema selecionado pelo 'standard' (default EU_MINIMAL) estiver vazio. EU_MINIMAL vem do WFD Art. 35(1) minimum core: wasteDescription, ewcCode, quantityKg, transferDate. Schemas por Member State (MT_ERA, UK_EPA, DE_eANV, IT_FIR, PT_eGAR) sao placeholders ate extracao oficial (ADR-062 Phase 2 e 3).",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-08'>): Promise<RuleResult> {\n  const wtn = await ctx.db.document.findFirst({ where: {\n    massidId: ctx.input.massidId,\n    type: { in: ['waste_transfer_note', 'digital_equivalent'] }\n  }});\n  if (!wtn) return ctx.skip({ reason: 'EU-07 covers existence.' });\n  const REQUIRED = ['description', 'ewcCode', 'quantityKg', 'date', 'originId', 'destinationId', 'carrierId'];\n  const missing = REQUIRED.filter(f => wtn.payload?.[f] == null || String(wtn.payload[f]).trim() === '');\n  if (missing.length) {\n    return ctx.fail({ ruleId: 'EU-08', severity: 'BLOCK',\n      message: `WTN missing fields: ${missing.join(', ')}`,\n      field: missing[0] });\n  }\n  return ctx.pass({ ruleId: 'EU-08' });\n}",
       "fields": {
         "reads": [
-          "Document.payload.description",
-          "Document.payload.ewcCode",
-          "Document.payload.quantityKg",
-          "Document.payload.date",
-          "Document.payload.originId",
-          "Document.payload.destinationId",
-          "Document.payload.carrierId"
+          "MassID.domesticTransfer",
+          "Document.type == DIGITAL_EQUIVALENT",
+          "Document.payload.wtn.standard",
+          "Document.payload.wtn.fields.wasteDescription",
+          "Document.payload.wtn.fields.ewcCode",
+          "Document.payload.wtn.fields.quantityKg",
+          "Document.payload.wtn.fields.transferDate"
         ],
         "writes": [
           "ValidationResult"
@@ -15342,8 +15342,8 @@
         }
       ],
       "messages": {
-        "block_pt": "Waste Transfer Note incompleto. Campos exigidos: descrição, EWC, quantidade (kg), data, origem, destino e carrier.",
-        "block_en": "Waste Transfer Note incomplete. Required fields: description, EWC, quantity (kg), date, origin, destination and carrier."
+        "block_pt": "WTN incompleto: campos obrigatorios ausentes segundo schema {standard} (ancora WFD Art. 35(1)). Ver ADR-062 para roadmap por Member State.",
+        "block_en": "WTN incomplete: required fields missing per {standard} schema (anchor WFD Art. 35(1)). See ADR-062 for per-Member-State roadmap."
       },
       "behavior": {
         "idempotent": true,
@@ -15374,10 +15374,13 @@
         ]
       },
       "edge_cases": [
-        "Member State pode exigir fields adicionais (ex.: weight-bridge ticket attachment); cobrir via extensão por jurisdiction.",
-        "Quantity em UoM diferente de kg → P-07 captura (mas EU-08 só checa presença, não unit).",
-        "Origin/destination podem ser endereços ou participantIds; aceitar ambos contanto que resolvam para participant registrado.",
-        "Description blank é diferente de description = 'plastic waste' — trim antes da validação."
+        "SKIP quando transfer nao e domestica (cross-border cai em EU-10 / EU-20).",
+        "SKIP quando so ha WASTE_TRANSFER_NOTE (paper) sem DIGITAL_EQUIVALENT: papel nao tem payload OCR-processado; EU-07 cobre existencia.",
+        "Malta MVP usa EU_MINIMAL como default; extracao do schema ERA (SL 549.63) e follow-up ADR.",
+        "'standard' pode ser null; nesse caso default e EU_MINIMAL.",
+        "Standard desconhecido gera FAIL BLOCK explicito e lista os standards reconhecidos.",
+        "Fase 2 (ADR-062): schemas migram para MethodologyConfig por jurisdicao; rules deixam de embutir listas de campos.",
+        "Fase 3: schemas placeholder MT_ERA / UK_EPA / DE_eANV / IT_FIR / PT_eGAR trocados por extracao oficial de cada regulador nacional."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -15395,20 +15398,44 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-08"
-        },
-        {
-          "source": "WSR_2024_1157",
-          "section": "Annex VII (information requirements)"
-        },
-        {
           "source": "WFD_2008_98_EC",
-          "section": "Art. 35 (record-keeping minimum content)"
+          "section": "Article 35(1) domestic WTN record-keeping obligation"
+        },
+        {
+          "source": "MT_ERA_S_L_549_63",
+          "section": "Waste Regulations transposition (Malta MVP jurisdiction)"
+        },
+        {
+          "source": "UK_EPA_1990",
+          "section": "Section 34 Duty of Care Waste Transfer Note"
+        },
+        {
+          "source": "DE_KrWG_NachwV",
+          "section": "eANV Begleitschein Nachweisverordnung"
+        },
+        {
+          "source": "IT_DM_59_2023",
+          "section": "RENTRi (formerly FIR under DM 145/1998)"
+        },
+        {
+          "source": "PT_Portaria_145_2017",
+          "section": "e-GAR (Guias de Acompanhamento de Residuos Eletronicas)"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-08 CRITICAL finding motivating this rewrite"
+        },
+        {
+          "source": "ADR-061",
+          "section": "EU-20 DIWASS official schema pattern replicated here"
+        },
+        {
+          "source": "ADR-062",
+          "section": "EU-08 refactor: eliminate fabricated Zod-canonized schema, adopt jurisdiction-aware standard/fields"
         }
       ],
       "methodology_quote": "WTN digital equivalent must include all required fields: description, code, quantity, date, origin, destination, carrier.",
-      "status": "APPROVED",
+      "status": "REVIEWED",
       "owner": "Compliance",
       "manual_review": false,
       "source_type": "EU",
@@ -15419,8 +15446,8 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Domestic Transfer",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.4.0",
+      "last_reviewed": "2026-07-01",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
