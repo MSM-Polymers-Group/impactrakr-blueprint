@@ -15705,14 +15705,13 @@
           "EU"
         ]
       },
-      "purpose": "Para waste shipments cross-border (entre Member States ou para fora da UE) classificados como green-listed (Annex III/IIIA/IIIB), o WSR 2024/1157 Art. 18 exige Annex VII document acompanhando o shipment. Sem Annex VII, o shipment é tratado como 'illegal shipment' (Art. 3(20)) com obrigação de take-back e penalidades. EU-10 é o gate de existência; EU-11 e EU-12 validam recovery code e shipment type.",
-      "logic_human": "BLOCK se MassID.crossBorder=true AND não há Document type='annex_vii' vinculado.",
+      "purpose": "Verifica que shipments cross-border tem um Annex VII em uma das duas formas aceitas pelo WSR Art. 18: (a) formulario em papel assinado (type ANNEX_VII); ou (b) equivalente digital DIWASS conforme WSR Art. 27 + Implementing Reg 2025/1290 (type DIGITAL_EQUIVALENT). Este gate cobre existencia; validacao de conteudo dos 19 campos mandatory do DIWASS SUBMIT e responsabilidade da EU-20 (ADR-061). DIWASS torna-se o canal obrigatorio a partir de 21/05/2026.",
+      "logic_human": "SKIP se MassID.crossBorder != TRUE. BLOCK se cross-border e nao ha nenhum attachment do tipo ANNEX_VII (papel) OU DIGITAL_EQUIVALENT (DIWASS). PASS caso contrario. Content-check dos 19 campos DIWASS mandatory e delegado a EU-20 (Implementing Reg 2025/1290 Annex Part C §1).",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-10'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  if (!massid.crossBorder) return ctx.skip({ reason: 'not cross-border' });\n  const doc = await ctx.db.document.findFirst({ where: {\n    massidId: massid.id, type: 'annex_vii'\n  }});\n  if (!doc) {\n    return ctx.fail({ ruleId: 'EU-10', severity: 'BLOCK',\n      message: 'Annex VII document missing for cross-border shipment',\n      field: 'documents' });\n  }\n  return ctx.pass({ ruleId: 'EU-10' });\n}",
       "fields": {
         "reads": [
           "MassID.crossBorder",
-          "Document.type",
-          "Document.massidId"
+          "Document.type IN (ANNEX_VII, DIGITAL_EQUIVALENT)"
         ],
         "writes": [
           "ValidationResult"
@@ -15726,8 +15725,8 @@
         }
       ],
       "messages": {
-        "block_pt": "Shipment cross-border exige documento Annex VII (WSR 2024/1157, Art. 18). Anexe o Annex VII assinado pelo person who arranges the shipment.",
-        "block_en": "Cross-border shipment requires Annex VII document (WSR 2024/1157, Art. 18). Attach the Annex VII signed by the person who arranges the shipment."
+        "block_pt": "Shipment cross-border exige Annex VII (papel ou equivalente digital DIWASS). Anexe uma das duas formas conforme WSR Art. 18 e Art. 27.",
+        "block_en": "Cross-border shipment requires an Annex VII document (paper or DIWASS digital equivalent). Attach one per WSR Art. 18 and Art. 27."
       },
       "behavior": {
         "idempotent": true,
@@ -15758,10 +15757,12 @@
         ]
       },
       "edge_cases": [
-        "Fase 2 (não MVP Malta) — cross-border só ativa quando origin Member State ≠ destination; para Malta-only MVP, regra é evaluada mas trigger raramente dispara.",
-        "Notification-required shipments (waste em Annex IV ou mistos) exigem documentos adicionais (Annex IA/IB) além de Annex VII — não cobertos por EU-10 isoladamente; ver EU-12.",
-        "Annex VII deve ser assinado pelo 'person who arranges the shipment' (Art. 3(7)) — assinatura digital aceita via DIWASS.",
-        "Triangulação (Member State A → B → C) requer Annex VII para cada leg."
+        "Aceita ambos ANNEX_VII (papel) e DIGITAL_EQUIVALENT (DIWASS) como satisfazendo o gate de existencia.",
+        "Se ambos estao anexados, PASS (nenhuma preferencia entre as formas).",
+        "Attachment de outros tipos (ex.: WASTE_TRANSFER_NOTE) nao satisfaz este gate - WTN cobre domestic (EU-07), nao cross-border.",
+        "Content-check do DIGITAL_EQUIVALENT esta em EU-20; EU-10 nao verifica campos mandatory.",
+        "Phase-in DIWASS: pre-21/05/2026 papel e majoritariamente usado; pos-21/05/2026 DIWASS torna-se obrigatorio conforme Implementing Reg 2025/1290.",
+        "SKIP quando MassID.crossBorder e null ou false (domestic MVP)."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -15780,20 +15781,32 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-10"
+          "source": "WSR_2024_1157",
+          "section": "Article 18 - Annex VII Information Document for green-listed cross-border shipments"
         },
         {
           "source": "WSR_2024_1157",
-          "section": "Art. 18 (general information requirements)"
+          "section": "Article 27 - electronic system for exchange (DIWASS)"
         },
         {
-          "source": "WSR_2024_1157",
-          "section": "Annex VII (document)"
+          "source": "Implementing_Regulation_EU_2025_1290",
+          "section": "Annex Part C §1 SUBMIT ANNEX VII DOCUMENT (digital equivalent structure)"
         },
         {
-          "source": "EU_PLASTIC_WASTE_TRANSPORT_DOCUMENTS",
-          "section": "Annex VII content requirements"
+          "source": "Commission_Delegated_Regulation_EU_2024_2571",
+          "section": "Annex VII paper form template (Boxes 1-15)"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-10 HIGH finding - pre-refactor gate only accepted ANNEX_VII, false-failed DIWASS-native cross-border shipments"
+        },
+        {
+          "source": "ADR-061",
+          "section": "EU-20 DIWASS content-check pattern (chain partner)"
+        },
+        {
+          "source": "ADR-065",
+          "section": "EU-10 widened to accept DIGITAL_EQUIVALENT (DIWASS phase-in 21/05/2026)"
         }
       ],
       "methodology_quote": "Cross-border movements require Annex VII document (WSR 2024/1157 Art. 18).",
@@ -15809,7 +15822,7 @@
       "domain": "EU Legal",
       "subdomain": "Cross-border",
       "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "last_reviewed": "2026-07-01",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
