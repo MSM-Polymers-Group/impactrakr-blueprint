@@ -17344,10 +17344,12 @@
         ]
       },
       "edge_cases": [
-        "Schemas evoluem: versionar com payload.standardVersion.",
-        "Phase-in WSR 2024/1157 (vigor 21/mai/2026, DIWASS rollout 2026-2030): aceitar paper + digital coexistindo.",
-        "Nested fields (ex.: parties.generator.id): JSON path navigation com fallback safe.",
-        "Schema-less custom uploads: classificar como type='waste_transfer_note' (paper), não 'digital_equivalent'."
+        "Schema oficial e enumeracao de code lists (R-codes, EWC, ISO 3166) validados fora do subset de 19 campos MANDATORY do MVP; ver ADR-061 Fase 2.",
+        "Phase-in WSR 2024/1157: DIWASS obrigatorio a partir de 21/05/2026; aceitar coexistencia paper + digital durante rollout.",
+        "Cardinalidade de carriers e transit countries nao e enumerada com notacao 0..n no Annex; carriers exige 1..n (validado no MVP), transit_countries fica opcional.",
+        "Facility type diverge entre Parts: Part A/B usa Recovery|Disposal, Part C (Annex VII) usa Recovery|Laboratory.",
+        "Comissao publicara XSD/JSON Schema oficial em documento separado antes do go-live; substituir presencial check por schema validation quando disponivel.",
+        "eANV alemao mantem lista placeholder; extrair spec oficial do BMU antes de rollout DE."
       ],
       "bv_verification": {
         "bv_controls": [],
@@ -17368,11 +17370,21 @@
         },
         {
           "source": "WSR_2024_1157",
-          "section": "Art. 27 (DIWASS — electronic submission and exchange)"
+          "section": "Art. 27 (DIWASS - electronic submission and exchange)"
         },
         {
-          "source": "EU_PLASTIC_WASTE_TRANSPORT_DOCUMENTS",
-          "section": "Digital equivalent requirements"
+          "source": "Implementing_Regulation_EU_2025_1290",
+          "section": "Annex Part C §1 SUBMIT ANNEX VII DOCUMENT",
+          "url": "https://environment.ec.europa.eu/publications/diwass-implementing-regulation-annex_en",
+          "fetched": "2026-06-29"
+        },
+        {
+          "source": "ImpacTrakr_diwass_spec",
+          "section": "diwass-spec/diwass-annex-vii-schema-2026-06-29.md"
+        },
+        {
+          "source": "ADR-061",
+          "section": "EU-20 schema alignment with official DIWASS spec"
         }
       ],
       "methodology_quote": "If no physical paper document, structured digital equivalent must contain all legally required fields.",
@@ -17388,7 +17400,7 @@
       "domain": "EU Legal",
       "subdomain": "Digital Equivalence",
       "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "last_reviewed": "2026-06-29",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
