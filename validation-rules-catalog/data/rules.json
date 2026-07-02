@@ -18377,15 +18377,14 @@
           "EU"
         ]
       },
-      "purpose": "No fechamento mensal, agrega o total processado por cada Recycler/Processor e compara contra a CAPACITY declarada no permit (annual cap dividida por 12 ou monthly cap explícito). Excesso indica: (a) operação além do permit (violação), (b) overstatement de volume por participant, (c) renegociação de permit necessária. Cross-pilar com P-62 e RC-02. FLAG — manual review.",
-      "logic_human": "FLAG se sum(MassID.processedKg) do recycler nos últimos 30 dias > recycler_permit.monthlyCapacityKg (com 10% buffer).",
+      "purpose": "Cross-check throughput mensal (30-day window) de recycler contra capacity permitida pelo seu permit ambiental. Facility operando consistentemente acima do permit e sinal de mis-configuration em ImpacTrakr ou de over-capacity real - ambos casos merecem investigacao. Rule severity FLAG (nao BLOCK): overshoot pontual nao para shipment. Regulatory anchor: Directive 2010/75/EU (IED) Annex I §5.3, que tabula capacity em t/day (50/75/100 t/dia). monthlyCapacityKg atual e derivacao aproximada. Phase 2: permittedDailyCapacityKg como campo canonico IED nativo, coordenar com Gabriel. Threshold operacional tolerance (10%) e HEURISTICA nao regulatoria - configurable per methodology/MS em Phase 2.",
+      "logic_human": "SKIP se homologation do recycler nao declara monthlyCapacityKg. Se recyclerThroughput30dKg > monthlyCapacityKg * (1 + THROUGHPUT_TOLERANCE_PERCENT/100) -> FLAG (FAIL com msg citando IED Directive 2010/75/EU Annex I §5.3). Tolerance 10% e heuristica operacional interna, nao regulatoria - Phase 2: config per MS. Null throughput = 0 kg (documented Phase 2 gap: schema muda pra distinguir 'no data' de 'zero throughput'). Phase 2: permittedDailyCapacityKg como unidade canonica IED nativa, monthlyCapacityKg derivado, operatingDaysPerMonth config.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-26'>): Promise<RuleResult> {\n  const windowStart = ctx.dates.subPeriod(ctx.now, '30 days');\n  const recyclerId = ctx.input.recyclerId;\n  const permit = await ctx.db.document.findFirst({ where: {\n    participantId: recyclerId, type: 'recycler_permit'\n  }});\n  if (!permit?.monthlyCapacityKg) return ctx.skip({ reason: 'No capacity declared.' });\n  const total = await ctx.db.massid.aggregate({\n    _sum: { processedKg: true },\n    where: { recyclerId, processedAt: { gte: windowStart } }\n  });\n  const processed = total._sum.processedKg ?? 0;\n  const limit = permit.monthlyCapacityKg * 1.10; // 10% buffer\n  if (processed > limit) {\n    return ctx.fail({ ruleId: 'EU-26', severity: 'FLAG',\n      message: `Facility throughput: ${processed}kg processed in 30d > permit monthly capacity ${permit.monthlyCapacityKg}kg (with 10% buffer = ${limit.toFixed(0)}kg)`,\n      field: 'processedKg' });\n  }\n  return ctx.pass({ ruleId: 'EU-26' });\n}",
       "fields": {
         "reads": [
           "MassID.recyclerId",
-          "MassID.processedKg",
-          "MassID.processedAt",
-          "Document.monthlyCapacityKg"
+          "Homologation.monthlyCapacityKg",
+          "RuleContext.recyclerThroughput30dKg"
         ],
         "writes": [
           "ValidationResult"
@@ -18398,8 +18397,10 @@
         }
       ],
       "messages": {
-        "flag_pt": "Throughput mensal do recycler excedeu a capacidade do permit. Renove permit ou ajuste throughput.",
-        "flag_en": "Recycler monthly throughput exceeded permit capacity. Renew permit or adjust throughput."
+        "flag_pt": "O recycler processou massa acima da capacidade permitida no permit ambiental, mesmo com tolerancia operacional. Base regulatoria: Directive 2010/75/EU (IED) Annex I §5.3.",
+        "flag_en": "The recycler processed mass above the permit capacity, even with operational tolerance. Regulatory basis: Directive 2010/75/EU (IED) Annex I §5.3.",
+        "skip_pt": "Nao aplicavel - o permit do recycler nao declara capacity.",
+        "skip_en": "Not applicable - the recycler's permit does not declare a capacity."
       },
       "behavior": {
         "idempotent": true,
@@ -18435,10 +18436,13 @@
         ]
       },
       "edge_cases": [
-        "Fase 2 — depende de Monthly Reconciliation job existir, e de recycler_capacity_profile estar populado.",
-        "Annual cap dividido por 12 quando monthly não declarado.",
-        "Permit upgrade mid-month: usar capacity vigente na data de cada MassID; média ponderada.",
-        "Soft-deleted MassIDs EXCLUÍDOS do aggregate; cancelled/rejected também excluídos."
+        "Homologation sem monthlyCapacityKg (null) -> SKIP citando IED anchor.",
+        "Throughput <= capacity * 1.10 -> PASS.",
+        "Throughput no boundary exato (== capacity * 1.10) -> PASS.",
+        "Throughput > capacity * 1.10 -> FLAG com mensagem citando IED §5.3 + valores exatos + tolerance.",
+        "recyclerThroughput30dKg = null -> tratado como 0 kg -> PASS (documented Phase 2 gap: silent PASS).",
+        "THROUGHPUT_TOLERANCE_PERCENT (10%) e heuristica operacional interna, nao regulatoria.",
+        "Phase 2: adotar permittedDailyCapacityKg (IED nativo) + operatingDaysPerMonth config + null->SKIP semantics."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -18457,12 +18461,16 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-26"
+          "source": "Directive_2010_75_EU_IED",
+          "section": "Annex I §5.3 - waste treatment installations capacity thresholds (50/75/100 t/day)"
         },
         {
-          "source": "WFD_2008_98_EC",
-          "section": "Art. 23(1)(b) (quantities and types of waste in permit)"
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-26 HIGH finding - monthlyCapacityKg diverges from IED canonical t/day unit; 10% buffer arbitrary; silent PASS on null throughput"
+        },
+        {
+          "source": "ADR-073",
+          "section": "EU-26 Phase 1 tolerance labelling + IED citation; Phase 2 migration plan to permittedDailyCapacityKg"
         }
       ],
       "methodology_quote": "Compare facility throughput against permitted practical capacity.",
@@ -18478,7 +18486,7 @@
       "domain": "EU Legal",
       "subdomain": "Plausibility",
       "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "last_reviewed": "2026-07-02",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
