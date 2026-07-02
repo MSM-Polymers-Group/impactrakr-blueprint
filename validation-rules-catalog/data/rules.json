@@ -15543,15 +15543,18 @@
           "EU"
         ]
       },
-      "purpose": "WTN.parties (Generator, Hauler, Recycler) precisam ser EXATAMENTE os mesmos participants registrados na MassID.chain. Mismatch indica: (a) WTN forjado/copiado de outro shipment, (b) participant não registrado fazendo transporte (waste trafficking), ou (c) erro de input. Em todos os casos é red flag para BV — sem este cross-check, o pipeline aceita WTN de chains que não batem.",
-      "logic_human": "BLOCK se WTN.parties.{generatorId, haulerId, recyclerId} ≠ MassID.chain.{generatorId, haulerId, recyclerId}.",
+      "purpose": "Detecta uso incoerente de um WTN digital estruturado: quando o mesmo shipment (identificado no chain-of-custody do MassID) e o WTN divergem sobre as tres partes contratuais (generator, hauler, recycler), esse e sinal forte de que o WTN foi vinculado ao MassID errado, ou que houve erro na ingestao. EU-09 responde apenas a pergunta que so ela pode responder: quando ambos os lados tem valor, eles concordam? Verificacao de 'campo obrigatorio faltando no WTN' e delegada a EU-08 (WTN data completeness), que conhece o schema jurisdicional aplicavel (ADR-062). Cross-check formaliza a obrigacao de rastreabilidade do WFD Art. 35(1).",
+      "logic_human": "SKIP se MassID.domesticTransfer != TRUE. SKIP se nao ha DIGITAL_EQUIVALENT anexado ou se ele nao carrega payload WTN estruturado. Para cada role (generator/hauler/recycler): se ambos os lados (WTN e chain) tem valor -> comparar; se diferem, contribuir mismatch. Se um dos lados e null, contribuir SKIP dessa role (delegado a EU-08 completeness). BLOCK se ha pelo menos um mismatch. PASS se ha pelo menos uma role comparavel e nenhum mismatch. SKIP com mensagem apontando EU-08 se todas as roles nao sao comparaveis.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-09'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  const wtn = await ctx.db.document.findFirst({ where: {\n    massidId: massid.id,\n    type: { in: ['waste_transfer_note', 'digital_equivalent'] }\n  }});\n  if (!wtn) return ctx.skip({ reason: 'EU-07 covers existence.' });\n  const wtnParties = wtn.payload?.parties || {};\n  const chain = { generatorId: massid.generatorId, haulerId: massid.haulerId, recyclerId: massid.recyclerId };\n  const mismatches = [];\n  for (const role of ['generatorId', 'haulerId', 'recyclerId']) {\n    if (wtnParties[role] && chain[role] && wtnParties[role] !== chain[role]) {\n      mismatches.push({ role, wtn: wtnParties[role], chain: chain[role] });\n    }\n  }\n  if (mismatches.length) {\n    return ctx.fail({ ruleId: 'EU-09', severity: 'BLOCK',\n      message: `WTN parties mismatch MassID chain: ${mismatches.map(m => `${m.role} wtn=${m.wtn} vs chain=${m.chain}`).join('; ')}`,\n      field: 'parties' });\n  }\n  return ctx.pass({ ruleId: 'EU-09' });\n}",
       "fields": {
         "reads": [
+          "MassID.domesticTransfer",
           "MassID.generatorId",
           "MassID.haulerId",
           "MassID.recyclerId",
-          "Document.payload.parties"
+          "Attachment[type=DIGITAL_EQUIVALENT].wtn.wtnGeneratorId",
+          "Attachment[type=DIGITAL_EQUIVALENT].wtn.wtnHaulerId",
+          "Attachment[type=DIGITAL_EQUIVALENT].wtn.wtnRecyclerId"
         ],
         "writes": [
           "ValidationResult"
@@ -15564,8 +15567,10 @@
         }
       ],
       "messages": {
-        "block_pt": "Partes do WTN não conferem com a cadeia do MassID. Verifique se o WTN é o correto para este shipment.",
-        "block_en": "WTN parties do not match the MassID chain. Verify the WTN belongs to this shipment."
+        "block_pt": "As partes do documento de transferencia de residuo (WTN) nao batem com a cadeia registrada. Verifique se o WTN pertence a este envio.",
+        "block_en": "The parties on the waste transfer note do not match the recorded chain. Check that the note belongs to this shipment.",
+        "skip_pt": "Nao aplicavel - o WTN e a cadeia nao tem identificadores de parte sobrepostos para comparar. Campos ausentes no WTN sao verificados pela EU-08.",
+        "skip_en": "Not applicable - the note and the chain have no overlapping party identifiers to compare. Missing fields on the note are checked by EU-08."
       },
       "behavior": {
         "idempotent": true,
@@ -15596,10 +15601,12 @@
         ]
       },
       "edge_cases": [
-        "Generator pode ser anônimo em residential pickup (PG-17 cobre); regra ignora generatorId null.",
-        "Sub-contracted hauler: WTN deve listar primary hauler + sub-haulers (Art. 18 WSR); chain só registra primary — aceitar primary match.",
-        "INT (intermediário) entre Hauler e Recycler: WTN pode ou não listá-lo — Member State varia; aceitar como party válida.",
-        "Renomeação de participant (rebrand) preserva participantId — sem impacto."
+        "Ambos os lados non-null e iguais -> role contribui PASS.",
+        "Ambos non-null e diferentes -> role contribui FAIL (mismatch reportado com nome de role e ambos os valores).",
+        "Um lado null, outro non-null -> role contribui SKIP (delegado a EU-08 para decidir se e mandatorio).",
+        "Ambos null -> role contribui SKIP (nada a comparar; EU-08 decide mandatoriedade pelo standard).",
+        "Todas as tres roles resultam em SKIP -> outcome geral SKIP com mensagem apontando EU-08 (nao silent PASS).",
+        "String vazia e tratada como null para nao fabricar mismatch quando o pipeline vem com placeholder vazio."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -15617,16 +15624,24 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-09"
+          "source": "Directive_2008_98_EC_WFD",
+          "section": "Article 35(1) - record-keeping obligation for waste keepers (parties involved)"
         },
         {
           "source": "WSR_2024_1157",
-          "section": "Art. 18(4) — identification of the parties involved"
+          "section": "Article 27 - DIWASS carrier of the structured party identifiers on domestic transfers where transposed"
         },
         {
-          "source": "WFD_2008_98_EC",
-          "section": "Art. 35 (record-keeping)"
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-09 HIGH finding - pre-refactor silent PASS on null-vs-value roles (anti-pattern P2)"
+        },
+        {
+          "source": "ADR-062",
+          "section": "EU-08 jurisdictional WTN schema - chain partner for completeness enforcement"
+        },
+        {
+          "source": "ADR-066",
+          "section": "EU-09 null semantics + delegation of completeness to EU-08"
         }
       ],
       "methodology_quote": "WTN parties must match Waste Generator, Hauler and Recycler in MassID chain.",
@@ -15643,7 +15658,7 @@
       "domain": "EU Legal",
       "subdomain": "Domestic Transfer",
       "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "last_reviewed": "2026-07-01",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
