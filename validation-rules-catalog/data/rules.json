@@ -16777,16 +16777,17 @@
           "EU"
         ]
       },
-      "purpose": "Garante que a cadeia de custódia legal (Generator → [Processor] → Hauler → Recycler) está completa, sem gaps documentais. Cada transfer entre dois participants precisa de evento documentado (pickup, drop-off, receipt). Gap na chain = waste 'desapareceu' por algum período — clássico de waste dumping ou shipment ilegal disfarçado. WSR 2024/1157 Art. 18 e WFD Art. 35 exigem rastreabilidade contínua. PURE/registry exige também (P-27, P-28, P-65 FIFO).",
-      "logic_human": "BLOCK se a sequência de MassIDEvents não cobre todos transfers da chain (Generator→Hauler, Hauler→[Processor→Hauler]→Recycler) OR algum evento intermediário falta.",
+      "purpose": "Enforce a unbroken chain of custody como exigido por WFD Art. 36 (waste-holder liability) e o modelo identity-preserved da ISO 22095:2020. Uma cadeia contigua no papel mas com buraco de 3 semanas entre drop-off e pickup seguinte e exatamente o cenario de waste dumping disfarcado que auditores como Kiwa/BV procuram. Esta refatoracao adiciona temporal gap check (72h ceiling operacional, heuristica interna), endpoint validation contra generatorId/recyclerId declarados, e rejeicao explicita de eventos com party ids nulos. Rule severity BLOCK: broken chain para o shipment. Phase 2: mover MAX_CUSTODY_GAP_HOURS para MethodologyConfig e validar participant type nas pontas via lookup.",
+      "logic_human": "PASS se chain tem <=1 participant (nada a verificar). BLOCK se chain[0] != generatorId ou chain[last] != recyclerId. BLOCK se algum event tem fromParticipantId ou toParticipantId null (missing party ids). Sort events by occurredAt asc antes das checks. BLOCK se algum expected transfer (chain[i]->chain[i+1]) nao aparece nos events. BLOCK se em pares consecutivos previous.toParticipantId != current.fromParticipantId (custody break). BLOCK se gap entre eventos consecutivos > MAX_CUSTODY_GAP_HOURS (72h, heuristica interna nao regulatoria). PASS caso contrario.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-16'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  const events = await ctx.db.massidEvent.findMany({\n    where: { massidId: massid.id }, orderBy: { occurredAt: 'asc' }\n  });\n  const chain = await ctx.db.getChainParticipants(massid.id); // [G, (P), H, R]\n  const expected = ctx.custody.expectedEvents(chain);\n  const actualKeys = events.map(e => `${e.fromParticipantId}->${e.toParticipantId}`);\n  const missing = expected.filter(k => !actualKeys.includes(k));\n  if (missing.length) {\n    return ctx.fail({ ruleId: 'EU-16', severity: 'BLOCK',\n      message: `Custody chain has ${missing.length} missing transfer(s): ${missing.join(', ')}`,\n      field: 'custodyEvents' });\n  }\n  for (let i = 1; i < events.length; i++) {\n    if (events[i-1].toParticipantId !== events[i].fromParticipantId) {\n      return ctx.fail({ ruleId: 'EU-16', severity: 'BLOCK',\n        message: `Custody discontinuity between events ${events[i-1].id} and ${events[i].id}`,\n        field: 'custodyEvents' });\n    }\n  }\n  return ctx.pass({ ruleId: 'EU-16' });\n}",
       "fields": {
         "reads": [
-          "MassID.id",
-          "MassIDEvent.fromParticipantId",
-          "MassIDEvent.toParticipantId",
-          "MassIDEvent.occurredAt",
-          "MassID.chainParticipantIds"
+          "MassID.chainParticipantIds",
+          "MassID.generatorId",
+          "MassID.recyclerId",
+          "MassidEvent.fromParticipantId",
+          "MassidEvent.toParticipantId",
+          "MassidEvent.occurredAt"
         ],
         "writes": [
           "ValidationResult"
@@ -16808,8 +16809,8 @@
         }
       ],
       "messages": {
-        "block_pt": "Cadeia de custódia incompleta. Cada transferência (Generator → Hauler → [Processor →] Recycler) precisa estar documentada sem gaps.",
-        "block_en": "Custody chain incomplete. Every transfer (Generator → Hauler → [Processor →] Recycler) must be documented without gaps."
+        "block_pt": "A cadeia de custodia registrada nao esta continua. Verifique enderecos, eventos, e horarios.",
+        "block_en": "The recorded custody chain is not continuous. Check endpoints, events, and hand-over times."
       },
       "behavior": {
         "idempotent": true,
@@ -16840,10 +16841,16 @@
         ]
       },
       "edge_cases": [
-        "Eventos EXCEPTION (waste em quarentena, devolvido) NÃO contam como gap se resolvidos via transição válida (E template, P-65).",
-        "Sub-hauler troca: precisa de evento de hand-off entre haulers.",
-        "Reverse logistics (waste devolvido ao generator por rejeição): trata como nova chain.",
-        "Soft-deleted events EXCLUÍDOS do aggregate."
+        "chain com 0 ou 1 participant -> PASS (nada a verificar).",
+        "chain[0] != generatorId -> BLOCK.",
+        "chain[last] != recyclerId -> BLOCK.",
+        "Qualquer event com fromParticipantId ou toParticipantId null -> BLOCK 'missing party identifiers' (nao silent PASS).",
+        "Ordem dos events na query nao importa - regra ordena por occurredAt antes de qualquer check.",
+        "Gap consecutivo <= 72h -> PASS (borda inclusive).",
+        "Gap > 72h -> BLOCK com mensagem citando ambos os pares e a duracao exata.",
+        "Missing expected transfer -> BLOCK contando quantos hand-overs faltam.",
+        "Consecutive direction mismatch (previous.to != current.from) -> BLOCK 'break in the custody chain'.",
+        "Soft-delete de events e responsabilidade do query layer, nao desta regra."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -16863,16 +16870,24 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-16"
+          "source": "Directive_2008_98_EC_WFD",
+          "section": "Article 36 - waste-holder liability across the custody chain"
         },
         {
-          "source": "WSR_2024_1157",
-          "section": "Art. 18 — accompanying information throughout the shipment"
+          "source": "ISO_22095_2020",
+          "section": "Identity-preserved chain of custody (models the audit-trail expectation)"
         },
         {
-          "source": "WFD_2008_98_EC",
-          "section": "Art. 35 (record-keeping by waste establishments)"
+          "source": "RecyClass_Audit_Scheme_V1_1",
+          "section": "Chain-of-custody continuity as an audit outcome"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-16 HIGH finding - missing temporal gap check, endpoint validation, null-party event handling, event order dependence"
+        },
+        {
+          "source": "ADR-069",
+          "section": "EU-16 Phase 1 refactor and MAX_CUSTODY_GAP_HOURS heuristic"
         }
       ],
       "methodology_quote": "Every transfer must be documented with no custody gaps (Generator → Hauler → Processor → Recycler).",
@@ -16888,7 +16903,7 @@
       "domain": "EU Legal",
       "subdomain": "Chain of Custody",
       "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "last_reviewed": "2026-07-01",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
