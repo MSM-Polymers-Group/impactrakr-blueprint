@@ -17301,15 +17301,19 @@
           "EU"
         ]
       },
-      "purpose": "Garante que os endereços-chave do MassID (pickup, drop-off, processing site, recycler site) correspondem aos endereços REGISTRADOS dos participants e facilities permitidas. Address discrepancy pode indicar: (a) waste indo para facility não-permitida disfarçada de permitida, (b) shell address usado para fraude. Sem este gate, é possível bypass de EU-13/EU-15 com endereços diferentes.",
-      "logic_human": "BLOCK se MassID.pickupAddressId, dropOffAddressId, processingSiteAddressId, recyclerSiteAddressId não baterem com os Address registrados dos respectivos Participants/Facilities.",
+      "purpose": "Verifica que toda location declarada em MassID (pickup, drop-off, recycler site, processing site quando aplicavel) e um Address registrado, ativo, e pertencente ao participant que a topologia da chain espera. Sob WFD Art. 35(1)(c), waste keepers devem registrar location real de pickup e drop-off. Rule severity BLOCK: location integrity e compliance. Phase 1: dropoff role-aware (processor se existe na chain, senao recycler) fecha false-fail de topologia G->H->P->H->R (Gian recycler flow). Phase 2 (coordenar Gabriel): address versioning (effectiveFrom/Until), populate bv_controls (COC-19), PG-17 residential, structured message.",
+      "logic_human": "Para cada role (pickup, dropOff, recyclerSite, processingSite quando processorId != null), verifica se addressId aponta pra um Address registrado, ativo, e cujo participantId bate com o esperado pela topologia. Drop-off e ROLE-AWARE: se processorId != null, dropoff owner e processor (topologia G->H->P->H->R). Se processorId null, dropoff owner e recycler (topologia direta G->H->R). BLOCK se algum: addressId null, participant esperado null, ou address nao encontrado/inativo/mal-linkado. Mensagem cita WFD Art. 35(1)(c).",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-19'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  const checks = [\n    { role: 'pickup', addressId: massid.pickupAddressId, participantId: massid.generatorId, allowed: ['G','B'] },\n    { role: 'dropOff', addressId: massid.dropOffAddressId, participantId: massid.recyclerId, allowed: ['R'] },\n    { role: 'recyclerSite', addressId: massid.recyclerSiteAddressId, participantId: massid.recyclerId, allowed: ['R'] }\n  ];\n  if (massid.processorId) {\n    checks.push({ role: 'processingSite', addressId: massid.processingSiteAddressId, participantId: massid.processorId, allowed: ['P'] });\n  }\n  const mismatches = [];\n  for (const c of checks) {\n    if (!c.addressId) {\n      mismatches.push({ role: c.role, reason: 'address missing' });\n      continue;\n    }\n    const registered = await ctx.db.address.findOne({ where: { id: c.addressId, participantId: c.participantId, active: true }});\n    if (!registered) mismatches.push({ role: c.role, addressId: c.addressId, expectedParticipantId: c.participantId });\n  }\n  if (mismatches.length) {\n    return ctx.fail({ ruleId: 'EU-19', severity: 'BLOCK',\n      message: `Address mismatch: ${JSON.stringify(mismatches)}`,\n      field: 'addresses' });\n  }\n  return ctx.pass({ ruleId: 'EU-19' });\n}",
       "fields": {
         "reads": [
           "MassID.pickupAddressId",
           "MassID.dropoffAddressId",
-          "MassID.processingSiteAddressId",
           "MassID.recyclerSiteAddressId",
+          "MassID.processingSiteAddressId",
+          "MassID.generatorId",
+          "MassID.recyclerId",
+          "MassID.processorId",
+          "Address.id",
           "Address.participantId",
           "Address.active"
         ],
@@ -17319,8 +17323,8 @@
       },
       "evidence": [],
       "messages": {
-        "block_pt": "Endereço não confere com participante/facility registrado. Verifique pickup, drop-off, processing e recycler addresses.",
-        "block_en": "Address does not match registered participant/facility. Review pickup, drop-off, processing and recycler addresses."
+        "block_pt": "Algumas localizacoes nao batem com o participant ou facility registrado. Base regulatoria: WFD (Directive 2008/98/EC) Art. 35(1)(c).",
+        "block_en": "Some locations do not match the registered participant or facility. Regulatory basis: WFD (Directive 2008/98/EC) Art. 35(1)(c)."
       },
       "behavior": {
         "idempotent": true,
@@ -17356,10 +17360,17 @@
         ]
       },
       "edge_cases": [
-        "Residential pickup (PG-17): pickup address pode ser do Generator B (business representando bairro) — aceitar se Generator é B-type.",
-        "Multi-site recycler: aceitar qualquer address ativo desse Recycler.",
-        "Address bump (re-cadastro do mesmo physical address com novo addressId): tratar como mismatch e exigir update do MassID.",
-        "Geo-coords devem coincidir com Address declarado (sanity check de 100m raio — opcional, futuro)."
+        "Todas locations validas e ativas para os participants esperados -> PASS.",
+        "processorId null -> processing site nao e verificado, dropoff owner = recyclerId.",
+        "processorId nao-null -> dropoff owner = processorId (topologia com processor intermediario).",
+        "addressId null pra role obrigatoria -> BLOCK com 'X address is missing'.",
+        "Expected participant null (ex.: massid.generatorId null) -> BLOCK 'X address has no expected participant to validate against' (Phase 1 novo).",
+        "Address inativo (active=false) -> BLOCK como se nao existisse.",
+        "Address de outro participant -> BLOCK 'not registered to expected participant'.",
+        "Mensagem FAIL cita WFD Art. 35(1)(c).",
+        "Address versioning (effectiveFrom/Until) NAO implementado em Phase 1 - documentado como Phase 2 (address bump quebra dados historicos).",
+        "bv_controls VAZIO em Phase 1 - documentado como Phase 2 (populate COC-19).",
+        "PG-17 residential + direct pickup nao coberto em Phase 1 - especializado, aguarda pipeline residencial."
       ],
       "bv_verification": {
         "bv_controls": [],
@@ -17376,16 +17387,16 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-19"
+          "source": "Directive_2008_98_EC_WFD",
+          "section": "Article 35(1)(c) - waste keepers must record actual location of pickup and drop-off for each transfer"
         },
         {
-          "source": "WSR_2024_1157",
-          "section": "Art. 18(4) — addresses of dispatch and destination"
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-19 HIGH finding - fixed topology assumption (dropoff amarrado a recyclerId), address versioning absent, bv_controls vazio"
         },
         {
-          "source": "WFD_2008_98_EC",
-          "section": "Art. 35 (location of treatment)"
+          "source": "ADR-074",
+          "section": "EU-19 Phase 1 role-aware dropoff + explicit missing-participant + WFD citation"
         }
       ],
       "methodology_quote": "Addresses must match licensed facilities and declared participants.",
@@ -17402,7 +17413,7 @@
       "domain": "EU Legal",
       "subdomain": "Locations",
       "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "last_reviewed": "2026-07-02",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
