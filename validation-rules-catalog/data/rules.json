@@ -16062,15 +16062,15 @@
           "EU"
         ]
       },
-      "purpose": "WSR 2024/1157 classifica shipments em duas rotas: (a) GREEN-LISTED (Annex III/IIIA/IIIB) — apenas Annex VII basta; (b) NOTIFICATION-REQUIRED (Annex IV ou mixed/unlisted) — exige notificação prévia (Art. 4-15) com consent dos competent authorities de origin/transit/destination. Submeter um waste notification-required apenas com Annex VII é violação direta. Esta regra checa se a combinação shipment_type + waste_class é consistente com a rota documental usada.",
-      "logic_human": "BLOCK se shipmentType='green_listed' AND EWC não pertence a Annex III/IIIA/IIIB. BLOCK se shipmentType='notification' AND notification_consent_doc ausente.",
+      "purpose": "Verifica que o tipo de shipment declarado (green-listed vs notification) e coerente com a classificacao Basel do residuo. WSR Art. 4 indexa procedure por entrada Basel (Annexes VIII/IX + WSR Annexes III/IIIA/IIIB), NAO por EWC. Fabricar uma lista de EWCs 'green-listed' e a categoria de erro que a auditoria eu-rules-audit-2026-07-01.md flagged como HIGH. Esta refatoracao substitui a lista fabricada por um mapping EWC -> default Basel entry (B3011, EU3011, Y48, A3210) e valida contra o conjunto green-listed {B3011, EU3011}. Threshold de contamination (2%/6%) e delegado a inspeccao fisica. Notification content check e delegado a rule futura (candidate EU-28); esta regra so verifica presenca do consent.",
+      "logic_human": "SKIP se MassID.crossBorder != TRUE. SKIP se nao ha Annex VII nem DIGITAL_EQUIVALENT anexado. Se shipmentType == GREEN_LISTED: deriva Basel entry do EWC via EWC_TO_BASEL_ENTRY map; PASS se Basel entry ∈ {B3011, EU3011}; FAIL se EWC ausente, se EWC nao mapeado, ou se Basel entry classifica como Y48/A3210 (notification-required). Se shipmentType == NOTIFICATION: PASS se SHIPMENT_NOTIFICATION anexado (content check delegado a rule futura); FAIL sem consent anexado citando Annex IA. Se shipmentType null: FAIL exigindo declaracao. Threshold de contaminacao (2% B3011, 6% EU3011) NAO e enforced aqui - requer inspeccao fisica.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-12'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  if (!massid.crossBorder) return ctx.skip({ reason: 'not cross-border' });\n  const annex = await ctx.db.document.findFirst({ where: { massidId: massid.id, type: 'annex_vii' }});\n  if (!annex) return ctx.skip({ reason: 'EU-10 covers.' });\n  const shipmentType = annex.payload?.shipmentType;\n  const wasteClass = annex.payload?.wasteClass;\n  const greenListed = ctx.config.get('eu_green_listed_codes'); // Annex III/IIIA/IIIB codes\n  if (shipmentType === 'green_listed') {\n    if (!greenListed.includes(massid.ewcCode)) {\n      return ctx.fail({ ruleId: 'EU-12', severity: 'BLOCK',\n        message: `Shipment declared green_listed but EWC '${massid.ewcCode}' not in Annex III/IIIA/IIIB`,\n        field: 'shipmentType' });\n    }\n    return ctx.pass({ ruleId: 'EU-12' });\n  }\n  if (shipmentType === 'notification') {\n    const consent = await ctx.db.document.findFirst({ where: {\n      massidId: massid.id, type: 'notification_consent'\n    }});\n    if (!consent) {\n      return ctx.fail({ ruleId: 'EU-12', severity: 'BLOCK',\n        message: 'Notification-required shipment missing notification_consent document from competent authorities',\n        field: 'documents' });\n    }\n    return ctx.pass({ ruleId: 'EU-12' });\n  }\n  return ctx.fail({ ruleId: 'EU-12', severity: 'BLOCK',\n    message: `Shipment type '${shipmentType}' invalid — must be 'green_listed' or 'notification'`,\n    field: 'shipmentType' });\n}",
       "fields": {
         "reads": [
           "MassID.crossBorder",
           "MassID.ewcCode",
-          "Document.payload.shipmentType",
-          "Document.payload.wasteClass"
+          "Attachment[type IN (ANNEX_VII, DIGITAL_EQUIVALENT)].annexVii.shipmentType",
+          "Attachment[type=SHIPMENT_NOTIFICATION]"
         ],
         "writes": [
           "ValidationResult"
@@ -16088,8 +16088,8 @@
         }
       ],
       "messages": {
-        "block_pt": "Tipo de shipment inconsistente com a classificação do waste ou notification consent ausente. Verifique se o EWC está em Annex III/IIIA/IIIB (green-listed) ou anexe a notificação aprovada.",
-        "block_en": "Shipment type inconsistent with waste classification or notification consent missing. Verify the EWC is in Annex III/IIIA/IIIB (green-listed) or attach the approved notification."
+        "block_pt": "O tipo de shipment declarado nao esta coerente com a classificacao Basel do residuo. Corrija a declaracao ou anexe a notificacao apropriada.",
+        "block_en": "The declared shipment type is not consistent with the Basel classification of the waste. Correct the declaration or attach the appropriate notification."
       },
       "behavior": {
         "idempotent": true,
@@ -16125,10 +16125,15 @@
         ]
       },
       "edge_cases": [
-        "Fase 2 — cross-border em geral é Fase 2 do roadmap; regra existe mas pouco aciona no MVP Malta-only.",
-        "Annex IIIA (mixed wastes listed) tem subtletados — config eu_green_listed_codes deve cobrir.",
-        "Basel B3011 (plastic waste) é a referência internacional; lista EU é o reflexo doméstico.",
-        "Country-specific ban (ex.: import ban de plastic waste em país de destination) requer cruzamento adicional — não coberto aqui, fica para regra futura."
+        "shipmentType GREEN_LISTED + EWC ∈ mapping green (B3011/EU3011) -> PASS.",
+        "shipmentType GREEN_LISTED + EWC ausente -> FAIL 'EWC missing'.",
+        "shipmentType GREEN_LISTED + EWC nao mapeado -> FAIL 'cannot classify Basel entry'.",
+        "shipmentType GREEN_LISTED + EWC mapeado a Y48/A3210 -> FAIL 'requires notification under Art. 4a'.",
+        "shipmentType NOTIFICATION + SHIPMENT_NOTIFICATION anexado -> PASS (content check delegado).",
+        "shipmentType NOTIFICATION sem SHIPMENT_NOTIFICATION -> FAIL 'attach Annex IA notification'.",
+        "shipmentType null -> FAIL exigindo declaracao (cita B3011/EU3011/Art. 4a).",
+        "Aceita Annex VII papel ou DIGITAL_EQUIVALENT (DIWASS) como carrier do shipmentType (por ADR-065).",
+        "Threshold de contamination fisica (2%/6%) NAO validado por software - requer inspeccao."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -16146,20 +16151,48 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-12"
+          "source": "WSR_2024_1157",
+          "section": "Article 4 - shipment procedure (green-listed vs notification)"
         },
         {
           "source": "WSR_2024_1157",
-          "section": "Art. 4-15 (notification procedure)"
+          "section": "Article 4a and 9-14 - notification procedure and CA consents"
         },
         {
           "source": "WSR_2024_1157",
-          "section": "Annex III, IIIA, IIIB (green-listed wastes)"
+          "section": "Annex IIIA - EU-specific green-listed entries including EU3011"
         },
         {
           "source": "WSR_2024_1157",
-          "section": "Annex IV (notification-required wastes)"
+          "section": "Annex IA - notification form (competent-authority consents)"
+        },
+        {
+          "source": "Basel_Convention",
+          "section": "Annex IX B3011 - plastic waste green-listed (2019 amendments, ≤2% contamination)"
+        },
+        {
+          "source": "Basel_Convention",
+          "section": "Annex II Y48 - mixed plastic waste requiring PIC"
+        },
+        {
+          "source": "Basel_Convention",
+          "section": "Annex VIII A3210 - halogenated plastic waste requiring notification"
+        },
+        {
+          "source": "Commission_Decision_2000_532_EC",
+          "section": "List of Waste - EWC codes referenced in EWC_TO_BASEL_ENTRY mapping"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-12 HIGH finding - 4 fabricated EWCs replaced by Basel entry classification"
+        },
+        {
+          "source": "ADR-065",
+          "section": "EU-10 acceptance of DIGITAL_EQUIVALENT extended to EU-12 shipmentType read"
+        },
+        {
+          "source": "ADR-067",
+          "section": "EU-12 refactor to Basel-entry classification (Phase 1)"
         }
       ],
       "methodology_quote": "Check green-listed / notification-required routing as applicable.",
@@ -16175,7 +16208,7 @@
       "domain": "EU Legal",
       "subdomain": "Cross-border",
       "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "last_reviewed": "2026-07-01",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
