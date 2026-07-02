@@ -18191,15 +18191,17 @@
           "EU"
         ]
       },
-      "purpose": "Detecta MassIDs cuja massa declarada excede a capacidade declarada do veículo usado no transport. Excesso indica: (a) overload ilegal de carga (perigoso e fora de norma), (b) dados inflados de massa para credit fraud, (c) erro de matching de vehicle. FLAG — manual review. Não bloqueia porque pode haver vehicle update ou erro de capacity, mas red flag importante.",
-      "logic_human": "FLAG se MassID.measuredKg > Vehicle.capacityKg × 1.05 (5% buffer).",
+      "purpose": "Verifica plausibilidade de que a carga registrada em um MassID cabe na capacidade de payload do veiculo declarado na cadeia de transporte. Payload capacity deriva de Directive 96/53/EC (Maximum Authorised Mass, MAM, tabulada por tipo de veiculo no Annex I) menos peso tara. Um overshoot e sinal de erro de operacao, misidentificacao de veiculo, ou dado de weighbridge corrompido. Rule severity e FLAG (nao BLOCK): overshoot dentro da margem de seguranca operacional nao para o shipment, mas gera investigation. Sub-load aggregation cross-MassID (multiplos MassIDs no mesmo trip) NAO e implementada em Phase 1 - documentada como Phase 2 (requer RuleContext.sameTripMassIds do query layer).",
+      "logic_human": "SKIP se MassID.measuredKg = null. Para cada TransportLeg com vehiclePlate NOT null e AuthorizedVehicle correspondente (mesma plate + haulerId) com capacityKg NOT null: compare measuredKg contra capacityKg * 1.05 (SAFETY_MARGIN_PERCENT heuristico interno, nao regulatorio). Se qualquer leg overshoot -> FLAG (FAIL com mensagem citando Directive 96/53/EC). SKIP se nenhum leg tem plate + capacity conhecidos (evita silent PASS). PASS caso contrario. Sub-load aggregation cross-MassID (mesma placa + haulerId + transportDate) NAO implementada em Phase 1 - documentada como Phase 2 na ADR-068.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-25'>): Promise<RuleResult> {\n  const leg = await ctx.db.transportLeg.findById(ctx.input.transportLegId);\n  const vehicle = await ctx.db.authorizedVehicle.findFirst({ where: { plate: leg.vehiclePlate, haulerId: leg.haulerId }});\n  if (!vehicle?.capacityKg) return ctx.skip({ reason: 'Vehicle capacity not declared.' });\n  const massid = await ctx.db.massid.findById(leg.massidId);\n  const carried = massid.measuredKg;\n  const limit = vehicle.capacityKg * 1.05;\n  if (carried > limit) {\n    return ctx.fail({ ruleId: 'EU-25', severity: 'FLAG',\n      message: `Volume vs capacity: carried ${carried}kg > vehicle capacity ${vehicle.capacityKg}kg (with 5% buffer = ${limit.toFixed(1)}kg)`,\n      field: 'measuredKg' });\n  }\n  return ctx.pass({ ruleId: 'EU-25' });\n}",
       "fields": {
         "reads": [
+          "MassID.measuredKg",
           "TransportLeg.vehiclePlate",
           "TransportLeg.haulerId",
-          "AuthorizedVehicle.capacityKg",
-          "MassID.measuredKg"
+          "AuthorizedVehicle.plate",
+          "AuthorizedVehicle.participantId",
+          "AuthorizedVehicle.capacityKg"
         ],
         "writes": [
           "ValidationResult"
@@ -18207,8 +18209,10 @@
       },
       "evidence": [],
       "messages": {
-        "flag_pt": "Volume transportado acima da capacidade declarada do veículo. Vai para revisão manual.",
-        "flag_en": "Volume carried above the vehicle's declared capacity. Goes to manual review."
+        "flag_pt": "A carga registrada excede a capacidade de payload do veiculo declarado, mesmo com margem de seguranca. Verifique a pesagem ou o veiculo declarado. Base regulatoria: Directive 96/53/EC (MAM).",
+        "flag_en": "The recorded mass exceeds the declared vehicle's payload capacity, even with the safety margin. Check the weighing or the declared vehicle. Regulatory basis: Directive 96/53/EC (MAM).",
+        "skip_pt": "Nao aplicavel - dados insuficientes para comparar carga com capacidade do veiculo.",
+        "skip_en": "Not applicable - insufficient data to compare mass with vehicle capacity."
       },
       "behavior": {
         "idempotent": true,
@@ -18239,10 +18243,15 @@
         ]
       },
       "edge_cases": [
-        "5% buffer para weighbridge tolerance + density variance — configurável.",
-        "Sub-loaded com múltiplos MassIDs no mesmo trip: somar todos os MassIDs do leg antes do compare.",
-        "Vehicle com trailer adicional: capacity = veículo + trailer; modelar como tuple.",
-        "Liquid waste density vs volume capacity: aceitar kg ou litros; converter."
+        "measuredKg = null -> SKIP (top-level).",
+        "Todos os legs sem vehiclePlate -> SKIP (evita silent PASS anti-pattern P2).",
+        "vehicle matchado mas capacityKg = null -> leg contribui SKIP.",
+        "Nenhum vehicle matcha plate + haulerId de nenhum leg -> SKIP.",
+        "Overshoot na borda exata (measuredKg == capacity * 1.05) -> PASS.",
+        "Overshoot acima da margem -> FLAG com mensagem citando Directive 96/53/EC.",
+        "Mixed legs (alguns sem plate, um com plate + capacity) -> avalia apenas os evaluatable; se overshoot -> FLAG.",
+        "SAFETY_MARGIN_PERCENT (5%) e HEURISTICA INTERNA nao regulatoria - configurable em Phase 2 via MethodologyConfig.",
+        "Sub-load aggregation cross-MassID: NAO implementada em Phase 1. Falso negativo real documentado: 2 MassIDs de 3000kg no mesmo veiculo 5000kg passam individualmente mas agregado (6000kg) excede."
       ],
       "bv_verification": {
         "bv_controls": [],
@@ -18257,12 +18266,20 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-25"
+          "source": "Directive_96_53_EC",
+          "section": "Annex I - Maximum Authorised Mass (MAM) per vehicle type (18/26/40 t etc.)"
         },
         {
-          "source": "WSR_2024_1157",
-          "section": "Art. 18 — quantity vs means of transport coherence"
+          "source": "Directive_96_53_EC",
+          "section": "Article 4 - Member State authority to set stricter limits"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-25 HIGH finding - wrong WSR Art. 18 citation + silent PASS + missing sub-load aggregation + arbitrary 5% margin"
+        },
+        {
+          "source": "ADR-068",
+          "section": "EU-25 Directive 96/53/EC citation, null semantics, and Phase 2 aggregation plan"
         }
       ],
       "methodology_quote": "Waste volume / weight should be plausible relative to declared vehicle.",
@@ -18279,7 +18296,7 @@
       "domain": "EU Legal",
       "subdomain": "Plausibility",
       "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "last_reviewed": "2026-07-01",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
