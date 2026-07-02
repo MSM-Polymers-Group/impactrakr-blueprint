@@ -16964,13 +16964,15 @@
           "EU"
         ]
       },
-      "purpose": "Bate o valor de massa declarado entre os documentos legais (WTN, Annex VII, dMRV measurement, recycler_receipt). Drift > tolerância é red flag clássico para fraude documental ou weighbridge mal calibrada. Sem este cross-check, o pipeline aceita inconsistências que reprovariam em auditoria BV. Threshold default: 2% drift (a ser confirmado por Compliance).",
-      "logic_human": "BLOCK se max diferença entre [WTN.quantityKg, Annex VII.quantityKg, dMRV.measuredKg, recycler_receipt.receivedKg] > 2% do menor valor. PASS se dentro da tolerância.",
+      "purpose": "Verifica se as massas registradas ao longo dos documentos legais do shipment (weighbridge do MassID, digital equivalent do WTN, recibos de processor e recycler) reconciliam dentro de tolerancia operacional. Divergencia material entre pesos e sinal de data-entry error, documento mal-linkado, ou fraude de massa. Rule severity BLOCK: divergencia acima da tolerancia bloqueia o shipment. Tolerancia (2%) e heuristica interna, nao regulatoria - WFD Art. 35(1)(a) exige registro cronologico mas nao fixa percentual; EN 15343:2007 §5.2 permite adjustment por moisture/impurities mas nao publica ceiling universal. Denominador arithmetic mean (nao min) fecha vector de gaming onde understatement de um documento puxava a referencia para baixo. Phase 2: moisture_allowance + adjustment_factor + multi-leg comparison.",
+      "logic_human": "Coleta measurements = [MassID.measuredKg] + [quantityKg de cada attachment que carrega valor estruturado (DIGITAL_EQUIVALENT.wtn, RECYCLER_RECEIPT.chainReceipt, PROCESSOR_RECEIPT.chainReceipt)]. Filtra valores null e <= 0. SKIP se measurements.length < 2. Calcula mean e drift = (max - min) / mean. BLOCK se drift > MASS_TOLERANCE_PERCENT (2%, heuristica interna nao regulatoria). PASS caso contrario. Denominador mean (nao min) para nao permitir gaming.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-17'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  const docs = await ctx.db.document.findMany({ where: {\n    massidId: massid.id, type: { in: ['waste_transfer_note', 'annex_vii', 'recycler_receipt', 'processor_receipt'] }\n  }});\n  const measurements = [massid.measuredKg, ...docs.map(d => d.payload?.quantityKg)].filter(v => v != null && v > 0);\n  if (measurements.length < 2) return ctx.skip({ reason: 'Not enough measurements to reconcile.' });\n  const min = Math.min(...measurements);\n  const max = Math.max(...measurements);\n  const tolerance = ctx.config.get('eu_mass_tolerance', 0.02); // 2%\n  const drift = (max - min) / min;\n  if (drift > tolerance) {\n    return ctx.fail({ ruleId: 'EU-17', severity: 'BLOCK',\n      message: `Mass inconsistency: ${measurements.join('kg, ')}kg — drift ${(drift*100).toFixed(2)}% > tolerance ${(tolerance*100)}%`,\n      field: 'measuredKg' });\n  }\n  return ctx.pass({ ruleId: 'EU-17' });\n}",
       "fields": {
         "reads": [
           "MassID.measuredKg",
-          "Document.payload.quantityKg"
+          "Attachment[type=DIGITAL_EQUIVALENT].wtn.quantityKg",
+          "Attachment[type=RECYCLER_RECEIPT].chainReceipt.quantityKg",
+          "Attachment[type=PROCESSOR_RECEIPT].chainReceipt.quantityKg"
         ],
         "writes": [
           "ValidationResult"
@@ -16993,8 +16995,10 @@
         }
       ],
       "messages": {
-        "block_pt": "Inconsistência de massa entre documentos legais. Verifique WTN, Annex VII, medição dMRV e recibo do recycler — drift acima da tolerância.",
-        "block_en": "Mass inconsistency across legal documents. Review WTN, Annex VII, dMRV measurement and recycler receipt — drift above tolerance."
+        "block_pt": "Os pesos registrados divergem alem da tolerancia entre os documentos. Verifique a pesagem ou os valores transcritos.",
+        "block_en": "The recorded weights disagree above tolerance across documents. Check the weighing or the transcribed values.",
+        "skip_pt": "Nao aplicavel - menos de duas medicoes disponiveis para comparar.",
+        "skip_en": "Not applicable - fewer than two mass measurements available to compare."
       },
       "behavior": {
         "idempotent": true,
@@ -17030,10 +17034,15 @@
         ]
       },
       "edge_cases": [
-        "Net vs gross weight (com vs sem container): comparar apenas like-with-like; padronizar para net em config.",
-        "Moisture loss em transit longo (>5 dias) pode justificar drift até 1-2% extra — config moisture_allowance.",
-        "Multi-leg shipment: comparar entrada vs saída de cada leg separadamente.",
-        "Adjustments por adjustment_factor (P-15, P-16) aplicam ANTES do match — usar valor já adjusted."
+        "measurements.length < 2 -> SKIP (evita silent PASS anti-pattern P2).",
+        "Todos measurements null ou zero -> SKIP.",
+        "Drift <= MASS_TOLERANCE_PERCENT ao redor da mean -> PASS.",
+        "Drift > MASS_TOLERANCE_PERCENT -> BLOCK com mensagem citando os valores, spread% observado, e tolerancia.",
+        "Denominador arithmetic mean (nao min) - Phase 1 fecha gaming vector.",
+        "MASS_TOLERANCE_PERCENT (2%) e HEURISTICA INTERNA nao regulatoria - configurable em Phase 2 via MethodologyConfig.",
+        "Moisture / adjustment_factor NAO implementados em Phase 1 - documentados como Phase 2 (requer novo campo MassID.moisturePercent).",
+        "Multi-leg per-leg comparison NAO implementada em Phase 1 - documentada como Phase 2 (requer projecao weighEvents por leg).",
+        "Apenas DIGITAL_EQUIVALENT.wtn carrega quantityKg estruturado (paper WTN e PDF sem OCR)."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -17051,16 +17060,24 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-17"
+          "source": "Directive_2008_98_EC_WFD",
+          "section": "Article 35(1)(a) - chronological records of quantity for each transfer"
         },
         {
-          "source": "WSR_2024_1157",
-          "section": "Art. 18(4) — quantity field in Annex VII"
+          "source": "EN_15343_2007",
+          "section": "Section 5.2 - traceability of recycled plastic (mass reconciliation with declared moisture/impurity allowances)"
         },
         {
-          "source": "WFD_2008_98_EC",
-          "section": "Art. 35 (record-keeping accuracy)"
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-17 HIGH finding - arbitrary 2% tolerance without regulatory anchor, denominator min gaming vector, moisture allowance ignored"
+        },
+        {
+          "source": "ADR-062",
+          "section": "EU-08 jurisdictional WTN schema - source of DIGITAL_EQUIVALENT.wtn.quantityKg projection"
+        },
+        {
+          "source": "ADR-070",
+          "section": "EU-17 mean denominator + tolerance labelling + Phase 2 moisture plan"
         }
       ],
       "methodology_quote": "Mass across WTN, Annex VII, dMRV and receipt must reconcile within tolerance.",
@@ -17077,7 +17094,7 @@
       "domain": "EU Legal",
       "subdomain": "Mass Consistency",
       "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "last_reviewed": "2026-07-01",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
