@@ -16447,7 +16447,7 @@
           "EU"
         ]
       },
-      "purpose": "EU-13 valida que o permit existe e está vigente; EU-14 valida que o EWC do MassID é ACEITO pelo permit. Recyclers só podem processar waste cujo EWC consta na permit_scope. Processar EWC fora do escopo é violação do permit e expõe o recycler a sanções. Em MassIDs PURE, isso invalidaria toda a cadeia de prova de recycling.",
+      "purpose": "Gate que o codigo EWC do shipment cai dentro do licensedEwcScope declarado no permit do reciclador. Scope aceita EWCs concretos ('07 02 13'), wildcards de capitulo ('07 02 *'), e listas mistas. Base regulatoria: WFD Art. 23 exige que todo waste treatment establishment tenha permit que especifica tipos e quantidades de waste. Novo em ADR-076: scope que e exatamente ['*'] sozinho (universal wildcard) e rejeitado com FAIL loudly como sinal de cadastro errado no onboarding (nenhum permit real cobre TODOS os EWCs). Combinacoes de wildcard + EWC concreto (ex.: ['07 02 *', '15 01 02']) sao aceitas como fallbacks intencionais.",
       "logic_human": "BLOCK if MassID.ewcCode not in RecyclerLicense.licensedEwcScope (using ewcInScope wildcard matcher). Reads single source of truth per ADR-040.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-14'>): Promise<RuleResult> {\n  const m = ctx.massid;\n  const license = await ctx.db.recyclerLicense.findUnique({ where: { participantId: m.recyclerId } });\n  if (!license) {\n    return ctx.fail({ ruleId: 'EU-14', severity: 'BLOCK', message: 'RecyclerLicense missing for participant ' + m.recyclerId + '.', field: 'recyclerLicense' });\n  }\n  if (!ewcInScope(m.ewcCode, license.licensedEwcScope)) {\n    return ctx.fail({ ruleId: 'EU-14', severity: 'BLOCK', message: 'EWC code ' + m.ewcCode + ' not in recycler permit scope ' + JSON.stringify(license.licensedEwcScope) + '. Permit ' + license.permitNumber + ' issued by ' + license.issuingAuthority + '.', field: 'ewcCode' });\n  }\n  return ctx.pass({ ruleId: 'EU-14' });\n}",
       "fields": {
@@ -16469,8 +16469,8 @@
         }
       ],
       "messages": {
-        "block_pt": "Código EWC do MassID não está no escopo do permit do recycler. Recycler precisa estender permit ou redirecionar para facility com escopo adequado.",
-        "block_en": "MassID EWC code not in recycler_permit scope. Recycler must extend permit or redirect to a facility with adequate scope."
+        "block_pt": "Codigo EWC nao permitido pelo escopo do permit do reciclador, ou escopo do permit invalido. Base regulatoria: WFD (Directive 2008/98/EC) Art. 23.",
+        "block_en": "EWC code not allowed by the recycler's permit scope, or permit scope is invalid. Regulatory basis: WFD (Directive 2008/98/EC) Art. 23."
       },
       "behavior": {
         "idempotent": true,
@@ -16515,7 +16515,9 @@
         "ewcInScope utility shared with P-49: 'XX YY *' matches anything with prefix 'XX YY '; exact codes match exactly. Asterisk in EWC code (hazardous indicator) treated as literal char in matching.",
         "Wildcard pattern '07 02 *' matches '07 02 13', '07 02 14*', etc. Useful for broad permits.",
         "Per ADR-040, EU-14 reads single source RecyclerLicense (not Document.scope). Doc continues as evidence storage.",
-        "EU-14 (LEGAL_OPERATION) is distinct from P-49 (HOMOLOGATION_APPROVAL) — same data, different gate."
+        "EU-14 (LEGAL_OPERATION) is distinct from P-49 (HOMOLOGATION_APPROVAL) — same data, different gate.",
+        "licensedEwcScope = ['*'] sozinho -> BLOCK 'universal wildcard' (rejeicao explicita ao inves de silent PASS).",
+        "licensedEwcScope = ['07 02 *', '15 01 02'] (wildcard + concreto) -> PASS se EWC bate em qualquer entry."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -16540,6 +16542,18 @@
         {
           "source": "WFD_2008_98_EC",
           "section": "Art. 23(1) (permit scope: types and quantities of waste)"
+        },
+        {
+          "source": "Directive_2008_98_EC_WFD",
+          "section": "Article 23 - waste treatment authorization: permit specifies types and quantities of waste"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-14 MED nota - universal wildcard \"*\" only accepts every EWC, indicates homologation data-entry mistake"
+        },
+        {
+          "source": "ADR-076",
+          "section": "EU-14 universal-wildcard gate + WFD Art. 23 citation"
         }
       ],
       "methodology_quote": "Recycler permit scope must accept MassID EWC code waste class.",
@@ -16554,8 +16568,8 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Facility Permit",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.2.0",
+      "last_reviewed": "2026-07-02",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
