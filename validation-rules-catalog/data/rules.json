@@ -18798,7 +18798,7 @@
         ]
       },
       "purpose": "Garante que o Recycler/Sorting Centre possui prova formal de existência jurídica antes de ser admitido na rede. RecyClass §1.1 lista Company Registration como Category 1 (mandatório): sem este documento o Certification Body não emite selo e o auditor não consegue cruzar legal name × permits × insurance. É o gate institucional básico — protege contra fraude documental, shell companies e operação não-autorizada, e é a base para todos os outros docs (permit, insurance, REACH) que dependem do legal name vincular.",
-      "logic_human": "BLOCK se Document.type='company_registration_doc' não existir para o Participant (R ou P em região EU), OR se Document.validUntil < now, OR se Participant.legalName não bater com legal_name do documento, OR se companyRegistrationRef estiver blank. PASS caso contrário.",
+      "logic_human": "BLOCK se Document.type='company_registration_doc' não existir para o Participant (R ou P em região EU), OR se Document.validUntil < now, OR se Participant.legalName não bater com legal_name do documento, OR se Participant.companyRegistration estiver blank. PASS caso contrário. Nota: Participant.companyRegistration é o número do registro nacional (Malta Business Registry no formato 'C' + dígitos, UK Companies House no formato 8 dígitos, etc.), NÃO é o VAT (esse fica em Participant.taxId, que em Malta vai como 'MT' + 8 dígitos).",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'RC-01'>): Promise<RuleResult> {\n  // TODO ADR-046: replace participant.type check with ctx.activeHomologation(participantId, registryId, asOf, 'RECYCLER' | 'PROCESSOR')\n  const participant = await ctx.db.participant.findUnique({ where: { id: ctx.input.participantId } });\n  if (!participant) return ctx.fail({ ruleId: 'RC-01', severity: 'BLOCK',\n    message: 'Participant not found', field: 'participantId' });\n  if (!['R', 'P'].includes(participant.type) || participant.region /* TODO ADR-052/M17: source via Address.countryCode + continental classification */ !== 'EU') {\n    return ctx.pass(); // not applicable in this context (was ctx.skip)\n  }\n  const ref = participant.companyRegistrationRef;\n  if (!ref || String(ref).trim() === '') {\n    return ctx.fail({ ruleId: 'RC-01', severity: 'BLOCK',\n      message: 'company_registration_ref is required',\n      field: 'companyRegistrationRef' });\n  }\n  const doc = await ctx.db.document.findOne({ where: {\n    participantId: participant.id, type: 'company_registration_doc' }});\n  if (!doc) {\n    return ctx.fail({ ruleId: 'RC-01', severity: 'BLOCK',\n      message: 'company_registration_doc document missing', field: 'documents' });\n  }\n  if (doc.validUntil && doc.validUntil < ctx.now) {\n    return ctx.fail({ ruleId: 'RC-01', severity: 'BLOCK',\n      message: 'company_registration_doc expired on ' + doc.validUntil.toISOString(),\n      field: 'documents.validUntil' });\n  }\n  if (doc.legalName && participant.legalName &&\n      doc.legalName.trim().toLowerCase() !== participant.legalName.trim().toLowerCase()) {\n    return ctx.fail({ ruleId: 'RC-01', severity: 'BLOCK',\n      message: `legalName mismatch: '${participant.legalName}' vs doc '${doc.legalName}'`,\n      field: 'legalName' });\n  }\n  return ctx.pass({ ruleId: 'RC-01' });\n}",
       "fields": {
         "reads": [
@@ -18840,7 +18840,7 @@
       "test_cases": {
         "positive": {
           "name": "Documento company_registration_doc válido com legalName batendo",
-          "given": "Participant.type='R', region='EU', legalName='MSM Polymers Ltd', companyRegistrationRef='MT12345'; Document type='company_registration_doc' com validUntil > now AND legalName='MSM Polymers Ltd'.",
+          "given": "Participant.type='R', region='EU', legalName='MSM Polymers Ltd', companyRegistration='C 55123', companyRegistrationType='NATIONAL_TRADE_REGISTER' (Malta Business Registry, formato 'C' + dígitos); Document type='company_registration_doc' com validUntil > now AND legalName='MSM Polymers Ltd'. Nota: MT + 8 dígitos é o VAT (taxId), não Company Registration.",
           "expected": "ValidationResult(passed=true, ruleId='RC-01'). Pipeline prossegue."
         },
         "negative": [
@@ -18899,8 +18899,8 @@
       "dmrv_output": "",
       "domain": "Administration / Licensing",
       "subdomain": "",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.3.1",
+      "last_reviewed": "2026-07-03",
       "audit_findings": [],
       "gates_what": "RECYCLASS_CERTIFICATION",
       "event_ids": [
