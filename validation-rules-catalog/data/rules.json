@@ -15198,7 +15198,7 @@
           "EU"
         ]
       },
-      "purpose": "Todo movement de waste DOMÉSTICO dentro de um Member State (não cross-border) precisa ter Waste Transfer Note (WTN) ou seu equivalente digital estruturado (DIWASS, draft EU). Sem WTN, o transport é juridicamente nulo. EU-07 é o gate de existência; EU-08 e EU-09 validam content e parties. WSR 2024/1157 reforça digital-first via DIWASS (Art. 27 e Annexes).",
+      "purpose": "Existence gate para transporte de residuo domestico: aceita nota de transferencia em papel (WASTE_TRANSFER_NOTE) ou equivalente digital estruturado (DIGITAL_EQUIVALENT). Base regulatoria e WFD (Directive 2008/98/EC) Art. 35(1)(a), que obriga keepers de residuo a manter registros cronologicos identificando quantidade, natureza, origem, e destino. Transposicoes nacionais sao os instrumentos operacionais (MT ERA WTN, UK Duty of Care WTN, DE eANV Begleitschein, IT FIR/RENTRi, PT e-GAR, NL LMA). Content validation do digital equivalent e delegada a EU-08 (ADR-062). Pre-audit citava WSR Art. 27 (errado - e DIWASS cross-border, nao domestic); citacao corrigida em ADR-075.",
       "logic_human": "BLOCK se MassID.domesticTransfer = true AND não há Document type='waste_transfer_note' OR type='digital_equivalent' (DIWASS) vinculado ao MassID.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-07'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  if (!massid.domesticTransfer) return ctx.skip({ reason: 'not domestic' });\n  const wtn = await ctx.db.document.findFirst({ where: {\n    massidId: massid.id, type: { in: ['waste_transfer_note', 'digital_equivalent'] }\n  }});\n  if (!wtn) {\n    return ctx.fail({ ruleId: 'EU-07', severity: 'BLOCK',\n      message: 'Waste Transfer Note (or digital equivalent / DIWASS) missing for domestic transfer',\n      field: 'documents' });\n  }\n  return ctx.pass({ ruleId: 'EU-07' });\n}",
       "fields": {
@@ -15224,8 +15224,10 @@
         }
       ],
       "messages": {
-        "block_pt": "Movimentação doméstica de resíduo exige Waste Transfer Note (WTN) ou equivalente digital (ex.: DIWASS). Anexe o documento antes de prosseguir.",
-        "block_en": "Domestic waste movement requires a Waste Transfer Note (WTN) or digital equivalent (e.g., DIWASS). Attach the document before continuing."
+        "block_pt": "Este transporte domestico precisa de nota de transferencia de residuo (papel ou equivalente digital estruturado) por WFD (Directive 2008/98/EC) Art. 35(1)(a). Anexe o documento antes de continuar.",
+        "block_en": "This domestic transfer needs a waste transfer note (paper or the structured digital equivalent) per WFD (Directive 2008/98/EC) Art. 35(1)(a). Attach the document before continuing.",
+        "skip_pt": "Nao aplicavel - este nao e um transporte domestico.",
+        "skip_en": "Not applicable - this is not a domestic transfer."
       },
       "behavior": {
         "idempotent": true,
@@ -15283,16 +15285,20 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-07"
+          "source": "Directive_2008_98_EC_WFD",
+          "section": "Article 35(1)(a) - chronological records for waste collection/transport/treatment"
         },
         {
-          "source": "WSR_2024_1157",
-          "section": "Art. 27 (electronic submission and exchange of information — DIWASS)"
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-07 MED finding - wrong WSR Art. 27 citation (that is DIWASS cross-border, not domestic record-keeping)"
         },
         {
-          "source": "WFD_2008_98_EC",
-          "section": "Art. 35 (record-keeping)"
+          "source": "ADR-062",
+          "section": "EU-08 chain contract - EU-07 gates existence; EU-08 gates completeness of DIGITAL_EQUIVALENT payload"
+        },
+        {
+          "source": "ADR-075",
+          "section": "EU-07 citation correction: remove WSR Art. 27, cite WFD Art. 35(1)(a)"
         }
       ],
       "methodology_quote": "Domestic transfer must have Waste Transfer Note or equivalent structured digital record.",
@@ -15307,8 +15313,8 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Domestic Transfer",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.2.0",
+      "last_reviewed": "2026-07-02",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
