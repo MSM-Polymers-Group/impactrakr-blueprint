@@ -14465,16 +14465,20 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-02"
+          "source": "Commission_Decision_2000_532_EC",
+          "section": "List of Waste (EWC catalogue) supplemented by Decision 2014/955/EU"
         },
         {
-          "source": "EU_DECISION_2000_532_EC",
-          "section": "EWC classification rules"
+          "source": "Directive_2008_98_EC_WFD",
+          "section": "Article 6 (end-of-waste) + Article 7 (reclassification of hazardous vs non-hazardous)"
         },
         {
-          "source": "WFD_2008_98_EC",
-          "section": "Art. 7 (reclassification of hazardous waste)"
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-02 MED - same-chapter reclassification not distinguished from cross-chapter"
+        },
+        {
+          "source": "ADR-077",
+          "section": "EU-02 header + Phase 2 same-chapter reclassification plan"
         }
       ],
       "methodology_quote": "EWC must remain consistent across pickup, transport, processing and recycling unless justified reclassification occurs.",
@@ -14490,8 +14494,8 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Waste Classification",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.2.0",
+      "last_reviewed": "2026-07-02",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
@@ -14807,6 +14811,14 @@
         {
           "source": "WSR_2024_1157",
           "section": "Art. 18 (Annex VII — carrier identification)"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-04 MED - issuingAuthority allowlist per MS, cross-border multi-MS, broker/dealer path"
+        },
+        {
+          "source": "ADR-077",
+          "section": "EU-04 WFD Art. 26 citation + Phase 2 issuingAuthority allowlist"
         }
       ],
       "methodology_quote": "Hauler must hold valid waste transport authorization issued by competent authority.",
@@ -14821,8 +14833,8 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Carrier Authorization",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.2.0",
+      "last_reviewed": "2026-07-02",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
@@ -14961,6 +14973,14 @@
         {
           "source": "WFD_2008_98_EC",
           "section": "Art. 26"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-05 MED - revokedAt not read (Phase 2), chain contract with EU-04 undocumented"
+        },
+        {
+          "source": "ADR-077",
+          "section": "EU-05 chain contract with EU-04 + revokedAt Phase 2 plan"
         }
       ],
       "methodology_quote": "Transport date must fall within carrier license validity.",
@@ -14976,8 +14996,8 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Carrier Authorization",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.2.0",
+      "last_reviewed": "2026-07-02",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
@@ -15962,7 +15982,8 @@
         "R12 (exchange of wastes for submission to recovery) e R13 (storage for recovery) são aceitos pelo gate mas geram FLAG informativo para Compliance — recovery 'definitiva' (R3) é preferida.",
         "Case-insensitive match (r3 e R3 igualmente válidos); normalize uppercase.",
         "Annex II WFD oficial: lista R1..R13 + D1..D15 não muda — manter hardcoded é seguro.",
-        "Decisão Rodrigo 2026-06-03 (Option A): cadence quarterly da EU 2024/1157 prevalece sobre cadence anual PURE quando ambas aplicam (EU-registered recyclers under PURE). Quarterly reporting + annual PURE batch — same data, extra cadence. Reporting pipeline produz tanto o quarterly EU report quanto o annual PURE submission a partir do mesmo dataset."
+        "Decisão Rodrigo 2026-06-03 (Option A): cadence quarterly da EU 2024/1157 prevalece sobre cadence anual PURE quando ambas aplicam (EU-registered recyclers under PURE). Quarterly reporting + annual PURE batch — same data, extra cadence. Reporting pipeline produz tanto o quarterly EU report quanto o annual PURE submission a partir do mesmo dataset.",
+        "R12 (exchange for R1..R11) or R13 (storage pending R1..R12) -> FAIL with severity override FLAG (informational; not blocking). Downstream traceability must confirm R1..R11 destination."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -15990,6 +16011,14 @@
         {
           "source": "WSR_2024_1157",
           "section": "Art. 18 — Annex VII recovery operation field"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-11 MED nota - R12 (exchange) / R13 (storage pending) as informational FLAG variant"
+        },
+        {
+          "source": "ADR-077",
+          "section": "EU-11 R12/R13 severity override to FLAG"
         }
       ],
       "methodology_quote": "Cross border file must include valid recovery operation code (must be recovery, not disposal).",
@@ -16004,8 +16033,8 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Cross-border",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.2.0",
+      "last_reviewed": "2026-07-02",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
@@ -16293,8 +16322,8 @@
         }
       ],
       "messages": {
-        "block_pt": "Permit do recycler ausente, expirado ou incompleto. Anexe o documento atual da autoridade competente (ex.: ERA Malta) com nº, autoridade, validade e escopo de EWC autorizados.",
-        "block_en": "Recycler permit missing, expired or incomplete. Attach the current document from the competent authority (e.g., ERA Malta) with number, authority, validity and authorized EWC scope."
+        "block_pt": "Permit do recycler ausente, expirado ou incompleto. Anexe o documento atual da autoridade competente (ex.: ERA Malta) com número, autoridade e validade. Escopo de EWC é verificado por EU-14.",
+        "block_en": "Recycler permit missing, expired or incomplete. Attach the current document from the competent authority (e.g., ERA Malta) with number, authority, and validity. EWC scope is checked by EU-14."
       },
       "behavior": {
         "idempotent": true,
@@ -16368,6 +16397,14 @@
         {
           "source": "WSR_2024_1157",
           "section": "Art. 18 — destination facility identification"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-13 MED - block_pt copy mentioned EWC scope which is EU-14 responsibility"
+        },
+        {
+          "source": "ADR-077",
+          "section": "EU-13 block_pt copy fix (remove EWC scope leak)"
         }
       ],
       "methodology_quote": "Recycler facility must hold valid waste treatment permit.",
@@ -16382,8 +16419,8 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Facility Permit",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.2.0",
+      "last_reviewed": "2026-07-02",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
@@ -17705,7 +17742,8 @@
         "Re-upload do mesmo file: novo versionNo, novo timestamp, mesmo fileHash → PASS.",
         "Storage S3 com object-lock + versioning para defesa adicional contra tampering at-rest.",
         "Daily background job 'eu21-integrity-scan' detecta corruption ou key rotation issues.",
-        "Compressed/encrypted variants: hash sempre sobre o canonical binary uploaded pelo user (pre-encryption)."
+        "Compressed/encrypted variants: hash sempre sobre o canonical binary uploaded pelo user (pre-encryption).",
+        "versionNo monotonic check (ADR-077): grouped by attachment id, versions must strictly increase. A regression (v3 recorded before v2) BLOCKs as a tampering signal."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -17724,16 +17762,20 @@
       ],
       "references": [
         {
-          "source": "PURE_DMRV_MASTER_FINAL",
-          "section": "RULE_REGISTER EU-21"
+          "source": "Directive_2008_98_EC_WFD",
+          "section": "Article 35(1)(a) - chronological record-keeping obligation (the target of integrity guarantees)"
         },
         {
-          "source": "WSR_2024_1157",
-          "section": "Art. 27 — integrity of electronic data exchange"
+          "source": "ADR-049",
+          "section": "SHA-256 hash chain on MassIDEvent - actual integrity anchor"
         },
         {
-          "source": "EIDAS_910_2014",
-          "section": "Art. 41 (legal effects of electronic time stamps)"
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-21 MED - eIDAS Art. 41 over-promise (timestamptz is not qualified timestamp), versionNo monotonic not implemented"
+        },
+        {
+          "source": "ADR-077",
+          "section": "EU-21 remove eIDAS over-promise; add versionNo monotonic check"
         }
       ],
       "methodology_quote": "Documents must be timestamped, immutable, version-locked and linked to MassID.",
@@ -17748,8 +17790,8 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Document Integrity",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.2.0",
+      "last_reviewed": "2026-07-02",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
@@ -18025,10 +18067,11 @@
         ]
       },
       "edge_cases": [
-        "Travessia marítima/ferry: speed e route diferentes do road — exclusão por leg.modeOfTransport.",
         "Detours por block de estrada/trabalho: aceitar via route_anomaly_report justificando.",
         "GPS drift (urban canyon) afeta straight-line — usar tolerance de 500m.",
-        "Sample MVP: thresholds (5/110 km/h, 3x straight) configuráveis e calibrados com data real após 90d."
+        "Sample MVP: thresholds (5/110 km/h, 3x straight) configuráveis e calibrados com data real após 90d.",
+        "Straight-line tolerance 1 km, route-vs-straight 3x multiplier, plausible speed 5..110 km/h: heuristics, not regulatory. Phase 2: MethodologyConfig.",
+        "Div-by-zero guard: speed check requires transitTimeMin > 0 AND routeKm > 0 (ADR-077)."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -18052,6 +18095,14 @@
         {
           "source": "WSR_2024_1157",
           "section": "Art. 18(4) — date and route of shipment"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-23 MED - thresholds hardcoded as heuristics, leg.modeOfTransport fabricated edge_case, div-by-zero if transitTimeMin=0"
+        },
+        {
+          "source": "ADR-077",
+          "section": "EU-23 threshold labelling + div-by-zero guard + remove fabricated modeOfTransport edge_case"
         }
       ],
       "methodology_quote": "Distance, time and route should be plausible for shipment.",
@@ -18066,8 +18117,8 @@
       "dmrv_output": "review_queue",
       "domain": "EU Legal",
       "subdomain": "Plausibility",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.2.0",
+      "last_reviewed": "2026-07-02",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
@@ -18167,7 +18218,8 @@
         "Falso positivo comum: re-upload do mesmo doc pelo mesmo MassID (mesma massidId) — excluído via massidId not equal.",
         "Hash collision teórica de SHA-256: ignorar (probability negligible).",
         "Documents 100% idênticos podem ter razão legítima (recurring permit do recycler em N MassIDs) — esses devem usar relacionamento N:M via participantId em vez de duplicar Document rows; refatorar onde possível.",
-        "Daily full-scan acumula histórico para Compliance via BV-15."
+        "Daily full-scan acumula histórico para Compliance via BV-15.",
+        "Doc-type discrimination (Phase 2): rule does not distinguish permit reuse (legitimate) from Annex VII reuse (suspicious). Requires exposing document type on DuplicateAttachmentHashForValidation."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -18191,6 +18243,14 @@
         {
           "source": "WSR_2024_1157",
           "section": "Art. 14, Art. 18 — single Annex VII per shipment"
+        },
+        {
+          "source": "ImpacTrakr_audit_2026_07_01",
+          "section": "EU-24 MED - naming drift catalog fileHash vs code sha256; doc-type discrimination Phase 2"
+        },
+        {
+          "source": "ADR-077",
+          "section": "EU-24 rules.json catalog naming aligned to sha256 (code was already correct)"
         }
       ],
       "methodology_quote": "Detect reused WTN or Annex VII across multiple MassIDs (anti-fraud control).",
@@ -18205,8 +18265,8 @@
       "dmrv_output": "review_queue",
       "domain": "EU Legal",
       "subdomain": "Plausibility",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.2.0",
+      "last_reviewed": "2026-07-02",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
