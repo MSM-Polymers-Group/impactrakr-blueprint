@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Impactrakr · Product Blueprint v0.4.6</title>
+    <title>Impactrakr · Product Blueprint v0.4.7</title>
     <meta
       name="description"
-      content="Plataforma dMRV para validação de créditos de reciclagem de plástico. Cliente: MARE Foundation / MSM Polymers (Malta)."
+      content="Plataforma dMRV registry-agnostic para rastreabilidade e compliance sob EU 2024/1157 + RecyClass. Clientes: MARE Foundation (Malta), CRDC (Guatemala, Q3 2026), Kiwa (candidato · NDA assinado)."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2989,7 +2989,7 @@
             <span class="search-btn-label" lang="en">Search...</span>
             <kbd>⌘K</kbd>
           </button>
-          <span class="version-pill">v0.4.6 · 29 Jun 2026</span>
+          <span class="version-pill">v0.4.7 · 03 Jul 2026</span>
           <div class="lang-toggle" role="group" aria-label="Language">
             <button data-lang="pt" class="active" aria-label="Português">PT</button>
             <button data-lang="en" aria-label="English">EN</button>
@@ -3201,36 +3201,41 @@
           <div class="tab-pane active" id="pane-blueprint" role="tabpanel">
             <!-- ============ HERO ============ -->
             <section class="hero">
-              <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.4.6</div>
+              <div class="eyebrow"><span class="eyebrow-dot"></span>Product Blueprint · v0.4.7</div>
               <h1>
-                <span lang="pt">Plataforma dMRV para créditos de reciclagem de plástico</span>
-                <span lang="en">dMRV platform for plastic recycling credits</span>
+                <span lang="pt">Plataforma dMRV registry-agnostic sob EU 2024/1157 + RecyClass</span>
+                <span lang="en">Registry-agnostic dMRV platform under EU 2024/1157 + RecyClass</span>
               </h1>
               <p class="lede">
                 <span lang="pt"
-                  >A Impactrakr é a camada de prova entre o operador físico e a Carrot Network:
-                  pré-validamos massas e geramos audit pack antes da emissão de TRC na
-                  Polygon.</span
+                  >A Impactrakr é a camada independente de rastreabilidade, dMRV e compliance
+                  regulatório da cadeia de reciclagem de plástico. Gera dados verificados e IDs
+                  DPP-compatíveis sob UE 2024/1157 + RecyClass como backbone, com PURE (EcoCircle) e
+                  qualquer registry (Carrot, Isométrica, …) como camada opcional.</span
                 >
                 <span lang="en"
-                  >Impactrakr is the proof layer between the physical operator and Carrot Network:
-                  we pre-validate masses and generate the audit pack before TRC emission on
-                  Polygon.</span
+                  >Impactrakr is the independent traceability, dMRV and regulatory-compliance layer
+                  for the plastic-recycling chain. It generates verified data and DPP-compatible IDs
+                  under EU 2024/1157 + RecyClass as backbone, with PURE (EcoCircle) and any registry
+                  (Carrot, Isométrica, …) as an optional layer.</span
                 >
               </p>
 
               <div class="hero-meta">
                 <span class="hero-meta-item"
-                  ><span lang="pt">Cliente: MARE Foundation / MSM Polymers</span
-                  ><span lang="en">Client: MARE Foundation / MSM Polymers</span></span
+                  ><span lang="pt">Clientes: MARE (Malta) · CRDC (Guatemala Q3) · Kiwa (candidato · NDA)</span
+                  ><span lang="en">Clients: MARE (Malta) · CRDC (Guatemala Q3) · Kiwa (candidate · NDA)</span></span
                 >
                 <span class="hero-meta-dot"></span>
                 <span class="hero-meta-item"
-                  ><span lang="pt">Metodologia: PURE (EcoCircle / Carrot)</span
-                  ><span lang="en">Methodology: PURE (EcoCircle / Carrot)</span></span
+                  ><span lang="pt">Backbone: EU 2024/1157 + RecyClass · PURE opcional</span
+                  ><span lang="en">Backbone: EU 2024/1157 + RecyClass · PURE optional</span></span
                 >
                 <span class="hero-meta-dot"></span>
-                <span class="hero-meta-item">VVB: Bureau Veritas</span>
+                <span class="hero-meta-item"
+                  ><span lang="pt">VVB: Kiwa (candidato · retomada 22/jul)</span
+                  ><span lang="en">VVB: Kiwa (candidate · resumes Jul 22)</span></span
+                >
                 <span class="hero-meta-dot"></span>
                 <span class="hero-meta-item"
                   ><span lang="pt">Owner: Rodrigo Moraes (Finder)</span
@@ -3243,38 +3248,37 @@
                   <div class="kpi-label">
                     <span lang="pt">Sprint atual</span><span lang="en">Current sprint</span>
                   </div>
-                  <div class="kpi-value kpi-value-sm" id="kpi-sprint">2 / 6</div>
-                  <div class="kpi-sub" id="kpi-sprint-sub">16–30 May 2026</div>
+                  <div class="kpi-value kpi-value-sm" id="kpi-sprint">5 / 6</div>
+                  <div class="kpi-sub" id="kpi-sprint-sub">30 Jun – 13 Jul 2026</div>
                 </div>
                 <div class="kpi">
                   <div class="kpi-label">
-                    <span lang="pt">Go-live alvo</span><span lang="en">Go-live target</span>
+                    <span lang="pt">Demo Kiwa</span><span lang="en">Kiwa demo</span>
                   </div>
-                  <div class="kpi-value kpi-value-sm">30 Jul</div>
+                  <div class="kpi-value kpi-value-sm">22 Jul</div>
                   <div class="kpi-sub">
-                    <span id="kpi-days-to-golive">—</span>
-                    <span lang="pt">dias · 90 dias de projeto</span
-                    ><span lang="en">days · 90-day project</span>
+                    <span lang="pt">retomada Kiwa · Malta ops out/2026</span
+                    ><span lang="en">Kiwa resumes · Malta ops Oct 2026</span>
                   </div>
                 </div>
                 <div class="kpi">
                   <div class="kpi-label">
-                    <span lang="pt">Regras a codar</span><span lang="en">Rules to code</span>
+                    <span lang="pt">Regras no catálogo</span><span lang="en">Rules in catalog</span>
                   </div>
-                  <div class="kpi-value kpi-value-sm">67 + 26</div>
+                  <div class="kpi-value kpi-value-sm">139</div>
                   <div class="kpi-sub">
-                    <span lang="pt">PURE core + compliance EU</span
-                    ><span lang="en">PURE core + EU compliance</span>
+                    <span lang="pt">96 PURE · 27 EU · 16 RC · v0.12.0 APPROVED</span
+                    ><span lang="en">96 PURE · 27 EU · 16 RC · v0.12.0 APPROVED</span>
                   </div>
                 </div>
                 <div class="kpi">
                   <div class="kpi-label">
                     <span lang="pt">Decisões fixadas</span><span lang="en">Decisions made</span>
                   </div>
-                  <div class="kpi-value kpi-value-sm">23</div>
+                  <div class="kpi-value kpi-value-sm">40</div>
                   <div class="kpi-sub">
-                    <span lang="pt">11 metod. · 12 arq. · 8 ops.</span
-                    ><span lang="en">11 method. · 12 arch. · 8 ops.</span>
+                    <span lang="pt">14 metod. · 14 arq. · 12 ops.</span
+                    ><span lang="en">14 method. · 14 arch. · 12 ops.</span>
                   </div>
                 </div>
               </div>
@@ -3283,9 +3287,68 @@
                 <span class="callout-icon">◆</span>
                 <div>
                   <strong
-                    ><span lang="pt">Atualizações desta versão (v0.4.6 — 08/jun/2026 · tarde)</span
+                    ><span lang="pt">Atualizações desta versão (v0.4.7 — 03/jul/2026)</span
                     ><span lang="en"
-                      >Updates in this version (v0.4.6 — Jun 8, 2026 · afternoon)</span
+                      >Updates in this version (v0.4.7 — Jul 3, 2026)</span
+                    ></strong
+                  >
+                  <p style="margin: 6px 0 0; color: inherit">
+                    <span lang="pt"
+                      ><strong>Call de alinhamento 03/jul (Lino, Gian, Stefano, Julia, Nick, Rodrigo)
+                      reprioriza o último mês do MVP.</strong>
+                      Integração Carrot é oficialmente adiada para <strong>set/out 2026</strong>;
+                      último mês foca em <strong>demo Kiwa com mock full-circle</strong> da resposta
+                      Carrot na camada de rendering (registry-agnostic desde o MVP — M15).
+                      <strong>KYC/KYB é redesenhado para padrão EU + GDPR mínimo defensável</strong>,
+                      removendo herança BR/CPF (M16). <strong>Person deixa de ser entidade paralela e
+                      vira sub-perfil da Company</strong> — pessoa física só existe fora disso no
+                      contexto MARE App (A13). Fluxo homologação fica sequencial: Participant →
+                      Homologation auto → MassID (A14). <strong>Positioning "add-on de ERPs"
+                      endurecido com canal comercial via ERPs europeus</strong> (Odoo, Sage,
+                      Reciclase multi-país) — Impactrakr não vira ERP nem exige ERP maduro (O9).
+                      <strong>Portal MARE Foundation vira protótipo desta semana</strong> para
+                      reunião com Nestlé + hotel Malta (O10). <strong>Continuous auditing</strong>
+                      como pitch primário para Kiwa — janeiro sai certificado pronto, sem
+                      "temporada" concentrada (O11). <strong>URLs públicas por cliente</strong>
+                      como canal de marketing (O12). Purga do Bureau Veritas do fluxo operacional
+                      (BV foi só validador metodológico PURE); Kiwa é o candidato a VVB operacional
+                      (retomada 22/jul). Sweep EU MED-tier de 8 regras (EU-02/04/05/11/13/21/23/24)
+                      finalizado no ADR-077.</span
+                    >
+                    <span lang="en"
+                      ><strong>Alignment call Jul 3 (Lino, Gian, Stefano, Julia, Nick, Rodrigo)
+                      re-prioritises the final month of the MVP.</strong>
+                      Carrot integration is officially postponed to <strong>Sep/Oct 2026</strong>;
+                      the final month focuses on a <strong>Kiwa demo with full-circle mock</strong>
+                      of the Carrot response in the rendering layer (registry-agnostic from the MVP
+                      — M15). <strong>KYC/KYB is redesigned to EU-standard + GDPR-minimal</strong>,
+                      dropping the BR/CPF heritage (M16). <strong>Person is no longer a parallel
+                      entity — it becomes a sub-profile of the Company</strong>; individual persons
+                      only exist outside that in the MARE App context (A13). Homologation flow
+                      becomes sequential: Participant → Homologation auto → MassID (A14). The
+                      <strong>"ERP add-on" positioning is hardened with a commercial channel through
+                      European ERPs</strong> (Odoo, Sage, cross-country Reciclase) — Impactrakr
+                      neither becomes an ERP nor requires a mature ERP (O9).
+                      <strong>MARE Foundation portal becomes this week's prototype</strong> for the
+                      meeting with Nestlé + a Malta hotel (O10). <strong>Continuous auditing</strong>
+                      as the primary pitch for Kiwa — January delivers the certificate ready, no
+                      concentrated "audit season" (O11). <strong>Client-branded public URLs</strong>
+                      as a marketing channel (O12). Bureau Veritas purged from the operational flow
+                      (BV was only a PURE-methodology validator); Kiwa is the operational-VVB
+                      candidate (resumes Jul 22). EU MED-tier sweep of 8 rules
+                      (EU-02/04/05/11/13/21/23/24) closed in ADR-077.</span
+                    >
+                  </p>
+                </div>
+              </div>
+
+              <div class="callout callout-info" style="margin-top: 12px">
+                <span class="callout-icon">i</span>
+                <div>
+                  <strong
+                    ><span lang="pt">Versão anterior (v0.4.6 — 08/jun/2026 · tarde)</span
+                    ><span lang="en"
+                      >Earlier version (v0.4.6 — Jun 8, 2026 · afternoon)</span
                     ></strong
                   >
                   <p style="margin: 6px 0 0; color: inherit">
@@ -3308,7 +3371,9 @@
                       TOS. WeyServ (G+B) vira 2 Homologation rows, não array de enums.
                       <strong>A14 resolvida</strong>: lifecycle agora vive em Homologation, identity
                       é imutável. ADR-046 documenta a correção; ADR-033 §4 marcado como superseded.
-                      Cronograma confirmado: integração Carrot em julho, go-live 30/jul.</span
+                      Cronograma confirmado: integração Carrot em julho, go-live 30/jul.
+                      <em>[Reprimarizado na v0.4.7: Carrot adiada para set/out; foco vira demo
+                      Kiwa com mock.]</em></span
                     >
                     <span lang="en"
                       ><strong>Laura call (Carrot, 4pm) + architectural fix (ADR-046).</strong>
@@ -3329,7 +3394,9 @@
                       + TOS acceptance. WeyServ (G+B) becomes 2 Homologation rows, not an enum array.
                       <strong>A14 resolved</strong>: lifecycle now lives in Homologation; identity is
                       immutable. ADR-046 documents the fix; ADR-033 §4 marked superseded. Timeline
-                      confirmed: Carrot integration in July, go-live Jul 30.</span
+                      confirmed: Carrot integration in July, go-live Jul 30.
+                      <em>[Re-prioritised in v0.4.7: Carrot postponed to Sep/Oct; focus shifts to a
+                      mocked Kiwa demo.]</em></span
                     >
                   </p>
                 </div>
@@ -3572,29 +3639,50 @@
               </div>
 
               <p lang="pt">
-                A Impactrakr é a camada de
-                <strong>dMRV (digital Measurement, Reporting &amp; Verification)</strong> que
-                pré-valida toda a cadeia de reciclagem de plástico operada pela MARE Foundation /
-                MSM Polymers em Malta, antes que o dado seja enviado para a Carrot Network — que
-                então emite o crédito ambiental (TRC) na Polygon e distribui as recompensas (USDC)
-                aos atores da cadeia.
+                A Impactrakr é uma plataforma independente de
+                <strong>dMRV (digital Measurement, Reporting &amp; Verification)</strong>,
+                rastreabilidade e compliance regulatório para a cadeia de reciclagem de plástico. O
+                <strong>backbone</strong> é a regulação europeia (UE 2024/1157 + RecyClass); a
+                metodologia PURE (autoria EcoCircle) e a integração com registries emissores de
+                crédito (Carrot, Isométrica, …) são camadas opcionais que cada cliente ativa
+                conforme o uso — crédito financeiro, compliance regulatório, relatório CSRD.
               </p>
               <p lang="en">
-                Impactrakr is the
-                <strong>dMRV (digital Measurement, Reporting &amp; Verification)</strong> layer that
-                pre-validates the entire plastic recycling chain operated by MARE Foundation / MSM
-                Polymers in Malta, before data is submitted to Carrot Network — which then mints the
-                environmental credit (TRC) on Polygon and distributes rewards (USDC) to the chain
-                actors.
+                Impactrakr is an independent platform for
+                <strong>dMRV (digital Measurement, Reporting &amp; Verification)</strong>,
+                traceability and regulatory compliance across the plastic-recycling chain. The
+                <strong>backbone</strong> is European regulation (EU 2024/1157 + RecyClass); the
+                PURE methodology (authored by EcoCircle) and integration with credit-issuing
+                registries (Carrot, Isométrica, …) are optional layers each client turns on for
+                their use case — financial credit, regulatory compliance, CSRD reporting.
               </p>
 
               <p lang="pt">
-                <strong>Em uma frase:</strong> somos a camada de prova entre quem opera a cadeia
-                física e quem audita / tokeniza o crédito.
+                <strong>Em uma frase:</strong> a Impactrakr é a camada de prova, comum a qualquer
+                registry, entre quem opera a cadeia física e quem consome o resultado (auditor,
+                registry emissor de crédito, relatório CSRD, DPP).
               </p>
               <p lang="en">
-                <strong>In one sentence:</strong> we are the proof layer between those who operate
-                the physical chain and those who audit / tokenize the credit.
+                <strong>In one sentence:</strong> Impactrakr is the shared proof layer, registry-
+                agnostic, between those who operate the physical chain and those who consume the
+                result (auditor, credit-issuing registry, CSRD report, DPP).
+              </p>
+
+              <p lang="pt">
+                <strong>Primeiros clientes:</strong> MARE Foundation (Malta) como off-taker inicial
+                da metodologia PURE; CRDC (Guatemala) como cliente #2 confirmado para Q3 2026,
+                pagando infra; <strong>Kiwa</strong> como primeiro candidato a cliente-canal
+                (organismo de auditoria europeu) — NDA assinado 29/jun, retomada 22/jul. Pitch
+                central para Kiwa: <strong>auditoria contínua durante o ano</strong> em vez da
+                temporada anual concentrada.
+              </p>
+              <p lang="en">
+                <strong>First customers:</strong> MARE Foundation (Malta) as the initial off-taker
+                of the PURE methodology; CRDC (Guatemala) as confirmed customer #2 for Q3 2026,
+                paying infra; <strong>Kiwa</strong> as the first channel-customer candidate
+                (European audit body) — NDA signed Jun 29, resumes Jul 22. Core pitch to Kiwa:
+                <strong>continuous auditing across the year</strong> instead of the concentrated
+                annual audit season.
               </p>
 
               <h3><span lang="pt">O que entregamos</span><span lang="en">What we deliver</span></h3>
@@ -3631,7 +3719,10 @@
                 <li>Espelhamento on-platform do ciclo de vida do TRC (mint → sale → retire)</li>
                 <li>Dashboards para 4 perfis: Donor, Company (ESG), Resin8 Buyer, Government</li>
                 <li>
-                  Audit pack pronto para a Bureau Veritas (project verification annual on-site)
+                  <strong>Audit pack pronto para o organismo de verificação</strong> — inclui a
+                  proposta de <strong>auditoria contínua durante o ano</strong> em vez de
+                  temporada única. Kiwa é o candidato primário (NDA · retomada 22/jul); Bureau
+                  Veritas atuou historicamente como validador metodológico PURE.
                 </li>
               </ul>
               <ul lang="en">
@@ -3663,15 +3754,21 @@
                 </li>
                 <li>On-platform mirror of TRC lifecycle (mint → sale → retire)</li>
                 <li>Dashboards for 4 profiles: Donor, Company (ESG), Resin8 Buyer, Government</li>
-                <li>Audit pack ready for Bureau Veritas (annual on-site project verification)</li>
+                <li>
+                  <strong>Audit pack ready for the verification body</strong> — includes the
+                  proposal of <strong>continuous auditing across the year</strong> instead of a
+                  single audit season. Kiwa is the primary candidate (NDA · resumes Jul 22);
+                  Bureau Veritas historically acted as PURE-methodology validator.
+                </li>
               </ul>
 
               <h3><span lang="pt">O que NÃO somos</span><span lang="en">What we are NOT</span></h3>
               <div class="tag-row" style="margin-top: 8px" lang="pt">
-                <span class="badge badge-neutral">✕ Não emitimos crédito (é a Carrot)</span>
+                <span class="badge badge-neutral">✕ Não emitimos crédito (Carrot, Isométrica, …)</span>
                 <span class="badge badge-neutral">✕ Não somos blockchain pública</span>
                 <span class="badge badge-neutral">✕ Não criamos a metodologia (é a EcoCircle)</span>
                 <span class="badge badge-neutral">✕ Não somos marketplace de venda</span>
+                <span class="badge badge-neutral">✕ Não somos ERP do reciclador — plugamos em ERPs existentes</span>
               </div>
               <div class="tag-row" style="margin-top: 8px" lang="en">
                 <span class="badge badge-neutral">✕ We do not mint credits (Carrot does)</span>
@@ -3904,30 +4001,37 @@
               </p>
               <ol lang="pt">
                 <li>
-                  <strong>Auditoria (Bureau Veritas):</strong> BV exige trilha verificável
-                  evento-a-evento — Excel não tem hash chain
+                  <strong>Auditoria (Kiwa e outros VVBs):</strong> exigem trilha verificável
+                  evento-a-evento — Excel não tem hash chain. A ImpacTrakr oferece
+                  <strong>auditoria contínua</strong> (Kiwa vê os desvios no dia em que acontecem,
+                  não em janeiro).
                 </li>
                 <li>
-                  <strong>Carrot Network:</strong> rejeita lotes mal formatados — Excel direto na
-                  API gera retrabalho e perda de janela 60–180 dias
+                  <strong>Registries emissores (Carrot, Isométrica, …):</strong> rejeitam lotes mal
+                  formatados — Excel direto na API gera retrabalho e perda de janela 60–180 dias.
+                  A ImpacTrakr é registry-agnostic e mocka a resposta do registry desde o MVP.
                 </li>
                 <li>
                   <strong>Compliance EU (WSR 2024/1157, PPWR, CSRD):</strong> exige relatórios
-                  estruturados que Excel não exporta nativamente
+                  estruturados que Excel não exporta nativamente.
                 </li>
               </ol>
               <ol lang="en">
                 <li>
-                  <strong>Audit (Bureau Veritas):</strong> BV requires a verifiable event-by-event
-                  trail — Excel has no hash chain
+                  <strong>Audit (Kiwa and other VVBs):</strong> require a verifiable event-by-event
+                  trail — Excel has no hash chain. Impactrakr offers
+                  <strong>continuous auditing</strong> (Kiwa sees deviations the day they happen,
+                  not in January).
                 </li>
                 <li>
-                  <strong>Carrot Network:</strong> rejects badly formatted batches — Excel directly
-                  into the API creates rework and loses the 60–180 day window
+                  <strong>Issuing registries (Carrot, Isométrica, …):</strong> reject badly
+                  formatted batches — Excel directly into the API creates rework and loses the
+                  60–180 day window. Impactrakr is registry-agnostic and mocks the registry
+                  response from day one of the MVP.
                 </li>
                 <li>
                   <strong>EU Compliance (WSR 2024/1157, PPWR, CSRD):</strong> requires structured
-                  reports Excel cannot export natively
+                  reports Excel cannot export natively.
                 </li>
               </ol>
               <p lang="pt">A Impactrakr resolve os três simultaneamente.</p>
@@ -3975,23 +4079,24 @@
 flowchart LR
   classDef operator fill:#F0FDF4,stroke:#16A34A,color:#052E16
   classDef impactrakr fill:#EFF6FF,stroke:#2563EB,color:#1E3A8A,stroke-width:3px
-  classDef carrot fill:#F5F3FF,stroke:#7C3AED,color:#2E1065
-  classDef bv fill:#FEF2F2,stroke:#DC2626,color:#450A0A
+  classDef registry fill:#F5F3FF,stroke:#7C3AED,color:#2E1065
+  classDef vvb fill:#FEF2F2,stroke:#DC2626,color:#450A0A
   classDef eco fill:#FFFBEB,stroke:#D97706,color:#451A03
+  classDef erp fill:#F1F5F9,stroke:#475569,color:#0F172A
 
-  OP["Physical operator<br/>MARE / MSM<br/>+ WeyServ"]:::operator
-  IMP["IMPACTRAKR<br/>INT · dMRV"]:::impactrakr
-  CAR["Carrot Network<br/>Polygon · TRC mint"]:::carrot
-  BV["Bureau Veritas<br/>VVB"]:::bv
+  ERP["ERPs europeus<br/>Odoo · Sage · …<br/>(canal comercial)"]:::erp
+  OP["Physical operators<br/>MARE / MSM · CRDC<br/>Reciclador cliente"]:::operator
+  IMP["IMPACTRAKR<br/>dMRV registry-agnostic<br/>+ auditoria contínua"]:::impactrakr
+  REG["Registries<br/>Carrot · Isométrica · …<br/>(mock no MVP)"]:::registry
+  KIWA["Kiwa (VVB candidato)<br/>+ outros organismos"]:::vvb
   ECO["EcoCircle Global<br/>PURE author"]:::eco
 
-  OP -- "Excel/CSV" --> IMP
-  IMP -- "API submit" --> CAR
-  CAR -- "USDC payout" --> OP
-  BV -. "audits both" .-> IMP
-  BV -. " " .-> CAR
-  ECO -. "PURE rules" .-> IMP
-  ECO -. " " .-> CAR
+  ERP -- "API integrations" --> OP
+  OP -- "Excel/CSV/API" --> IMP
+  IMP -- "API submit / mock" --> REG
+  REG -- "reward payout" --> OP
+  KIWA -. "continuous audit" .-> IMP
+  ECO -. "PURE rules (opcional)" .-> IMP
     </pre>
               </div>
 
@@ -4044,10 +4149,20 @@ flowchart LR
                     <tr>
                       <td>VVB (Verification &amp; Validation Body)</td>
                       <td>
-                        <span lang="pt">Valida metodologia + verifica projeto on-site</span
-                        ><span lang="en">Validates methodology + on-site project verification</span>
+                        <span lang="pt">Valida metodologia + verifica projeto on-site — aceita
+                        auditoria contínua da ImpacTrakr no lugar da temporada anual</span
+                        ><span lang="en">Validates methodology + on-site project verification —
+                        accepts ImpacTrakr's continuous auditing in place of the annual audit
+                        season</span>
                       </td>
-                      <td>Bureau Veritas</td>
+                      <td>
+                        <strong>Kiwa</strong> <span lang="pt">(candidato · NDA · retomada 22/jul)</span
+                        ><span lang="en">(candidate · NDA · resumes Jul 22)</span> ·
+                        <span lang="pt">Bureau Veritas atuou como validador metodológico
+                        histórico da PURE</span
+                        ><span lang="en">Bureau Veritas historically acted as PURE methodology
+                        validator</span>
+                      </td>
                     </tr>
                     <tr>
                       <td>
@@ -4091,8 +4206,10 @@ flowchart LR
                   local Malta/EU; nossa plataforma é onde isso vive
                 </li>
                 <li>
-                  <strong>Audit pack para BV:</strong> Bureau Veritas verifica nossa trilha antes da
-                  Carrot — somos a "primary source of truth" no project verification
+                  <strong>Audit pack para o VVB:</strong> o organismo de verificação (Kiwa
+                  candidato) checa nossa trilha antes do registry — somos a "primary source of
+                  truth" no project verification, e o pitch de <strong>auditoria contínua</strong>
+                  substitui a temporada anual concentrada
                 </li>
               </ol>
               <ol lang="en">
@@ -4110,10 +4227,228 @@ flowchart LR
                   local Malta/EU requirements; our platform is where they live
                 </li>
                 <li>
-                  <strong>Audit pack for BV:</strong> Bureau Veritas checks our trail before Carrot
-                  — we are the "primary source of truth" in project verification
+                  <strong>Audit pack for the VVB:</strong> the verification body (Kiwa candidate)
+                  checks our trail before the registry — we are the "primary source of truth" in
+                  project verification, and the <strong>continuous auditing</strong> pitch
+                  replaces the concentrated annual audit season
                 </li>
               </ol>
+            </section>
+
+            <div class="section-divider"></div>
+
+            <!-- ============ 03.5 FRENTES NOVAS v0.4.7 ============ -->
+            <section class="section" id="frentes-novas">
+              <div class="section-header">
+                <div class="eyebrow">
+                  <span class="eyebrow-dot"></span>03.5 · <span lang="pt">Visão geral</span
+                  ><span lang="en">Overview</span>
+                </div>
+                <h2>
+                  <span lang="pt">Frentes novas na v0.4.7</span
+                  ><span lang="en">New fronts in v0.4.7</span>
+                </h2>
+              </div>
+              <p class="lede">
+                <span lang="pt"
+                  >Cinco narrativas grandes fixadas na call 03/jul que reposicionam o produto
+                  antes da retomada Kiwa em 22/jul.</span
+                ><span lang="en"
+                  >Five big narratives locked in on the Jul 3 call, repositioning the product
+                  ahead of Kiwa resuming on Jul 22.</span
+                >
+              </p>
+
+              <!-- Continuous auditing -->
+              <div class="card" style="border-left: 3px solid var(--accent); margin-bottom: 16px">
+                <div class="card-title">
+                  <span lang="pt">1 · Auditoria contínua como pitch primário para Kiwa</span
+                  ><span lang="en">1 · Continuous auditing as primary pitch for Kiwa</span>
+                </div>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  Hoje Kiwa audita 1 vez/ano, cobrindo <strong>~0,1%</strong> das massas em modelo
+                  amostral. A ImpacTrakr executa as 139 regras sobre <strong>100%</strong> dos
+                  MassIDs em tempo real — quando algo desvia, o alerta chega ao mesmo tempo para o
+                  cliente e para o Kiwa. Em janeiro o certificado sai <strong>pronto</strong>,
+                  sem temporada de auditoria concentrada. O auditor deixa de ser fiscal reativo e
+                  vira consultor contínuo. Vendável para ambos os lados: cliente ganha previsão
+                  de aprovação; Kiwa ganha eficiência operacional e visibilidade de mercado. Ver
+                  decisão O11.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  Today Kiwa audits 1x/year, covering <strong>~0.1%</strong> of the masses on a
+                  sampling model. Impactrakr runs the 139 rules over <strong>100%</strong> of
+                  MassIDs in real time — when something deviates, the alert reaches the client and
+                  Kiwa at the same time. In January the certificate comes out <strong>ready</strong>,
+                  with no concentrated audit season. The auditor moves from reactive gatekeeper
+                  to continuous consultant. Sellable on both sides: the client gets approval
+                  predictability; Kiwa gets operational efficiency and market visibility. See
+                  decision O11.
+                </p>
+              </div>
+
+              <!-- URLs públicas por cliente -->
+              <div class="card" style="border-left: 3px solid var(--accent); margin-bottom: 16px">
+                <div class="card-title">
+                  <span lang="pt">2 · URLs públicas por cliente como canal de marketing</span
+                  ><span lang="en">2 · Client-branded public URLs as marketing channel</span>
+                </div>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  Cada cliente ganha um subdomínio /URL público (<code>impactrakr.com/foundation</code>,
+                  <code>impactrakr.com/xpto</code>) com dashboard curado. O cliente compartilha em
+                  LinkedIn, relatório ESG, one-pager para investidor — e a marca ImpacTrakr aparece
+                  ali, de graça. Área privada permite ao cliente escolher o que expõe (kg
+                  reciclados, taxa de aprovação, tendência) e o que fica interno. Alimenta o
+                  DASH-01 (captura de dados opcionais além das regras). Ver decisão O12.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  Each client gets a public subdomain/URL (<code>impactrakr.com/foundation</code>,
+                  <code>impactrakr.com/xpto</code>) with a curated dashboard. The client shares on
+                  LinkedIn, ESG reports, investor one-pagers — and the Impactrakr brand shows up
+                  there for free. A private area lets the client choose what is exposed (kg
+                  recycled, approval rate, trend) and what stays internal. Feeds DASH-01 (optional
+                  data capture beyond the rules). See decision O12.
+                </p>
+              </div>
+
+              <!-- KYC/KYB redesign EU + Person -->
+              <div class="card" style="border-left: 3px solid var(--accent); margin-bottom: 16px">
+                <div class="card-title">
+                  <span lang="pt">3 · KYC/KYB redesenhado ao padrão EU + GDPR mínimo</span
+                  ><span lang="en">3 · KYC/KYB redesigned to EU standard + GDPR-minimal</span>
+                </div>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Diagnóstico (Lino + Stefano):</strong> o onboarding atual tem herança
+                  BR — CPF, calhamaço documental, Person como entidade paralela. Não bate com
+                  prática UE, traz risco GDPR e adiciona fricção comercial que trava a venda em
+                  Malta.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Regra nova (validada 02/jul com especialista GDPR):</strong> coleta
+                  <em>mínima + defensável</em>. Dado no papel de negócio ≠ dado sensível. Rigor
+                  documental Carrot mantém-se apenas para <em>gerador e reciclador</em>; o
+                  restante da cadeia (transportador, motorista) fica com verificação básica (M17).
+                  KYB terceirizado via API fica para Fase 2 (KYC-02).
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Modelagem (A13):</strong> Participante = pessoa física OU jurídica.
+                  Jurídica → Company com pessoas <em>dentro</em> dela (representante legal, IT,
+                  transporte). Pessoa física fora da Company só existe no contexto MARE App.
+                  <strong>Fluxo sequencial (A14):</strong> registro do Participant dispara
+                  Homologation automática; homologado fica disponível em MassID. Ver decisões M16
+                  + M17 + A13 + A14.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>Diagnosis (Lino + Stefano):</strong> current onboarding carries BR
+                  heritage — CPF, paperwork stack, Person as a parallel entity. Doesn't match EU
+                  practice, brings GDPR risk and adds commercial friction that stalls the Malta
+                  sale.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>New rule (validated Jul 2 with a GDPR specialist):</strong>
+                  <em>minimal + defensible</em> collection. Business-role data ≠ sensitive data.
+                  Carrot's documental rigor stays only for <em>generator and recycler</em>; the
+                  rest of the chain (hauler, driver) gets basic verification (M17). Outsourced KYB
+                  via API goes to Phase 2 (KYC-02).
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>Modelling (A13):</strong> Participant = individual OR legal entity.
+                  Legal entity → Company with persons <em>inside</em> it (legal signatory, IT,
+                  transport). Individuals outside a Company only exist in the MARE App context.
+                  <strong>Sequential flow (A14):</strong> Participant registration triggers
+                  auto-Homologation; once homologated, becomes available in MassID. See decisions
+                  M16 + M17 + A13 + A14.
+                </p>
+              </div>
+
+              <!-- MARE portal -->
+              <div class="card" style="border-left: 3px solid var(--accent); margin-bottom: 16px">
+                <div class="card-title">
+                  <span lang="pt">4 · Portal MARE Foundation — protótipo para Nestlé + hotel</span
+                  ><span lang="en">4 · MARE Foundation portal — Nestlé + hotel prototype</span>
+                </div>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  Reunião MARE com Nestlé e um hotel em Malta na semana de 06/jul. Rodrigo entrega
+                  protótipo navegável mocado (sem conta bancária ainda). Fluxo:
+                </p>
+                <ol style="font-size: 13.5px; margin: 8px 0 0 20px" lang="pt">
+                  <li>Doador (PF via Stripe ou PJ via wire) → MARE.</li>
+                  <li>MARE compra crédito de plástico da ImpacTrakr.</li>
+                  <li>5-8% do crédito volta para a plataforma (MARE-02 a decidir).</li>
+                  <li>Dashboard do doador mostra impacto (kg reciclados, ID do crédito).</li>
+                </ol>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Vinculações críticas:</strong> dinheiro↔doador e crédito↔doador.
+                  Complexidade fica no lado MARE; ImpacTrakr adiciona só 1 nível de hierarquia. Ver
+                  O10 + MARE-01 + MARE-02.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  MARE meeting with Nestlé and a Malta hotel in the week of Jul 6. Rodrigo ships a
+                  mocked navigable prototype (no bank account yet). Flow:
+                </p>
+                <ol style="font-size: 13.5px; margin: 8px 0 0 20px" lang="en">
+                  <li>Donor (individual via Stripe or company via wire) → MARE.</li>
+                  <li>MARE buys a plastic credit from Impactrakr.</li>
+                  <li>5-8% of the credit returns to the platform (MARE-02 to decide).</li>
+                  <li>Donor dashboard shows impact (kg recycled, credit ID).</li>
+                </ol>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>Critical bindings:</strong> money↔donor and credit↔donor. Complexity
+                  stays on the MARE side; Impactrakr adds only 1 hierarchy level. See O10 +
+                  MARE-01 + MARE-02.
+                </p>
+              </div>
+
+              <!-- Canal comercial via ERPs europeus -->
+              <div class="card" style="border-left: 3px solid var(--accent); margin-bottom: 16px">
+                <div class="card-title">
+                  <span lang="pt">5 · Canal comercial via ERPs europeus (Odoo, Sage, Reciclase)</span
+                  ><span lang="en">5 · Commercial channel via European ERPs (Odoo, Sage, Reciclase)</span>
+                </div>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Tese:</strong> Impactrakr não vira ERP nem exige ERP maduro. O canal
+                  comercial é via <strong>ERPs europeus</strong> (Odoo, Sage, Reciclase multi-país)
+                  como parceiros — cada um traz sua base de recicladores.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Precedente Carrot (Rodrigo):</strong> integramos com 3 ERPs no passado;
+                  clientes frequentemente trocavam de ERP para usar um já homologado com a Carrot
+                  (integração pronta em 90 dias vs. do zero). Ganho de tempo para os dois lados,
+                  redução de fricção comercial.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Não repetir:</strong> Sólidos (ERP interno tentado dentro da Carrot) foi
+                  abandonado — é outro universo, foge do core dMRV.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Tensão aberta (R18):</strong> ~50% dos recicladores europeus sem ERP
+                  maduro. Rodrigo defende ERP como pré-requisito de homologação (qualidade do
+                  certificado); Gian/Nick defendem flexibilidade (funil de vendas). Meio-termo em
+                  aberto: upload de planilha como bootstrap para MVP, ERP obrigatório em escala.
+                  Ver O9 + CANAL-01.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>Thesis:</strong> Impactrakr neither becomes an ERP nor requires a mature
+                  ERP. The commercial channel is via <strong>European ERPs</strong> (Odoo, Sage,
+                  cross-country Reciclase) as partners — each brings its own recycler base.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>Carrot precedent (Rodrigo):</strong> integrated with 3 ERPs in the past;
+                  clients often switched ERPs to use one already homologated with Carrot
+                  (integration ready in 90 days vs. from scratch). Time saved on both sides,
+                  reduced commercial friction.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>Do not repeat:</strong> Sólidos (internal ERP tried inside Carrot) was
+                  abandoned — different universe, off the dMRV core.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>Open tension (R18):</strong> ~50% of European recyclers without a mature
+                  ERP. Rodrigo argues for ERP as homologation prerequisite (certificate quality);
+                  Gian/Nick argue for flexibility (sales funnel). Middle ground open: spreadsheet
+                  upload as MVP bootstrap, mandatory ERP at scale. See O9 + CANAL-01.
+                </p>
+              </div>
             </section>
 
             <div class="section-divider"></div>
@@ -5814,11 +6149,84 @@ flowchart LR
               <p class="lede">
                 <span lang="pt"
                   >O que cada pessoa do time tem entregue, atualizado semanalmente após a daily de
-                  segunda.</span
+                  segunda. Os cards individuais abaixo refletem <strong>a fundação de maio</strong>;
+                  o rollup Jun-Jul consolida os 5 sprints seguintes.</span
                 ><span lang="en"
-                  >What each team member has delivered, updated weekly after the Monday daily.</span
+                  >What each team member has delivered, updated weekly after the Monday daily. The
+                  individual cards below reflect <strong>the May foundation</strong>; the Jun-Jul
+                  rollup consolidates the following 5 sprints.</span
                 >
               </p>
+
+              <div class="card" style="border-left: 3px solid var(--accent); margin-bottom: 20px">
+                <div class="card-title">
+                  <span lang="pt">Rollup Jun-Jul (S3 → S5)</span
+                  ><span lang="en">Jun-Jul rollup (S3 → S5)</span>
+                </div>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Gabriel:</strong> Auth multi-tenant finalizada 28/mai · Participant +
+                  Address + Cognito · MassID model · imutabilidade de eventos como decisão ·
+                  simplificação de entidades (~15 → Participant + Homologation + Event genéricos)
+                  · 5 ADRs do Gabriel (057-060) auditados e alinhados com os meus (046-055) ·
+                  produto quase pronto em 29/jun, demo Gabriel abriu acessos de teste para Lino,
+                  Gian, Julia.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Rodrigo:</strong> meta-audit 46 ADRs (L0-L5) · consolidação ADR-047..060
+                  · Recyclass positioning ADR-051 · soft-delete ADR-060 · Registry HTTP client
+                  ADR-061 · auditoria completa das 27 regras EU (relatório
+                  eu-rules-audit-2026-07-01) · 15 branches EU fix (ADRs 063-076) · MED-sweep
+                  batch ADR-077 (8 regras) · KYC/KYB redesign spec · Blueprint v0.4.7 publicada.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Muriel:</strong> onboarding no time · testes das regras via harness
+                  <code>e2e/src/massid-validation.e2e.spec.ts</code> · achou conflitos de regras
+                  (participant.region redundante em RC) · valida cada branch EU antes de mergear.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Julia:</strong> conduz protótipos · desenho do fluxo de negócio
+                  ponta-a-ponta · docx de regras interpretativas para revisão · UI/UX + drawer
+                  interativo no process map · PM day-to-day.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  <strong>Time comercial (Lino, Gian, Stefano, Nick):</strong> Kiwa NDA assinado
+                  29/jun · call alinhamento 24/jun (repositioning) · Daily 29/jun
+                  (repriorização MVP) · Call 03/jul (KYC redesign + demo Kiwa + MARE portal +
+                  continuous auditing + URLs públicas + canal ERP) · onepagers Blue Taiga
+                  confirmados.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>Gabriel:</strong> multi-tenant auth finished May 28 · Participant +
+                  Address + Cognito · MassID model · event immutability as decision · entity
+                  simplification (~15 → generic Participant + Homologation + Event) · 5 Gabriel
+                  ADRs (057-060) audited and aligned with mine (046-055) · product near-ready on
+                  Jun 29, Gabriel demo opened test access to Lino, Gian, Julia.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>Rodrigo:</strong> meta-audit of 46 ADRs (L0-L5) · consolidation
+                  ADR-047..060 · Recyclass positioning ADR-051 · soft-delete ADR-060 · Registry
+                  HTTP client ADR-061 · full audit of 27 EU rules (eu-rules-audit-2026-07-01) · 15
+                  EU fix branches (ADRs 063-076) · MED-sweep batch ADR-077 (8 rules) · KYC/KYB
+                  redesign spec · Blueprint v0.4.7 published.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>Muriel:</strong> team onboarding · rule tests via harness
+                  <code>e2e/src/massid-validation.e2e.spec.ts</code> · found rule conflicts
+                  (redundant participant.region in RC) · validates each EU branch before merge.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>Julia:</strong> drives prototypes · end-to-end business flow design ·
+                  docx of interpretive rules for review · UI/UX + interactive drawer in the
+                  process map · day-to-day PM.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  <strong>Commercial team (Lino, Gian, Stefano, Nick):</strong> Kiwa NDA signed
+                  Jun 29 · alignment call Jun 24 (repositioning) · Daily Jun 29 (MVP
+                  reprioritisation) · Jul 3 call (KYC redesign + Kiwa demo + MARE portal +
+                  continuous auditing + public URLs + ERP channel) · Blue Taiga onepagers
+                  confirmed.
+                </p>
+              </div>
 
               <div class="stakeholder-grid">
                 <div class="stakeholder">
@@ -6583,6 +6991,70 @@ flowchart LR
                     </div>
                   </div>
                 </div>
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id">03 Jul</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Call de alinhamento — KYC/KYB, prioridade demo Kiwa,
+                      dashboard analytics (Lino, Gian, Stefano, Julia, Nick, Rodrigo)</span
+                      ><span lang="en">Alignment call — KYC/KYB, Kiwa demo prioritisation,
+                      dashboard analytics (Lino, Gian, Stefano, Julia, Nick, Rodrigo)</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      <strong>10 decisões grandes.</strong> Integração Carrot adiada oficialmente
+                      para set/out; último mês foca <strong>demo Kiwa com mock full-circle</strong>
+                      da resposta do registry na camada de rendering — vale para Carrot, Isométrica
+                      e qualquer registry futuro (M15). <strong>KYC/KYB redesenhado para padrão EU
+                      + GDPR mínimo defensável</strong> (Lino/Stefano identificaram bias BR/CPF;
+                      Paula confirmou 02/jul com especialista GDPR): coleta mínima, defensável, sem
+                      calhamaço BR (M16). <strong>Person deixa de ser entidade paralela</strong> —
+                      vira sub-perfil da Company com role (representante legal, IT, transporte);
+                      pessoa física só existe fora disso no contexto MARE App (A13). Fluxo
+                      homologação sequencial: Participant → Homologation auto → MassID (A14).
+                      Positioning "add-on de ERPs" endurecido com <strong>canal comercial via ERPs
+                      europeus</strong> (Odoo, Sage, Reciclase multi-país) — nem viramos ERP, nem
+                      exigimos ERP maduro; precedente Carrot (integramos com 3 ERPs, clientes
+                      trocavam pra usar um homologado); Sólidos ERP interno foi tentado na Carrot
+                      e abandonado (O9). <strong>Portal MARE Foundation vira protótipo desta
+                      semana</strong> — reunião com Nestlé + hotel Malta; fluxo doador → MARE →
+                      Impactrakr → dashboard doador; 5-8% do crédito volta à ImpacTrakr (O10).
+                      <strong>Continuous auditing</strong> como pitch primário para Kiwa — auditor
+                      vê desvios no dia em que acontecem, janeiro sai certificado pronto (O11).
+                      <strong>URLs públicas por cliente</strong> como canal de marketing gratuito
+                      (impactrakr.com/foundation, /xpto) com área privada de customização (O12).
+                      Rigor documental Carrot continua para gerador + reciclador; restante da
+                      cadeia (transportador, motorista) é básico. Contratos Rodrigo + Julia vão
+                      para advogado do Stefano; Kevin separado, pendente com Nick.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      <strong>10 big decisions.</strong> Carrot integration officially postponed to
+                      Sep/Oct; the final month focuses on the <strong>Kiwa demo with a full-circle
+                      mock</strong> of the registry response in the rendering layer — this works
+                      for Carrot, Isométrica and any future registry (M15). <strong>KYC/KYB
+                      redesigned to EU-standard + GDPR-minimal</strong> (Lino/Stefano identified
+                      BR/CPF bias; Paula confirmed with a GDPR specialist on Jul 2): minimal,
+                      defensible collection, dropping the BR paperwork stack (M16).
+                      <strong>Person is no longer a parallel entity</strong> — becomes a
+                      sub-profile of the Company with roles (legal signatory, IT, transport);
+                      individuals only exist outside that in the MARE App context (A13). Sequential
+                      homologation flow: Participant → auto-Homologation → MassID (A14). "ERP
+                      add-on" positioning hardened with a <strong>commercial channel via European
+                      ERPs</strong> (Odoo, Sage, cross-country Reciclase) — we neither become an
+                      ERP nor require a mature one; Carrot precedent (integrated with 3 ERPs, and
+                      clients switched to use one already homologated); Carrot's internal Sólidos
+                      ERP was tried and abandoned (O9). <strong>MARE Foundation portal becomes
+                      this week's prototype</strong> — meeting with Nestlé + a Malta hotel; flow
+                      donor → MARE → Impactrakr → donor dashboard; 5-8% of the credit returns to
+                      Impactrakr (O10). <strong>Continuous auditing</strong> as the primary pitch
+                      for Kiwa — the auditor sees deviations the day they happen, January
+                      delivers the certificate ready (O11). <strong>Client-branded public URLs</strong>
+                      as a free marketing channel (impactrakr.com/foundation, /xpto) with a private
+                      customisation area (O12). Carrot's documental rigor stays for the generator
+                      and recycler; the rest of the chain (hauler, driver) is basic. Rodrigo +
+                      Julia contracts go to Stefano's lawyer; Kevin separate, pending with Nick.
+                    </div>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -6601,16 +7073,16 @@ flowchart LR
               </div>
               <p class="lede">
                 <span lang="pt"
-                  >32 decisões fixadas até hoje — registro auditável para sustentar e justificar o
+                  >40 decisões fixadas até hoje — registro auditável para sustentar e justificar o
                   produto.</span
                 ><span lang="en"
-                  >32 decisions locked in so far — auditable record to back and justify the
+                  >40 decisions locked in so far — auditable record to back and justify the
                   product.</span
                 >
               </p>
 
               <h3>
-                <span lang="pt">Metodológicas</span><span lang="en">Methodological</span> (11)
+                <span lang="pt">Metodológicas</span><span lang="en">Methodological</span> (14)
                 <span class="badge badge-purple" style="margin-left: 8px">Lino + Gian + Julia</span>
               </h3>
               <div class="decision-list">
@@ -6938,10 +7410,94 @@ flowchart LR
                   </div>
                   <div class="decision-date">08 Jun</div>
                 </div>
+
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">M15</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Mock full-circle da resposta do registry — registry-agnostic desde o MVP</span
+                      ><span lang="en"
+                        >Full-circle mock of the registry response — registry-agnostic from the MVP</span
+                      >
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      A camada de rendering do resultado (crédito emitido, ID blockchain,
+                      comercialização, payout) é mocada desde o MVP. Isso permite que a demo Kiwa
+                      encerre o full-circle sem depender da Carrot, e o mesmo layout serve para
+                      qualquer registry futuro (Isométrica, etc.). Call 03/jul.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      The rendering layer for the outcome (credit issued, blockchain ID, sale,
+                      payout) is mocked from the MVP. This allows the Kiwa demo to close the
+                      full-circle without depending on Carrot, and the same layout serves any
+                      future registry (Isométrica, etc.). Call Jul 3.
+                    </div>
+                  </div>
+                  <div class="decision-date">03 Jul</div>
+                </div>
+
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">M16</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >KYC/KYB reduzido a padrão EU + GDPR mínimo defensável</span
+                      ><span lang="en"
+                        >KYC/KYB reduced to EU standard + GDPR-minimal defensible</span
+                      >
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Formulário atual tem herança BR (CPF, calhamaço documental) que não bate com
+                      prática europeia. Lino + Stefano identificaram o bias; Paula confirmou 02/jul
+                      com especialista GDPR: <strong>dado no papel de negócio não é sensível</strong>;
+                      regra é <strong>mínimo + defensável</strong>. Rigor forte fica só para
+                      gerador + reciclador (M17); transportador/motorista é básico. Terceirização
+                      KYB via API fica para Fase 2.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Current form has BR heritage (CPF, doc stack) that doesn't match European
+                      practice. Lino + Stefano identified the bias; Paula confirmed with a GDPR
+                      specialist on Jul 2: <strong>data in a business role is not sensitive</strong>;
+                      the rule is <strong>minimal + defensible</strong>. Strong rigor only for
+                      generator + recycler (M17); hauler/driver is basic. KYB API outsourcing goes
+                      to Phase 2.
+                    </div>
+                  </div>
+                  <div class="decision-date">03 Jul</div>
+                </div>
+
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">M17</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Rigor documental Carrot fica só para gerador + reciclador</span
+                      ><span lang="en"
+                        >Carrot's documental rigor kept only for generator + recycler</span
+                      >
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      O calhamaço documental que a Carrot exige atende <strong>credibilidade de
+                      mercado</strong>, não é obrigação legal EU. Aplicamos rigor forte só nos
+                      pontos que compõem a credibilidade da rastreabilidade (origem e recicladora);
+                      restante da cadeia (transportador, motorista, coletor) fica com verificação
+                      básica. Rodrigo vai levantar com a Carrot o que é lei EU vs. credibilidade.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Carrot's documental stack serves <strong>market credibility</strong>, not an
+                      EU legal obligation. We apply strong rigor only to the points that build
+                      traceability credibility (origin and recycler); the rest of the chain
+                      (hauler, driver, collector) gets basic verification. Rodrigo will check with
+                      Carrot which parts are EU law vs. credibility.
+                    </div>
+                  </div>
+                  <div class="decision-date">03 Jul</div>
+                </div>
               </div>
 
               <h3 style="margin-top: 40px">
-                <span lang="pt">Arquiteturais</span><span lang="en">Architectural</span> (12)
+                <span lang="pt">Arquiteturais</span><span lang="en">Architectural</span> (14)
                 <span class="badge badge-purple" style="margin-left: 8px">Rodrigo + Gabriel</span>
               </h3>
               <div class="decision-list">
@@ -7171,10 +7727,66 @@ flowchart LR
                   </div>
                   <div class="decision-date">08 Jun</div>
                 </div>
+
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">A13</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Person deixa de ser entidade paralela — vira sub-perfil da Company</span
+                      ><span lang="en"
+                        >Person is no longer a parallel entity — becomes a Company sub-profile</span
+                      >
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      UI atual mostra <code>people</code> como aba independente com todos os
+                      campos, o que Lino/Stefano acharam confuso. Correto: Participante = física
+                      OU jurídica. Jurídica → Company + pessoas <em>dentro</em> dela (representante
+                      legal, IT, transporte). Física só entra quando modelarmos gerador individual
+                      no contexto MARE App. Rodrigo defendeu vinculação explícita (auditor virtual
+                      precisa), aceito, mas como campo dentro do perfil da Company — não tela
+                      separada. Call 03/jul.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Current UI shows <code>people</code> as an independent tab with all fields,
+                      which Lino/Stefano found confusing. Correct model: Participant = individual
+                      OR legal entity. Legal entity → Company + persons <em>inside</em> it (legal
+                      signatory, IT, transport). Individuals only enter when we model the MARE App
+                      individual generator. Rodrigo defended explicit binding (a virtual auditor
+                      needs it), accepted, but as a field inside the Company profile — not a
+                      separate screen. Call Jul 3.
+                    </div>
+                  </div>
+                  <div class="decision-date">03 Jul</div>
+                </div>
+
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">A14</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Fluxo homologação sequencial: Participant → Homologation auto → MassID</span
+                      ><span lang="en"
+                        >Sequential homologation flow: Participant → auto-Homologation → MassID</span
+                      >
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Julia trouxe. Registro de Participant <strong>dispara automaticamente</strong>
+                      Homologation daquele participante; homologado fica disponível para uso em
+                      MassID. Hierarquia da UI reflete a dependência real. Call 03/jul.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Julia raised it. Participant registration <strong>automatically triggers</strong>
+                      Homologation for that participant; once homologated, it becomes available for
+                      MassID. UI hierarchy reflects the real dependency. Call Jul 3.
+                    </div>
+                  </div>
+                  <div class="decision-date">03 Jul</div>
+                </div>
               </div>
 
               <h3 style="margin-top: 40px">
-                <span lang="pt">Operacionais</span><span lang="en">Operational</span> (8)
+                <span lang="pt">Operacionais</span><span lang="en">Operational</span> (12)
                 <span class="badge badge-purple" style="margin-left: 8px">Rodrigo + Gabriel</span>
               </h3>
               <div class="decision-list">
@@ -7254,6 +7866,116 @@ flowchart LR
                   </div>
                   <div class="decision-date">15 May</div>
                 </div>
+
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">O9</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Canal comercial via ERPs europeus (Odoo, Sage, Reciclase multi-país)</span
+                      ><span lang="en"
+                        >Commercial channel via European ERPs (Odoo, Sage, cross-country Reciclase)</span
+                      >
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Positioning "add-on de ERPs" endurecido. Nem viramos ERP, nem exigimos ERP
+                      maduro. Argumento comercial: "ERP não quer ser dMRV; dMRV não quer ser ERP;
+                      parceria." Precedente Carrot: 3 ERPs integrados; clientes trocavam de ERP
+                      para usar um homologado. Sólidos (ERP interno tentado na Carrot) foi
+                      abandonado — não repetir.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      "ERP add-on" positioning hardened. We neither become an ERP nor require a
+                      mature one. Commercial argument: "ERP doesn't want to be dMRV; dMRV doesn't
+                      want to be ERP; partnership." Carrot precedent: 3 ERPs integrated; clients
+                      switched to use one already homologated. Sólidos (internal ERP tried at
+                      Carrot) was abandoned — don't repeat.
+                    </div>
+                  </div>
+                  <div class="decision-date">03 Jul</div>
+                </div>
+
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">O10</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Portal MARE Foundation vira protótipo desta semana</span
+                      ><span lang="en"
+                        >MARE Foundation portal becomes this week's prototype</span
+                      >
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Reunião MARE com Nestlé + hotel Malta na semana de 06/jul. Fluxo doador (PF
+                      Stripe / PJ wire) → MARE → compra crédito Impactrakr → 5-8% volta para a
+                      plataforma → dashboard mostra ao doador o impacto. Vinculações críticas:
+                      dinheiro↔doador e crédito↔doador. Complexidade fica na plataforma MARE;
+                      Impactrakr só adiciona 1 nível de hierarquia. Aguarda volunteer org doc →
+                      banco → Stripe.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      MARE meeting with Nestlé + a Malta hotel in the week of Jul 6. Flow donor
+                      (individual Stripe / corporate wire) → MARE → buys Impactrakr credit → 5-8%
+                      returns to the platform → dashboard shows the donor the impact. Critical
+                      bindings: money↔donor and credit↔donor. Complexity stays in the MARE
+                      platform; Impactrakr adds only 1 hierarchy level. Awaiting volunteer-org doc
+                      → bank account → Stripe.
+                    </div>
+                  </div>
+                  <div class="decision-date">03 Jul</div>
+                </div>
+
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">O11</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >Continuous auditing como pitch primário para Kiwa</span
+                      ><span lang="en"
+                        >Continuous auditing as primary pitch for Kiwa</span
+                      >
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Hoje Kiwa audita 1x/ano, cobrindo ~0.1% das massas. Reposicionamento:
+                      Impactrakr faz auditoria contínua ao longo do ano cobrindo 100%. Quando algo
+                      desvia, alerta simultâneo para cliente e Kiwa. Janeiro → certificado sai
+                      pronto. Vendável para ambos os lados.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Today Kiwa audits 1x/year, covering ~0.1% of the masses. Repositioning:
+                      Impactrakr does continuous auditing across the year, covering 100%. When
+                      something deviates, simultaneous alert to client and Kiwa. January →
+                      certificate ready. Sellable on both sides.
+                    </div>
+                  </div>
+                  <div class="decision-date">03 Jul</div>
+                </div>
+
+                <div class="decision" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">O12</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt"
+                        >URLs públicas por cliente como canal de marketing</span
+                      ><span lang="en"
+                        >Client-branded public URLs as a marketing channel</span
+                      >
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      <code>impactrakr.com/foundation</code>, <code>impactrakr.com/xpto</code>.
+                      Cliente compartilha em LinkedIn/relatórios; Impactrakr aparece = marketing
+                      gratuito. Área privada para o cliente customizar o que aparece no público.
+                      Gian está desenhando protótipos.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      <code>impactrakr.com/foundation</code>, <code>impactrakr.com/xpto</code>.
+                      Client shares on LinkedIn/reports; Impactrakr shows up = free marketing.
+                      Private area for the client to customize what appears publicly. Gian is
+                      designing prototypes.
+                    </div>
+                  </div>
+                  <div class="decision-date">03 Jul</div>
+                </div>
               </div>
             </section>
 
@@ -7272,13 +7994,156 @@ flowchart LR
               </div>
               <p class="lede">
                 <span lang="pt"
-                  >13 itens com owner e prazo. Cada um destravado solta um pedaço do produto.</span
+                  >21 itens com owner e prazo. Cada um destravado solta um pedaço do produto.
+                  <span class="badge badge-accent" style="margin-left: 6px">+8 na v0.4.7</span></span
                 ><span lang="en"
-                  >13 items with owner and deadline. Each one unlocks a piece of the product.</span
+                  >21 items with owner and deadline. Each one unlocks a piece of the product.
+                  <span class="badge badge-accent" style="margin-left: 6px">+8 in v0.4.7</span></span
                 >
               </p>
 
               <div class="decision-list">
+                <div class="decision risk-high" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">DEMO-01</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Mock full-circle da resposta Carrot para demo Kiwa 22/jul</span
+                      ><span lang="en">Full-circle mock of Carrot response for Kiwa demo Jul 22</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Owner: Rodrigo + Muriel · Prazo: 22/jul · Bloqueia demo Kiwa. Camada de
+                      rendering do resultado (crédito, blockchain ID, comercialização, payout)
+                      mocada. Registry-agnostic desde o MVP.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Owner: Rodrigo + Muriel · Deadline: Jul 22 · Blocks Kiwa demo. Result
+                      rendering layer (credit, blockchain ID, sale, payout) mocked. Registry-
+                      agnostic from the MVP.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="decision risk-high" style="border-color: var(--accent)">
+                  <div class="decision-id" style="color: var(--accent)">MARE-01</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Protótipo navegável do portal MARE (reunião Nestlé + hotel Malta)</span
+                      ><span lang="en">Navigable prototype of the MARE portal (Nestlé + Malta hotel meeting)</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Owner: Rodrigo · Prazo: semana de 06/jul · Fluxo doador → MARE → dashboard
+                      doador. Mocado (sem conta bancária ainda).
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Owner: Rodrigo · Deadline: week of Jul 6 · Flow donor → MARE → donor
+                      dashboard. Mocked (no bank account yet).
+                    </div>
+                  </div>
+                </div>
+
+                <div class="decision" style="border-color: var(--warning)">
+                  <div class="decision-id" style="color: var(--warning)">MARE-02</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Definir % de retorno do crédito para a Impactrakr (5% ou 8%)</span
+                      ><span lang="en">Define credit return % to Impactrakr (5% or 8%)</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Owner: Gian + Lino · Prazo: antes do MARE-01 · Bloqueia número no protótipo.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Owner: Gian + Lino · Deadline: before MARE-01 · Blocks the number in the
+                      prototype.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="decision" style="border-color: var(--warning)">
+                  <div class="decision-id" style="color: var(--warning)">KYC-01</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Confirmar com Carrot: lei EU vs. credibilidade de mercado no fluxo documental</span
+                      ><span lang="en">Confirm with Carrot: EU law vs. market credibility in the documental flow</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Owner: Rodrigo · Levantar com Laura/Ian o que é obrigação legal EU e o que é
+                      exigência de credibilidade. Direciona spec KYC/KYB (M16, M17).
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Owner: Rodrigo · Ask Laura/Ian which parts are an EU legal obligation vs. a
+                      credibility requirement. Drives the KYC/KYB spec (M16, M17).
+                    </div>
+                  </div>
+                </div>
+
+                <div class="decision" style="border-color: var(--info)">
+                  <div class="decision-id" style="color: var(--info)">KYC-02</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Decidir se KYB terceirizado (API tipo BOLD Carbon) entra na Fase 1</span
+                      ><span lang="en">Decide whether outsourced KYB (BOLD Carbon-style API) enters Phase 1</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Owner: Rodrigo · Fase 1 fica manual (default); reavaliar quando o volume subir.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Owner: Rodrigo · Phase 1 stays manual (default); reassess when volume grows.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="decision" style="border-color: var(--warning)">
+                  <div class="decision-id" style="color: var(--warning)">DASH-01</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Desenhar analytics extraíveis das 139 regras + campos opcionais</span
+                      ><span lang="en">Design analytics extractable from the 139 rules + optional fields</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Owner: Gian → Rodrigo · Cor, tipo (PET clear vs. colored), batch. Estrutura
+                      opcional no banco sem penalizar motor de regras. Alimenta URLs públicas (O12).
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Owner: Gian → Rodrigo · Color, type (clear vs. colored PET), batch. Optional
+                      DB structure with no rule-engine penalty. Feeds the public URLs (O12).
+                    </div>
+                  </div>
+                </div>
+
+                <div class="decision" style="border-color: var(--info)">
+                  <div class="decision-id" style="color: var(--info)">CANAL-01</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Mapear ERPs europeus como parceiros (Odoo, Sage, Reciclase multi-país)</span
+                      ><span lang="en">Map European ERPs as partners (Odoo, Sage, cross-country Reciclase)</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Owner: Lino + Gian · Contínuo. Precedente Carrot como argumento comercial.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Owner: Lino + Gian · Ongoing. Carrot precedent as commercial argument.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="decision" style="border-color: var(--warning)">
+                  <div class="decision-id" style="color: var(--warning)">CONTRATO-01</div>
+                  <div class="decision-body">
+                    <div class="decision-title">
+                      <span lang="pt">Feedback Rodrigo + Julia sobre contratos antes da próxima call</span
+                      ><span lang="en">Rodrigo + Julia feedback on contracts before the next call</span>
+                    </div>
+                    <div class="decision-meta" lang="pt">
+                      Owner: Rodrigo, Julia · Stefano leva para amigo advogado depois. Kevin é
+                      contrato separado, pendente com Nick.
+                    </div>
+                    <div class="decision-meta" lang="en">
+                      Owner: Rodrigo, Julia · Stefano then takes it to his lawyer friend. Kevin is
+                      a separate contract, pending with Nick.
+                    </div>
+                  </div>
+                </div>
+
                 <div class="decision risk-high">
                   <div class="decision-id" style="color: var(--danger)">KW1</div>
                   <div class="decision-body">
@@ -7555,8 +8420,14 @@ flowchart LR
               </h3>
               <p style="font-size: 13px; color: var(--text-tertiary)">
                 <span lang="pt"
-                  ><strong>Go-live: 30 de julho de 2026.</strong> Sprints de 2 semanas.</span
-                ><span lang="en"><strong>Go-live: July 30, 2026.</strong> 2-week sprints.</span>
+                  ><strong>Marcos reprimarizados na v0.4.7:</strong> demo Kiwa em 22/jul (retomada
+                  pós-NDA); operação real Malta em out/2026; integração real Carrot em set/out. Até
+                  22/jul, a resposta do registry roda mocada (M15). Sprints de 2 semanas.</span
+                ><span lang="en"
+                  ><strong>Milestones re-baselined in v0.4.7:</strong> Kiwa demo Jul 22 (post-NDA
+                  resume); Malta live operation Oct 2026; real Carrot integration Sep/Oct. Until
+                  Jul 22, the registry response runs mocked (M15). 2-week sprints.</span
+                >
               </p>
 
               <div class="card" style="border-left: 3px solid var(--success); margin-bottom: 16px">
@@ -7589,7 +8460,7 @@ flowchart LR
                 </p>
               </div>
 
-              <div class="card" style="border-left: 3px solid var(--warning); margin-bottom: 16px">
+              <div class="card" style="border-left: 3px solid var(--success); margin-bottom: 16px">
                 <div
                   style="
                     display: flex;
@@ -7599,17 +8470,14 @@ flowchart LR
                   "
                 >
                   <div>
-                    <div class="eyebrow">
-                      Sprint 2 · 16–30 May · <span lang="pt">EM CURSO</span
-                      ><span lang="en">CURRENT</span>
-                    </div>
+                    <div class="eyebrow">Sprint 2 · 16–30 May</div>
                     <div class="card-title">
                       <span lang="pt">Massa, regras &amp; multi-tenant</span
                       ><span lang="en">Mass, rules &amp; multi-tenant</span>
                     </div>
                   </div>
-                  <span class="badge badge-warning"
-                    >● <span lang="pt">em andamento</span><span lang="en">in progress</span></span
+                  <span class="badge badge-success"
+                    >● <span lang="pt">concluída</span><span lang="en">done</span></span
                   >
                 </div>
                 <p style="font-size: 13.5px; margin: 0">
@@ -7620,7 +8488,7 @@ flowchart LR
                 </p>
               </div>
 
-              <div class="card" style="border-left: 3px solid var(--info); margin-bottom: 16px">
+              <div class="card" style="border-left: 3px solid var(--success); margin-bottom: 16px">
                 <div
                   style="
                     display: flex;
@@ -7632,21 +8500,22 @@ flowchart LR
                   <div>
                     <div class="eyebrow">Sprint 3 · 01–15 Jun</div>
                     <div class="card-title">
-                      <span lang="pt">Validation Engine completo</span
-                      ><span lang="en">Full Validation Engine</span>
+                      <span lang="pt">Validation Engine completo + catálogo v0.12.0 APPROVED</span
+                      ><span lang="en">Full Validation Engine + catalog v0.12.0 APPROVED</span>
                     </div>
                   </div>
-                  <span class="badge badge-info"
-                    >◯ <span lang="pt">próxima</span><span lang="en">next</span></span
+                  <span class="badge badge-success"
+                    >● <span lang="pt">concluída</span><span lang="en">done</span></span
                   >
                 </div>
                 <p style="font-size: 13.5px; margin: 0">
-                  93 regras (67 PURE + 27 EU) + 6 Recyclass · Document Module finalizado · UI básica
-                  de upload e correção · primeira tela de dashboard · onboarding de participantes
+                  139 regras (96 PURE + 27 EU + 16 RC) todas em APPROVED · Big Bang de auditoria
+                  bulk (Ondas 1-5) · orquestrador + dispatcher (ADR-057) · periodic jobs runner
+                  (ADR-058) · audit log middleware (ADR-056) · onboarding de participantes.
                 </p>
               </div>
 
-              <div class="card" style="border-left: 3px solid var(--info); margin-bottom: 16px">
+              <div class="card" style="border-left: 3px solid var(--success); margin-bottom: 16px">
                 <div
                   style="
                     display: flex;
@@ -7657,22 +8526,25 @@ flowchart LR
                 >
                   <div>
                     <div class="eyebrow">Sprint 4 · 16–30 Jun</div>
-                    <div class="card-title">Carrot Integration</div>
+                    <div class="card-title">
+                      <span lang="pt">Meta-audit + ADRs 049-060 + soft-delete + auditoria EU</span
+                      ><span lang="en">Meta-audit + ADRs 049-060 + soft-delete + EU audit</span>
+                    </div>
                   </div>
-                  <span class="badge badge-info"
-                    >◯ <span lang="pt">planejada</span><span lang="en">planned</span></span
+                  <span class="badge badge-success"
+                    >● <span lang="pt">concluída</span><span lang="en">done</span></span
                   >
                 </div>
                 <p style="font-size: 13.5px; margin: 0">
-                  OAuth 2.0 Carrot (IMP-50) · HTTP client (IMP-57) · MassID → Carrot payload mapping
-                  · submit-to-carrot endpoint · Webhook receiver · Dashboards Donor + Company
+                  Meta-audit dos 46 ADRs (L0-L5) · consolidação ADR-047..060 · hash chain SHA-256
+                  formalization (ADR-049) · multi-tenant threat model (ADR-050) · Recyclass
+                  positioning (ADR-051) · soft-delete policy (ADR-060) · auditoria EU rules
+                  (relatório eu-rules-audit) · Registry HTTP client (ADR-061) · Kiwa NDA
+                  assinado 29/jun.
                 </p>
               </div>
 
-              <div
-                class="card"
-                style="border-left: 3px solid var(--text-tertiary); margin-bottom: 16px"
-              >
+              <div class="card" style="border-left: 3px solid var(--warning); margin-bottom: 16px">
                 <div
                   style="
                     display: flex;
@@ -7682,25 +8554,31 @@ flowchart LR
                   "
                 >
                   <div>
-                    <div class="eyebrow">Sprint 5 · 01–15 Jul</div>
+                    <div class="eyebrow">
+                      Sprint 5 · 30 Jun – 13 Jul · <span lang="pt">EM CURSO</span
+                      ><span lang="en">CURRENT</span>
+                    </div>
                     <div class="card-title">
-                      <span lang="pt">Audit pack &amp; integrações regulatórias</span
-                      ><span lang="en">Audit pack &amp; regulatory integrations</span>
+                      <span lang="pt">Sweep EU + KYC redesign + protótipo MARE</span
+                      ><span lang="en">EU sweep + KYC redesign + MARE prototype</span>
                     </div>
                   </div>
-                  <span class="badge badge-neutral"
-                    >◯ <span lang="pt">planejada</span><span lang="en">planned</span></span
+                  <span class="badge badge-warning"
+                    >● <span lang="pt">em andamento</span><span lang="en">in progress</span></span
                   >
                 </div>
                 <p style="font-size: 13.5px; margin: 0">
-                  Audit pack export (PDF + CSV) · BV checklist · preparação para integração DIWASS /
-                  Recyclass · Dashboards Resin8 + Government · onboarding completo MARE/MSM
+                  EU rules corrective series (ADRs 061-077, EU-01..EU-27 refactored) · MED-sweep
+                  batch de 8 regras (ADR-077) · KYC/KYB redesign EU-standard (M16, M17) · Person
+                  embutida em Company (A13) · fluxo homologação sequencial (A14) · protótipo
+                  portal MARE Foundation (MARE-01) · mock full-circle Carrot (M15, DEMO-01) ·
+                  purga do Bureau Veritas do fluxo operacional.
                 </p>
               </div>
 
               <div
                 class="card"
-                style="border-left: 3px solid var(--text-tertiary); margin-bottom: 16px"
+                style="border-left: 3px solid var(--info); margin-bottom: 16px"
               >
                 <div
                   style="
@@ -7712,11 +8590,46 @@ flowchart LR
                 >
                   <div>
                     <div class="eyebrow">
-                      Sprint 6 · 16–30 Jul · <span lang="pt">GO-LIVE</span
-                      ><span lang="en">GO-LIVE</span>
+                      Sprint 6 · 14–27 Jul · <span lang="pt">DEMO KIWA</span
+                      ><span lang="en">KIWA DEMO</span>
                     </div>
                     <div class="card-title">
-                      <span lang="pt">Produção</span><span lang="en">Production</span>
+                      <span lang="pt">Demo Kiwa + audit pack + continuous auditing</span
+                      ><span lang="en">Kiwa demo + audit pack + continuous auditing</span>
+                    </div>
+                  </div>
+                  <span class="badge badge-info"
+                    >◯ <span lang="pt">próxima</span><span lang="en">next</span></span
+                  >
+                </div>
+                <p style="font-size: 13.5px; margin: 0">
+                  <strong
+                    ><span lang="pt">Retomada Kiwa em 22/jul.</span
+                    ><span lang="en">Kiwa resumes Jul 22.</span></strong
+                  >
+                  Audit pack export (PDF + CSV) · checklist Kiwa · demo full-circle end-to-end com
+                  mock Carrot · dashboard operator + compliance + auditor · URLs públicas por
+                  cliente (O12) · continuous auditing pitch (O11) · onboarding MARE/MSM completo.
+                </p>
+              </div>
+
+              <div
+                class="card"
+                style="border-left: 3px solid var(--text-tertiary); margin-bottom: 16px"
+              >
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 12px;
+                  "
+                >
+                  <div>
+                    <div class="eyebrow">Sprint 7 · 28 Jul – 10 Aug</div>
+                    <div class="card-title">
+                      <span lang="pt">Kiwa POC início + hardening + observabilidade</span
+                      ><span lang="en">Kiwa POC start + hardening + observability</span>
                     </div>
                   </div>
                   <span class="badge badge-neutral"
@@ -7724,15 +8637,10 @@ flowchart LR
                   >
                 </div>
                 <p style="font-size: 13.5px; margin: 0">
-                  Security hardening (A13) · BV project verification · Deploy AWS ECS · Monitoring +
-                  alerts ·
-                  <strong
-                    ><span lang="pt"
-                      >Primeira tonelada PET pré-validada com Impact Certificate · 30/jul/2026</span
-                    ><span lang="en"
-                      >First PET ton pre-validated with Impact Certificate · Jul 30, 2026</span
-                    ></strong
-                  >
+                  Kiwa POC/POV inicia (3 meses) · security hardening (ADR-050 R15 pen test) ·
+                  monitoramento + alertas · fluxo canal ERPs (CANAL-01) · analytics de mercado
+                  para Kiwa · continuous auditing em produção · MARE portal em produção após
+                  volunteer-org doc + banco.
                 </p>
               </div>
 
@@ -7828,11 +8736,19 @@ flowchart LR
                 <h2><span lang="pt">Matriz de status</span><span lang="en">Status matrix</span></h2>
               </div>
               <p class="lede">
-                18 <span lang="pt">componentes</span><span lang="en">components</span> × 4 sprints.
+                18 <span lang="pt">componentes</span><span lang="en">components</span> × 4 sprints
+                (S1-S4, matriz histórica de fundação).
                 ● <span lang="pt">feito</span><span lang="en">done</span> · ◐
                 <span lang="pt">em andamento</span><span lang="en">in progress</span> · ◯
                 <span lang="pt">planejado</span><span lang="en">planned</span> · ✕
-                <span lang="pt">não iniciado</span><span lang="en">not started</span>
+                <span lang="pt">não iniciado</span><span lang="en">not started</span>.
+                <span lang="pt"
+                  ><strong>S5-S7 (jul-ago):</strong> resumidos abaixo em bloco de rollup, pois
+                  entramos em fase de refinamento (não novos módulos).</span
+                ><span lang="en"
+                  ><strong>S5-S7 (Jul-Aug):</strong> summarised below in a rollup block, since we
+                  entered a refinement phase (not new modules).</span
+                >
               </p>
 
               <div class="table-wrap">
@@ -7841,9 +8757,7 @@ flowchart LR
                     <tr>
                       <th><span lang="pt">Componente</span><span lang="en">Component</span></th>
                       <th>S1 · 01–15/May</th>
-                      <th>
-                        S2 · 16–30/May · <span lang="pt">hoje</span><span lang="en">now</span>
-                      </th>
+                      <th>S2 · 16–30/May</th>
                       <th>S3 · 01–15/Jun</th>
                       <th>S4 · 16–30/Jun</th>
                     </tr>
@@ -8110,6 +9024,74 @@ flowchart LR
                     </tr>
                   </tbody>
                 </table>
+              </div>
+
+              <h3 style="margin-top: 32px">
+                <span lang="pt">Rollup S5-S7 · Jul-Ago 2026</span
+                ><span lang="en">S5-S7 rollup · Jul-Aug 2026</span>
+              </h3>
+              <div class="card" style="border-left: 3px solid var(--warning); margin-bottom: 12px">
+                <div class="card-title">
+                  <span lang="pt">Sprint 5 · 30 Jun – 13 Jul</span
+                  ><span lang="en">Sprint 5 · Jun 30 – Jul 13</span>
+                  <span class="badge badge-warning" style="margin-left: 6px"
+                    >◐ <span lang="pt">em curso</span><span lang="en">in progress</span></span
+                  >
+                </div>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  EU rules corrective series (ADRs 061-077 · 15 branches ativas) · MED-sweep
+                  ADR-077 (8 regras) · KYC/KYB redesign spec (M16, M17) · Person embutida (A13) ·
+                  fluxo homologação sequencial (A14) · mock full-circle Carrot (M15, DEMO-01) ·
+                  protótipo portal MARE (MARE-01) · purga BV do fluxo operacional · continuous
+                  auditing narrative (O11) · Blueprint v0.4.7 publicada · investigação workflow
+                  mirror (R20).
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  EU rules corrective series (ADRs 061-077 · 15 active branches) · MED-sweep
+                  ADR-077 (8 rules) · KYC/KYB redesign spec (M16, M17) · Person embed (A13) ·
+                  sequential homologation flow (A14) · full-circle Carrot mock (M15, DEMO-01) ·
+                  MARE portal prototype (MARE-01) · BV purge from operational flow · continuous
+                  auditing narrative (O11) · Blueprint v0.4.7 published · mirror workflow
+                  investigation (R20).
+                </p>
+              </div>
+              <div class="card" style="border-left: 3px solid var(--info); margin-bottom: 12px">
+                <div class="card-title">
+                  <span lang="pt">Sprint 6 · 14–27 Jul · Retomada Kiwa 22/jul</span
+                  ><span lang="en">Sprint 6 · Jul 14–27 · Kiwa resumes Jul 22</span>
+                  <span class="badge badge-info" style="margin-left: 6px"
+                    >◯ <span lang="pt">próxima</span><span lang="en">next</span></span
+                  >
+                </div>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  Audit pack export (PDF + CSV) · checklist Kiwa · demo full-circle end-to-end ·
+                  URLs públicas por cliente (O12) · dashboards operator + compliance + auditor ·
+                  onboarding MARE/MSM completo · analytics DASH-01 primeiros indicadores.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  Audit pack export (PDF + CSV) · Kiwa checklist · end-to-end full-circle demo ·
+                  client-branded public URLs (O12) · operator + compliance + auditor dashboards ·
+                  full MARE/MSM onboarding · DASH-01 first indicators.
+                </p>
+              </div>
+              <div class="card" style="border-left: 3px solid var(--text-tertiary); margin-bottom: 12px">
+                <div class="card-title">
+                  <span lang="pt">Sprint 7 · 28 Jul – 10 Aug</span
+                  ><span lang="en">Sprint 7 · Jul 28 – Aug 10</span>
+                  <span class="badge badge-neutral" style="margin-left: 6px"
+                    >◯ <span lang="pt">planejada</span><span lang="en">planned</span></span
+                  >
+                </div>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="pt">
+                  Kiwa POC/POV começa (3 meses) · security hardening (R15 pen test) · monitoring +
+                  alerts · canal ERPs europeus (CANAL-01) · analytics de mercado para Kiwa · MARE
+                  portal em produção pós-doc volunteer-org + banco.
+                </p>
+                <p style="font-size: 13.5px; margin: 8px 0 0" lang="en">
+                  Kiwa POC/POV starts (3 months) · security hardening (R15 pen test) · monitoring
+                  + alerts · European ERP channel (CANAL-01) · market analytics for Kiwa · MARE
+                  portal in production after volunteer-org doc + bank account.
+                </p>
               </div>
             </section>
 
@@ -8493,23 +9475,29 @@ flowchart LR
                   </p>
                 </div>
               </div>
-              <div class="risk risk-high">
+              <div class="risk risk-medium">
                 <div class="risk-bar"></div>
                 <div class="risk-content">
                   <div class="risk-header">
                     <span class="risk-id">R2</span
                     ><span class="risk-title"
-                      ><span lang="pt">BV exigir mais docs que os 36 mapeados</span
-                      ><span lang="en">BV requires more docs than the 36 mapped</span></span
-                    ><span class="badge badge-danger"
-                      ><span lang="pt">alto</span><span lang="en">high</span></span
+                      ><span lang="pt">VVB (Kiwa) exigir docs além dos mapeados na v0.4.7</span
+                      ><span lang="en">VVB (Kiwa) requires docs beyond those mapped in v0.4.7</span></span
+                    ><span class="badge badge-warning"
+                      ><span lang="pt">médio</span><span lang="en">medium</span></span
                     >
                   </div>
                   <p class="risk-desc" lang="pt">
-                    Reunião com BV no Sprint 3 + audit pack flexível por design.
+                    Reduzido de ALTO para MÉDIO na v0.4.7: BV saiu do fluxo operacional (era só
+                    validador metodológico); Kiwa é o candidato agora (NDA · retomada 22/jul).
+                    Audit pack flexível por design + pitch de auditoria contínua (O11) ajusta o
+                    escopo colaborativamente ao longo do ano.
                   </p>
                   <p class="risk-desc" lang="en">
-                    Meeting with BV in Sprint 3 + audit pack flexible by design.
+                    Lowered from HIGH to MEDIUM in v0.4.7: BV left the operational flow (was only
+                    a methodology validator); Kiwa is now the candidate (NDA · resumes Jul 22).
+                    Audit pack flexible by design + the continuous auditing pitch (O11) adjusts
+                    the scope collaboratively across the year.
                   </p>
                 </div>
               </div>
@@ -8780,6 +9768,129 @@ flowchart LR
                     Mitigation: M13 positioning (ERP add-on) + 3 unique differentiators (individual,
                     carbon footprint, process) — things Carrot wouldn't do short-term. Monitor
                     Carrot roadmap closely.
+                  </p>
+                </div>
+              </div>
+
+              <div class="risk risk-high">
+                <div class="risk-bar"></div>
+                <div class="risk-content">
+                  <div class="risk-header">
+                    <span class="risk-id">R17</span
+                    ><span class="risk-title"
+                      ><span lang="pt"
+                        >Kiwa como cliente-canal ainda não fechou contrato</span
+                      ><span lang="en"
+                        >Kiwa as channel customer hasn't closed the contract yet</span
+                      ></span
+                    ><span class="badge badge-danger"
+                      ><span lang="pt">alto</span><span lang="en">high</span></span
+                    >
+                  </div>
+                  <p class="risk-desc" lang="pt">
+                    NDA assinado em 29/jun, retomada 22/jul. Sem Kiwa, MVP perde o cliente-canal
+                    primário. Mitigação: mock Carrot end-to-end como POC de 3 meses (M15);
+                    continuous auditing como diferencial narrativo (O11); URLs públicas para
+                    Kiwa demonstrar aos próprios clientes.
+                  </p>
+                  <p class="risk-desc" lang="en">
+                    NDA signed on Jun 29, resumes Jul 22. Without Kiwa, the MVP loses its primary
+                    channel customer. Mitigation: end-to-end Carrot mock as a 3-month POC (M15);
+                    continuous auditing as narrative differentiator (O11); public URLs for Kiwa to
+                    show its own clients.
+                  </p>
+                </div>
+              </div>
+
+              <div class="risk risk-medium">
+                <div class="risk-bar"></div>
+                <div class="risk-content">
+                  <div class="risk-header">
+                    <span class="risk-id">R18</span
+                    ><span class="risk-title"
+                      ><span lang="pt"
+                        >~50% dos recicladores europeus sem ERP maduro</span
+                      ><span lang="en"
+                        >~50% of European recyclers without a mature ERP</span
+                      ></span
+                    ><span class="badge badge-warning"
+                      ><span lang="pt">médio</span><span lang="en">medium</span></span
+                    >
+                  </div>
+                  <p class="risk-desc" lang="pt">
+                    Se ERP maduro for pré-requisito rígido de homologação, corta 50% do funil de
+                    vendas. Rodrigo defende bloqueio (qualidade do certificado); Gian/Nick defendem
+                    flexibilidade. Meio-termo em aberto (call 03/jul): upload de planilha como
+                    bootstrap para MVP; ERP como requisito de escala. Precisa de próxima call para
+                    fechar.
+                  </p>
+                  <p class="risk-desc" lang="en">
+                    If a mature ERP is a hard homologation prerequisite, it cuts 50% of the sales
+                    funnel. Rodrigo argues for the block (certificate quality); Gian/Nick argue for
+                    flexibility. Middle ground open (Jul 3 call): spreadsheet upload as MVP
+                    bootstrap; ERP as scale requirement. Needs a follow-up call to close.
+                  </p>
+                </div>
+              </div>
+
+              <div class="risk risk-medium">
+                <div class="risk-bar"></div>
+                <div class="risk-content">
+                  <div class="risk-header">
+                    <span class="risk-id">R19</span
+                    ><span class="risk-title"
+                      ><span lang="pt"
+                        >Herança BR no modelo KYC/KYB atual</span
+                      ><span lang="en"
+                        >BR heritage in current KYC/KYB model</span
+                      ></span
+                    ><span class="badge badge-warning"
+                      ><span lang="pt">médio</span><span lang="en">medium</span></span
+                    >
+                  </div>
+                  <p class="risk-desc" lang="pt">
+                    Formulário atual pede CPF, calhamaço documental BR e Person como entidade
+                    paralela — não bate com prática UE e traz risco GDPR + fricção comercial.
+                    Mitigação em curso: redesenho para padrão EU + GDPR mínimo defensável (M16),
+                    Person embutida em Company (A13). Fluxo homologação sequencial (A14).
+                  </p>
+                  <p class="risk-desc" lang="en">
+                    Current form asks for CPF, a BR paperwork stack and Person as a parallel
+                    entity — doesn't match EU practice and brings GDPR risk + commercial friction.
+                    Mitigation in progress: redesign to EU standard + GDPR-minimal (M16), Person
+                    embedded in Company (A13). Sequential homologation flow (A14).
+                  </p>
+                </div>
+              </div>
+
+              <div class="risk risk-low">
+                <div class="risk-bar"></div>
+                <div class="risk-content">
+                  <div class="risk-header">
+                    <span class="risk-id">R20</span
+                    ><span class="risk-title"
+                      ><span lang="pt"
+                        >Workflow de mirror do Blueprint parado desde 31/mai</span
+                      ><span lang="en"
+                        >Blueprint mirror workflow halted since May 31</span
+                      ></span
+                    ><span class="badge badge-info"
+                      ><span lang="pt">baixo</span><span lang="en">low</span></span
+                    >
+                  </div>
+                  <p class="risk-desc" lang="pt">
+                    Mirror público (v0.3.3) está ~5 versões atrás da fonte (v0.4.7). Quem lê o site
+                    público hoje vê o Impactrakr de maio. Mitigação: investigar
+                    <code>BLUEPRINT_DEPLOY_TOKEN</code> + logs do
+                    <code>publish-blueprint.yml</code>; reemitir PAT se necessário; disparar
+                    workflow manualmente após publicar v0.4.7.
+                  </p>
+                  <p class="risk-desc" lang="en">
+                    Public mirror (v0.3.3) is ~5 versions behind the source (v0.4.7). Whoever
+                    reads the public site today sees May's Impactrakr. Mitigation: investigate
+                    <code>BLUEPRINT_DEPLOY_TOKEN</code> +
+                    <code>publish-blueprint.yml</code> logs; reissue PAT if needed; manually
+                    trigger the workflow after publishing v0.4.7.
                   </p>
                 </div>
               </div>
