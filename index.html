@@ -10802,7 +10802,20 @@ flowchart LR
                     list.termos.push({ id: 'termo_aceite_carrier', pt: 'Termo de Aceite · autoriza uso e exposição dos dados no processo dMRV', en: 'Acceptance Terms · authorises use and exposure of data in the dMRV process', req: true, auth: 'Declarante (assina digitalmente)', docHref: LEGAL.producer_carrier });
                   }
                   if (role === 'integrator') {
-                    list.termos.push({ id: 'termo_uso_integrator', pt: 'Termo de Uso + Integração com a plataforma Impactrakr', en: 'Terms of Use + Platform Integration Agreement', req: true, auth: 'Representante legal + área comercial', docHref: LEGAL.integrator });
+                    list.termos.push(
+                      { id: 'termo_uso_integrator', pt: 'Termo de Uso + Integração com a plataforma Impactrakr', en: 'Terms of Use + Platform Integration Agreement', req: true, auth: 'Representante legal + área comercial', docHref: LEGAL.integrator },
+                      { id: 'integrator_contract', pt: 'Contrato de Integração com a Impactrakr (SLA + escopo) · PG-20', en: 'Impactrakr Integration Contract (SLA + scope) · PG-20', req: true, auth: 'Comercial + jurídico Impactrakr', docHref: LEGAL.integrator },
+                      { id: 'data_processing_agreement', pt: 'Data Processing Agreement (GDPR / LGPD) · PG-16', en: 'Data Processing Agreement (GDPR / LGPD) · PG-16', req: true, auth: 'DPO + jurídico Impactrakr', docHref: LEGAL.integrator }
+                    );
+                  }
+                  // Módulo EU 2024/1157 · Transportador ganha docs regulados
+                  if (role === 'carrier' && M.eu) {
+                    list.licencas.push(
+                      { id: 'carrier_licence', pt: 'Licença de Transportador de Resíduos · WFD Art. 26 · Reg EU 2024/1157', en: 'Waste Carrier Licence · WFD Art. 26 · EU Reg 2024/1157', req: true, auth: 'Autoridade competente WFD do Member State' },
+                      { id: 'hauler_license', pt: 'Licença Operacional de Hauler (autoridade nacional)', en: 'Hauler Operating Licence (national authority)', req: true, auth: 'Autoridade nacional de transporte' },
+                      { id: 'authorized_vehicle_register', pt: 'Registro de Veículos Autorizados (frota · placa + capacidade)', en: 'Authorised Vehicle Register (plate + capacity)', req: true, auth: 'Autoridade nacional de transporte' },
+                      { id: 'hauler_zone_registration', pt: 'Registro de Zona Operacional do Transportador', en: 'Hauler Operating Zone Registration', req: true, auth: 'Autoridade competente do MS' }
+                    );
                   }
                   if (role === 'auditor') {
                     list.termos.push(
@@ -10885,6 +10898,44 @@ flowchart LR
                     { id: 'declaracao_unif', pt: 'Declaração Unificada de Conformidade e Procedimentos', en: 'Unified Declaration of Conformity and Procedures', req: true, auth: 'Representante legal (auto-declarado)', docHref: LEGAL.recycler_processor },
                     { id: 'project_boundary', pt: 'Planilha de Limite do Projeto · rotas cross-border (se >200km)', en: 'Project Boundary Worksheet · cross-border routes (if >200km)', req: false, auth: 'Operador (auto-declarado)', docHref: LEGAL.recycler_processor }
                   );
+                  // Docs PG-* Impactrakr para recycler/processor
+                  list.descritivos.push(
+                    { id: 'business_plan', pt: 'Plano de Negócios da instalação · PG-07', en: 'Facility Business Plan · PG-07', req: true, auth: 'Operador (auto-declarado)' },
+                    { id: 'social_impact_declaration', pt: 'Declaração de Impacto Social · PG-10', en: 'Social Impact Declaration · PG-10', req: false, auth: 'Representante legal' }
+                  );
+                  if (juris === 'brazil') {
+                    list.descritivos.push(
+                      { id: 'ecoparque_certification', pt: 'Certificação de Ecoparque (se aplicável) · PG-18', en: 'Ecoparque Certification (if applicable) · PG-18', req: false, auth: 'Certificadora ecoparque' }
+                    );
+                  }
+                  // Módulo RecyClass ativo · pacote técnico do Audit Scheme
+                  if (M.recyclass) {
+                    list.licencas.push(
+                      { id: 'insurance_public_liability_cert', pt: 'Seguro de Responsabilidade Civil Pública (vigente) · RC-04', en: 'Public Liability Insurance Certificate · RC-04', req: true, auth: 'Seguradora + broker' },
+                      { id: 'insurance_employer_liability_cert', pt: 'Seguro de Responsabilidade Civil Patronal (vigente) · RC-04', en: 'Employer Liability Insurance Certificate · RC-04', req: true, auth: 'Seguradora + broker' },
+                      { id: 'weighbridge_calibration_cert', pt: 'Certificado de Calibração da Balança / Ponte de Pesagem · RC-07', en: 'Weighbridge Calibration Certificate · RC-07', req: true, auth: 'Laboratório de metrologia acreditado' },
+                      { id: 'wastewater_treatment_license', pt: 'Licença de Tratamento de Efluentes (se aplicável) · RC-14', en: 'Wastewater Treatment Licence (if applicable) · RC-14', req: false, auth: 'Órgão ambiental local' },
+                      { id: 'recyclass_certificate', pt: 'Certificado RecyClass vigente (comprovação de certificação prévia · se aplicável) · PG-20', en: 'RecyClass Certificate in force (proof of prior certification · if applicable) · PG-20', req: false, auth: 'RecyClass + Auditor acreditado' }
+                    );
+                    list.certidoes.push(
+                      { id: 'staff_training_records', pt: 'Registros de Treinamento da Equipe (últimos 12 meses) · RC-06', en: 'Staff Training Records (last 12 months) · RC-06', req: true, auth: 'Operador (registros internos)' },
+                      { id: 'subcontractor_certification', pt: 'Certificações de Subcontratados (quando aplicável) · RC-15', en: 'Subcontractor Certifications (when applicable) · RC-15', req: false, auth: 'Subcontratado + auditor' }
+                    );
+                    list.descritivos.push(
+                      { id: 'org_chart_doc', pt: 'Organograma da instalação · RC-05', en: 'Facility Organisation Chart · RC-05', req: true, auth: 'Operador' },
+                      { id: 'job_descriptions_doc', pt: 'Descritivos de Cargo do time técnico · RC-05', en: 'Technical Team Job Descriptions · RC-05', req: true, auth: 'Operador' },
+                      { id: 'technical_qualification_doc', pt: 'Qualificação Técnica dos responsáveis · RC-06', en: 'Technical Qualification · RC-06', req: true, auth: 'Operador + certificações profissionais' },
+                      { id: 'energy_water_report', pt: 'Relatório de Energia + Água (12 meses) · RC-10', en: 'Energy + Water Report (12 months) · RC-10', req: true, auth: 'Operador (contas de utilidades)' },
+                      { id: 'end_market_records', pt: 'Registros de Destino Final do output (12 meses) · RC-12', en: 'End-Market Records (12 months) · RC-12', req: true, auth: 'Operador + clientes off-taker' },
+                      { id: 'pellet_loss_procedure', pt: 'Procedimento de Prevenção de Perda de Pellets · RC-13', en: 'Pellet Loss Prevention Procedure · RC-13', req: true, auth: 'Operador' },
+                      { id: 'drainage_cleaning_records', pt: 'Registros de Limpeza de Drenagem (12 meses) · RC-13', en: 'Drainage Cleaning Records (12 months) · RC-13', req: true, auth: 'Operador' },
+                      { id: 'reach_compliance_procedure', pt: 'Procedimento de Compliance REACH · RC-16', en: 'REACH Compliance Procedure · RC-16', req: true, auth: 'Operador + consultoria REACH' },
+                      { id: 'svhc_monitoring_records', pt: 'Registros de Monitoramento SVHC · RC-16', en: 'SVHC Monitoring Records · RC-16', req: true, auth: 'Laboratório + operador' },
+                      { id: 'pop_compliance_declaration', pt: 'Declaração de Compliance POPs · RC-16', en: 'POPs Compliance Declaration · RC-16', req: true, auth: 'Operador (auto-declarado)' },
+                      { id: 'complaints_register', pt: 'Registro de Reclamações · RC-17', en: 'Complaints Register · RC-17', req: true, auth: 'Operador' },
+                      { id: 'complaints_procedure', pt: 'Procedimento de Tratamento de Reclamações · RC-17', en: 'Complaints Handling Procedure · RC-17', req: true, auth: 'Operador' }
+                    );
+                  }
                   return list;
                 }
 

@@ -449,7 +449,7 @@
       },
       "evidence": [
         {
-          "doc_type": "kyc_kyb_record",
+          "doc_type": "kyc_declarant",
           "mandatory": true,
           "structure": {
             "legalEntityType": {
@@ -525,7 +525,8 @@
               "required": false,
               "purpose": "ID da verificacao no provider externo, se aplicavel"
             }
-          }
+          },
+          "legacy_doc_type": "kyc_kyb_record"
         }
       ],
       "messages": {
@@ -2965,9 +2966,10 @@
       },
       "evidence": [
         {
-          "doc_type": "recycler_permit",
+          "doc_type": "env_permit",
           "mandatory": true,
-          "when": "recycler designated"
+          "when": "recycler designated",
+          "legacy_doc_type": "recycler_permit"
         },
         {
           "doc_type": "homologation_record",
@@ -4156,9 +4158,10 @@
       },
       "evidence": [
         {
-          "doc_type": "processor_permit",
+          "doc_type": "env_permit",
           "mandatory": true,
-          "when": "processor_step_exists = TRUE"
+          "when": "processor_step_exists = TRUE",
+          "legacy_doc_type": "processor_permit"
         },
         {
           "doc_type": "homologation_record",
@@ -7701,8 +7704,9 @@
       },
       "evidence": [
         {
-          "doc_type": "recycler_permit",
-          "mandatory": true
+          "doc_type": "env_permit",
+          "mandatory": true,
+          "legacy_doc_type": "recycler_permit"
         },
         {
           "doc_type": "homologation_record",
@@ -10765,9 +10769,10 @@
       },
       "evidence": [
         {
-          "doc_type": "kyc_kyb_record",
+          "doc_type": "kyc_declarant",
           "mandatory": true,
-          "note": "Mesmo doc validado por P-03. PG-01 SKIPa se ausente (P-03 já bloqueou)."
+          "note": "Mesmo doc validado por P-03. PG-01 SKIPa se ausente (P-03 já bloqueou).",
+          "legacy_doc_type": "kyc_kyb_record"
         }
       ],
       "messages": {
@@ -14039,9 +14044,10 @@
           "when": "role=H — renewal_cycle_months=24"
         },
         {
-          "doc_type": "environmental_operation_license",
+          "doc_type": "env_permit",
           "mandatory": true,
-          "when": "role IN (R, P) — renewal_cycle_months=12"
+          "when": "role IN (R, P) — renewal_cycle_months=12",
+          "legacy_doc_type": "environmental_operation_license"
         },
         {
           "doc_type": "recyclass_certificate",
@@ -16329,8 +16335,9 @@
       },
       "evidence": [
         {
-          "doc_type": "recycler_permit",
-          "mandatory": true
+          "doc_type": "env_permit",
+          "mandatory": true,
+          "legacy_doc_type": "recycler_permit"
         }
       ],
       "messages": {
@@ -16513,8 +16520,9 @@
       },
       "evidence": [
         {
-          "doc_type": "recycler_permit",
-          "mandatory": true
+          "doc_type": "env_permit",
+          "mandatory": true,
+          "legacy_doc_type": "recycler_permit"
         }
       ],
       "messages": {
@@ -16701,9 +16709,10 @@
       },
       "evidence": [
         {
-          "doc_type": "processor_permit",
+          "doc_type": "env_permit",
           "mandatory": true,
-          "when": "processor in chain"
+          "when": "processor in chain",
+          "legacy_doc_type": "processor_permit"
         }
       ],
       "messages": {
@@ -18831,8 +18840,9 @@
       },
       "evidence": [
         {
-          "doc_type": "company_registration_doc",
-          "mandatory": true
+          "doc_type": "company_reg",
+          "mandatory": true,
+          "legacy_doc_type": "company_registration_doc"
         }
       ],
       "messages": {
@@ -18989,8 +18999,9 @@
       },
       "evidence": [
         {
-          "doc_type": "operating_license",
-          "mandatory": true
+          "doc_type": "env_permit",
+          "mandatory": true,
+          "legacy_doc_type": "operating_license"
         },
         {
           "doc_type": "throughput_12m_report",
@@ -19162,8 +19173,9 @@
       },
       "evidence": [
         {
-          "doc_type": "operating_license",
-          "mandatory": true
+          "doc_type": "env_permit",
+          "mandatory": true,
+          "legacy_doc_type": "operating_license"
         },
         {
           "doc_type": "stock_inventory_extract",
@@ -21561,9 +21573,10 @@
       },
       "evidence": [
         {
-          "doc_type": "operating_license",
+          "doc_type": "env_permit",
           "mandatory": true,
-          "when": "any recycler/processor"
+          "when": "any recycler/processor",
+          "legacy_doc_type": "operating_license"
         },
         {
           "doc_type": "stock_inventory_extract",
@@ -22324,9 +22337,10 @@
       },
       "evidence": [
         {
-          "doc_type": "scale_calibration_certificate",
+          "doc_type": "calibracao_balanca",
           "mandatory": true,
-          "when": "scaleType IN (bridge_scale, floor_scale, hopper_scale)"
+          "when": "scaleType IN (bridge_scale, floor_scale, hopper_scale)",
+          "legacy_doc_type": "scale_calibration_certificate"
         }
       ],
       "messages": {
