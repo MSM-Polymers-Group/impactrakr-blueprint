@@ -10682,10 +10682,11 @@ flowchart LR
                       <span lang="pt">Papel na cadeia</span><span lang="en">Chain role</span>
                     </label>
                     <select id="hm-role" style="width:100%; padding:10px 12px; border:1px solid var(--border-default); border-radius:8px; font-size:0.9rem; background:var(--bg-surface); color:var(--text-primary);">
+                      <option value="" selected disabled data-pt="Selecionar…" data-en="Select…">Selecionar…</option>
                       <option value="producer" data-pt="Gerador" data-en="Producer">Producer</option>
                       <option value="carrier" data-pt="Transportador · Carrier / Notifier" data-en="Carrier / Notifier">Carrier / Notifier</option>
                       <option value="processor" data-pt="Processador · Triagem" data-en="Processor · Sorter">Processor · Sorter</option>
-                      <option value="recycler" selected data-pt="Reciclador · R3 / Consignee" data-en="Recycler · R3 / Consignee">Recycler · R3 / Consignee</option>
+                      <option value="recycler" data-pt="Reciclador · R3 / Consignee" data-en="Recycler · R3 / Consignee">Recycler · R3 / Consignee</option>
                       <option value="integrator" data-pt="Integrador · Broker" data-en="Integrator · Broker">Integrator · Broker</option>
                       <option value="auditor" data-pt="Auditor · VVB" data-en="Auditor · VVB">Auditor · VVB</option>
                     </select>
@@ -10695,7 +10696,8 @@ flowchart LR
                       <span lang="pt">Jurisdição</span><span lang="en">Jurisdiction</span>
                     </label>
                     <select id="hm-juris" style="width:100%; padding:10px 12px; border:1px solid var(--border-default); border-radius:8px; font-size:0.9rem; background:var(--bg-surface); color:var(--text-primary);">
-                      <option value="malta" selected data-pt="🇲🇹 Malta · UE" data-en="🇲🇹 Malta · EU">🇲🇹 Malta · EU</option>
+                      <option value="" selected disabled data-pt="Selecionar…" data-en="Select…">Selecionar…</option>
+                      <option value="malta" data-pt="🇲🇹 Malta · UE" data-en="🇲🇹 Malta · EU">🇲🇹 Malta · EU</option>
                       <option value="eu_other" data-pt="🇪🇺 Outros membros UE" data-en="🇪🇺 Other EU members">🇪🇺 Other EU members</option>
                       <option value="brazil" data-pt="🇧🇷 Brasil" data-en="🇧🇷 Brazil">🇧🇷 Brasil</option>
                       <option value="latam_gt" data-pt="🇬🇹 Guatemala" data-en="🇬🇹 Guatemala">🇬🇹 Guatemala</option>
@@ -10707,8 +10709,8 @@ flowchart LR
                       <span lang="pt">Módulos regulatórios</span><span lang="en">Regulatory modules</span>
                     </label>
                     <div style="display:flex; flex-direction:column; gap:6px;">
-                      <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem;"><input type="checkbox" id="hm-mod-pure" checked /> <span><strong>PURE</strong> <span lang="pt">· metodologia base</span><span lang="en">· base methodology</span></span></label>
-                      <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem;"><input type="checkbox" id="hm-mod-eu" checked /> <span><strong>EU 2024/1157</strong></span></label>
+                      <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem;"><input type="checkbox" id="hm-mod-pure" /> <span><strong>PURE</strong> <span lang="pt">· metodologia base</span><span lang="en">· base methodology</span></span></label>
+                      <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem;"><input type="checkbox" id="hm-mod-eu" /> <span><strong>EU 2024/1157</strong></span></label>
                       <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem;"><input type="checkbox" id="hm-mod-recyclass" /> <span><strong>RecyClass</strong></span></label>
                     </div>
                   </div>
@@ -10753,6 +10755,19 @@ flowchart LR
               (function () {
                 // Espelho do Cadastro.getDocumentList (docs/specs/onboarding-flow/mockup/assets/cadastro.js)
                 // Fonte-of-truth ainda é aquela; este script existe pra visualização standalone no Blueprint.
+                //
+                // docHref aponta pros DRAFTs em docs/legal/ no repo (GitHub renderiza MD como HTML).
+                // Templates so existem para docs Impactrakr (termos, master); docs oficiais do cliente
+                // (KYC, VAT, licencas) nao tem template nosso.
+                const LEGAL_BASE = 'https://github.com/MSM-Polymers-Group/impactrakr/blob/main/docs/legal/';
+                const LEGAL = {
+                  master:            LEGAL_BASE + '01-termo-uso-master.md',
+                  producer_carrier:  LEGAL_BASE + '02-adendo-gerador-transportador.md',
+                  integrator:        LEGAL_BASE + '03-adendo-integrador.md',
+                  auditor:           LEGAL_BASE + '04-adendo-auditor.md',
+                  recycler_processor: LEGAL_BASE + '05-adendo-reciclador-processador.md'
+                };
+
                 function getDocumentList(role, juris, modules) {
                   const M = modules || {};
                   const list = { onboarding: [], termos: [], licencas: [], certidoes: [], descritivos: [] };
@@ -10774,26 +10789,26 @@ flowchart LR
                   const fid = fiscalMap[juris] || fiscalMap.latam;
                   const creg = companyMap[juris] || companyMap.latam;
                   list.onboarding.push(
-                    { id: 'kyc_declarant', pt: 'KYC do declarante · identidade + selfie biométrica + comprovante residência', en: 'Declarant KYC · ID + biometric selfie + proof of residence', req: true, auth: 'Fluxo próprio Impactrakr (representante.html)' },
+                    { id: 'kyc_declarant', pt: 'KYC do declarante · identidade + selfie biométrica + comprovante residência', en: 'Declarant KYC · ID + biometric selfie + proof of residence', req: true, auth: 'Fluxo próprio Impactrakr (representante.html)', docHref: LEGAL.master },
                     { id: 'fiscal_id',  pt: fid.pt,  en: fid.en,  req: true, auth: fid.auth },
                     { id: 'company_reg', pt: creg.pt, en: creg.en, req: true, auth: creg.auth }
                   );
 
                   // === Nivel 2 leve · termos por role ===
                   if (role === 'producer') {
-                    list.termos.push({ id: 'termo_aceite_producer', pt: 'Termo de Aceite · autoriza uso e exposição dos dados no processo dMRV', en: 'Acceptance Terms · authorises use and exposure of data in the dMRV process', req: true, auth: 'Declarante (assina digitalmente)' });
+                    list.termos.push({ id: 'termo_aceite_producer', pt: 'Termo de Aceite · autoriza uso e exposição dos dados no processo dMRV', en: 'Acceptance Terms · authorises use and exposure of data in the dMRV process', req: true, auth: 'Declarante (assina digitalmente)', docHref: LEGAL.producer_carrier });
                   }
                   if (role === 'carrier') {
-                    list.termos.push({ id: 'termo_aceite_carrier', pt: 'Termo de Aceite · autoriza uso e exposição dos dados no processo dMRV', en: 'Acceptance Terms · authorises use and exposure of data in the dMRV process', req: true, auth: 'Declarante (assina digitalmente)' });
+                    list.termos.push({ id: 'termo_aceite_carrier', pt: 'Termo de Aceite · autoriza uso e exposição dos dados no processo dMRV', en: 'Acceptance Terms · authorises use and exposure of data in the dMRV process', req: true, auth: 'Declarante (assina digitalmente)', docHref: LEGAL.producer_carrier });
                   }
                   if (role === 'integrator') {
-                    list.termos.push({ id: 'termo_uso_integrator', pt: 'Termo de Uso + Integração com a plataforma Impactrakr', en: 'Terms of Use + Platform Integration Agreement', req: true, auth: 'Representante legal + área comercial' });
+                    list.termos.push({ id: 'termo_uso_integrator', pt: 'Termo de Uso + Integração com a plataforma Impactrakr', en: 'Terms of Use + Platform Integration Agreement', req: true, auth: 'Representante legal + área comercial', docHref: LEGAL.integrator });
                   }
                   if (role === 'auditor') {
                     list.termos.push(
                       { id: 'iso_accreditation_auditor', pt: 'Acreditação ISO 17020 ou ISO 17065 · via ente signatário IAF/EA MLA', en: 'ISO 17020 or ISO 17065 accreditation · via IAF/EA MLA signatory', req: true, auth: 'INMETRO/Cgcre (BR), NAB Malta, OGA (GT), etc.' },
-                      { id: 'termo_uso_auditor', pt: 'Termo de Uso da plataforma como auditor homologado', en: 'Platform Terms of Use as accredited auditor', req: true, auth: 'Representante legal' },
-                      { id: 'declaracao_independencia', pt: 'Declaração de independência · sem conflito com auditado', en: 'Independence declaration · no conflict with audited party', req: true, auth: 'Declarante (assina digitalmente)' }
+                      { id: 'termo_uso_auditor', pt: 'Termo de Uso da plataforma como auditor homologado', en: 'Platform Terms of Use as accredited auditor', req: true, auth: 'Representante legal', docHref: LEGAL.auditor },
+                      { id: 'declaracao_independencia', pt: 'Declaração de independência · sem conflito com auditado', en: 'Independence declaration · no conflict with audited party', req: true, auth: 'Declarante (assina digitalmente)', docHref: LEGAL.auditor }
                     );
                   }
 
@@ -10866,9 +10881,9 @@ flowchart LR
                   }
                   // Descritivos aplicam a recycler + processor em qualquer juris
                   list.descritivos.push(
-                    { id: 'descritivo_r3', pt: 'Descritivo Operacional da Instalação R3', en: 'R3 Recovery Operation Description', req: true, auth: 'Operador (auto-declarado, validado por auditoria)' },
-                    { id: 'declaracao_unif', pt: 'Declaração Unificada de Conformidade e Procedimentos', en: 'Unified Declaration of Conformity and Procedures', req: true, auth: 'Representante legal (auto-declarado)' },
-                    { id: 'project_boundary', pt: 'Planilha de Limite do Projeto · rotas cross-border (se >200km)', en: 'Project Boundary Worksheet · cross-border routes (if >200km)', req: false, auth: 'Operador (auto-declarado)' }
+                    { id: 'descritivo_r3', pt: 'Descritivo Operacional da Instalação R3', en: 'R3 Recovery Operation Description', req: true, auth: 'Operador (auto-declarado, validado por auditoria)', docHref: LEGAL.recycler_processor },
+                    { id: 'declaracao_unif', pt: 'Declaração Unificada de Conformidade e Procedimentos', en: 'Unified Declaration of Conformity and Procedures', req: true, auth: 'Representante legal (auto-declarado)', docHref: LEGAL.recycler_processor },
+                    { id: 'project_boundary', pt: 'Planilha de Limite do Projeto · rotas cross-border (se >200km)', en: 'Project Boundary Worksheet · cross-border routes (if >200km)', req: false, auth: 'Operador (auto-declarado)', docHref: LEGAL.recycler_processor }
                   );
                   return list;
                 }
@@ -10898,6 +10913,9 @@ flowchart LR
                     const reqBadge = d.req
                       ? '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; background:oklch(85% 0.10 140); color:oklch(30% 0.10 140); font-size:0.7rem; font-weight:600;">' + (lang === 'pt' ? 'obrigatório' : 'required') + '</span>'
                       : '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; background:oklch(90% 0.03 80); color:oklch(45% 0.05 80); font-size:0.7rem; font-weight:600;">' + (lang === 'pt' ? 'opcional' : 'optional') + '</span>';
+                    const docLink = d.docHref
+                      ? '<a href="' + d.docHref + '" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:4px; margin-top:8px; padding:6px 10px; background:var(--bg-subtle); border:1px solid var(--border-default); border-radius:6px; font-size:0.75rem; color:var(--accent); text-decoration:none; font-weight:500;">📄 ' + (lang === 'pt' ? 'Ver documento (draft)' : 'View document (draft)') + '</a>'
+                      : '';
                     return '<li style="padding:12px 0; border-bottom:1px solid var(--border-default);">'
                       + '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:4px;">'
                       + '<div style="font-weight:600; font-size:0.88rem; color:var(--text-primary);">' + label + '</div>'
@@ -10905,6 +10923,7 @@ flowchart LR
                       + '</div>'
                       + '<div style="font-size:0.75rem; color:var(--text-secondary); font-family:ui-monospace, monospace;">' + d.id + '</div>'
                       + '<div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">' + (lang === 'pt' ? 'Autoridade: ' : 'Authority: ') + d.auth + '</div>'
+                      + docLink
                       + '</li>';
                   }).join('');
                   return '<div style="background:var(--bg-surface); border:1px solid var(--border-default); border-radius:12px; padding:20px;">'
@@ -10935,13 +10954,30 @@ flowchart LR
                 }
 
                 function render() {
-                  hasRendered = true;
                   const role = roleSel.value;
                   const juris = jurisSel.value;
-                  const modules = { pure: modPure.checked, eu: modEu.checked, recyclass: modRc.checked };
                   const lang = currentLang();
                   applyLangToOptions(roleSel, lang);
                   applyLangToOptions(jurisSel, lang);
+
+                  // Gate: precisa ter papel e jurisdicao antes de renderizar
+                  if (!role || !juris) {
+                    hasRendered = true;
+                    resultEl.style.display = 'block';
+                    resultEl.style.padding = '16px 20px';
+                    resultEl.style.background = 'var(--bg-subtle)';
+                    resultEl.style.border = '1px dashed var(--border-default)';
+                    resultEl.style.borderRadius = '12px';
+                    resultEl.style.color = 'var(--text-secondary)';
+                    resultEl.style.fontSize = '0.9rem';
+                    resultEl.innerHTML = lang === 'pt'
+                      ? 'Selecione <strong>Papel na cadeia</strong> e <strong>Jurisdição</strong> para ver os documentos exigidos.'
+                      : 'Select <strong>Chain role</strong> and <strong>Jurisdiction</strong> to view the required documents.';
+                    return;
+                  }
+
+                  hasRendered = true;
+                  const modules = { pure: modPure.checked, eu: modEu.checked, recyclass: modRc.checked };
                   const list = getDocumentList(role, juris, modules);
                   const total = list.onboarding.length + list.termos.length + list.licencas.length + list.certidoes.length + list.descritivos.length;
                   const reqCount = list.onboarding.filter(d => d.req).length + list.termos.filter(d => d.req).length + list.licencas.filter(d => d.req).length + list.certidoes.filter(d => d.req).length + list.descritivos.filter(d => d.req).length;
@@ -10972,6 +11008,12 @@ flowchart LR
                   resultEl.style.gridTemplateColumns = 'repeat(auto-fit, minmax(320px, 1fr))';
                   resultEl.style.gap = '20px';
                   resultEl.style.marginBottom = '20px';
+                  resultEl.style.padding = '';
+                  resultEl.style.background = '';
+                  resultEl.style.border = '';
+                  resultEl.style.borderRadius = '';
+                  resultEl.style.color = '';
+                  resultEl.style.fontSize = '';
                   resultEl.innerHTML = '<div style="grid-column:1/-1;">' + headline + '</div>' + columns;
 
                   // Rola suavemente até os resultados apos o click
