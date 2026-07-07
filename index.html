@@ -3194,6 +3194,11 @@
             <span lang="pt">Fila de Aprovação</span><span lang="en">Approval Queue</span>
             <span class="tab-count" id="tab-count-approval">139</span>
           </button>
+          <button class="tab-btn tab-hm" data-tab="homolog" role="tab" aria-selected="false">
+            <span class="tab-icon">📎</span>
+            <span lang="pt">Documentos por Participante</span><span lang="en">Documents per Participant</span>
+            <span class="tab-count" id="tab-count-homolog">51</span>
+          </button>
         </nav>
 
         <div class="content">
@@ -10635,6 +10640,374 @@ flowchart LR
 
           <!-- Hidden file input for import -->
           <input type="file" id="aw-import-input" accept=".json" style="display: none" />
+
+          <!-- ============ TAB · DOCUMENTOS POR PARTICIPANTE ============ -->
+          <div class="tab-pane" id="pane-homolog" role="tabpanel">
+            <style>
+              #pane-homolog { color: var(--text-primary); }
+              #pane-homolog h1,
+              #pane-homolog h2,
+              #pane-homolog h3,
+              #pane-homolog h4,
+              #pane-homolog p,
+              #pane-homolog label,
+              #pane-homolog span,
+              #pane-homolog li,
+              #pane-homolog strong { color: inherit; }
+              #pane-homolog .hm-mute,
+              #pane-homolog .hm-fine { color: var(--text-secondary); }
+              #pane-homolog select,
+              #pane-homolog input[type="checkbox"] { accent-color: var(--accent); }
+              #pane-homolog option { color: var(--text-primary); background: var(--bg-surface); }
+              #pane-homolog a { color: var(--accent); }
+            </style>
+            <section class="hero">
+              <div class="eyebrow"><span class="eyebrow-dot"></span>Homologation catalog · v0.1</div>
+              <h1>
+                <span lang="pt">Documentos exigidos por participante e jurisdição</span>
+                <span lang="en">Documents required per participant and jurisdiction</span>
+              </h1>
+              <p class="lede">
+                <span lang="pt">Fonte da verdade viva do fluxo de homologação da Impactrakr. Selecione o papel na cadeia, a jurisdição operacional e os módulos regulatórios ativos para ver a matriz de documentos exigidos. Cada obrigatoriedade aponta para uma autoridade oficial verificada em 2026-07-06.</span>
+                <span lang="en">Live source-of-truth for Impactrakr's homologation flow. Pick the chain role, operating jurisdiction and active regulatory modules to see the required document matrix. Every mandatory item points to an official authority verified 2026-07-06.</span>
+              </p>
+            </section>
+
+            <div class="hm-wrap" style="display:grid; gap:20px; margin-top:24px;">
+              <!-- Selector -->
+              <div class="hm-selector" style="background:var(--bg-surface); border:1px solid var(--border-default); border-radius:12px; padding:20px;">
+                <div class="hm-selector-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:20px;">
+                  <div>
+                    <label style="display:block; font-weight:600; margin-bottom:8px; font-size:0.85rem; letter-spacing:0.02em; color:var(--text-secondary);">
+                      <span lang="pt">Papel na cadeia</span><span lang="en">Chain role</span>
+                    </label>
+                    <select id="hm-role" style="width:100%; padding:10px 12px; border:1px solid var(--border-default); border-radius:8px; font-size:0.9rem; background:var(--bg-surface); color:var(--text-primary);">
+                      <option value="producer" data-pt="Gerador" data-en="Producer">Producer</option>
+                      <option value="carrier" data-pt="Transportador · Carrier / Notifier" data-en="Carrier / Notifier">Carrier / Notifier</option>
+                      <option value="processor" data-pt="Processador · Triagem" data-en="Processor · Sorter">Processor · Sorter</option>
+                      <option value="recycler" selected data-pt="Reciclador · R3 / Consignee" data-en="Recycler · R3 / Consignee">Recycler · R3 / Consignee</option>
+                      <option value="integrator" data-pt="Integrador · Broker" data-en="Integrator · Broker">Integrator · Broker</option>
+                      <option value="auditor" data-pt="Auditor · VVB" data-en="Auditor · VVB">Auditor · VVB</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="display:block; font-weight:600; margin-bottom:8px; font-size:0.85rem; letter-spacing:0.02em; color:var(--text-secondary);">
+                      <span lang="pt">Jurisdição</span><span lang="en">Jurisdiction</span>
+                    </label>
+                    <select id="hm-juris" style="width:100%; padding:10px 12px; border:1px solid var(--border-default); border-radius:8px; font-size:0.9rem; background:var(--bg-surface); color:var(--text-primary);">
+                      <option value="malta" selected data-pt="🇲🇹 Malta · UE" data-en="🇲🇹 Malta · EU">🇲🇹 Malta · EU</option>
+                      <option value="eu_other" data-pt="🇪🇺 Outros membros UE" data-en="🇪🇺 Other EU members">🇪🇺 Other EU members</option>
+                      <option value="brazil" data-pt="🇧🇷 Brasil" data-en="🇧🇷 Brazil">🇧🇷 Brasil</option>
+                      <option value="latam_gt" data-pt="🇬🇹 Guatemala" data-en="🇬🇹 Guatemala">🇬🇹 Guatemala</option>
+                      <option value="latam" data-pt="🌎 Outros LATAM" data-en="🌎 Other LATAM">🌎 Other LATAM</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="display:block; font-weight:600; margin-bottom:8px; font-size:0.85rem; letter-spacing:0.02em; color:var(--text-secondary);">
+                      <span lang="pt">Módulos regulatórios</span><span lang="en">Regulatory modules</span>
+                    </label>
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                      <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem;"><input type="checkbox" id="hm-mod-pure" checked /> <span><strong>PURE</strong> <span lang="pt">· metodologia base</span><span lang="en">· base methodology</span></span></label>
+                      <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem;"><input type="checkbox" id="hm-mod-eu" checked /> <span><strong>EU 2024/1157</strong></span></label>
+                      <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem;"><input type="checkbox" id="hm-mod-recyclass" /> <span><strong>RecyClass</strong></span></label>
+                    </div>
+                  </div>
+                </div>
+                <div style="margin-top:20px; display:flex; justify-content:flex-end;">
+                  <button id="hm-view-btn" type="button" style="padding:12px 24px; background:var(--accent); color:#fff; border:none; border-radius:8px; font-size:0.9rem; font-weight:600; cursor:pointer;">
+                    <span lang="pt">Ver documentos</span><span lang="en">View documents</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Result: rendered only after clicking "Ver documentos" -->
+              <div id="hm-result" style="display:none;"></div>
+
+              <!-- Fontes -->
+              <div style="background:var(--bg-surface); border:1px solid var(--border-default); border-radius:12px; padding:20px;">
+                <h3 style="margin:0 0 12px 0; font-size:1rem;">
+                  <span lang="pt">Fontes oficiais verificadas em 2026-07-06</span>
+                  <span lang="en">Official sources verified on 2026-07-06</span>
+                </h3>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; font-size:0.85rem;">
+                  <div><strong>WSR 2024/1157</strong><br/><a href="https://eur-lex.europa.eu/eli/reg/2024/1157/oj/eng" target="_blank" rel="noopener" style="color:var(--accent);">eur-lex.europa.eu</a> · <span lang="pt">entrada em vigor 20-mai-2024</span><span lang="en">entry into force 20-May-2024</span></div>
+                  <div><strong>WFD 2008/98/EC</strong><br/><a href="https://eur-lex.europa.eu/eli/dir/2008/98/oj/eng" target="_blank" rel="noopener" style="color:var(--accent);">eur-lex.europa.eu</a></div>
+                  <div><strong>IED 2010/75/EU</strong><br/><a href="https://eur-lex.europa.eu/eli/dir/2010/75/oj/eng" target="_blank" rel="noopener" style="color:var(--accent);">eur-lex.europa.eu</a></div>
+                  <div><strong>Malta ERA</strong><br/><a href="https://era.org.mt" target="_blank" rel="noopener" style="color:var(--accent);">era.org.mt</a> · ERIS · eWASP · ERA COMPLY</div>
+                  <div><strong>Malta MBR</strong><br/><a href="https://mbr.mt" target="_blank" rel="noopener" style="color:var(--accent);">mbr.mt</a> · SL 595.27 · portal BAROS</div>
+                  <div><strong>Malta MTCA</strong> <em style="color:var(--text-secondary); font-style:normal; font-size:0.75rem;">(ex-CFR)</em><br/><a href="https://mtca.gov.mt" target="_blank" rel="noopener" style="color:var(--accent);">mtca.gov.mt</a> · mytax.mtca.gov.mt</div>
+                  <div><strong>Brasil IBAMA CTF</strong><br/><a href="https://www.gov.br/ibama/pt-br/servicos/cadastros/ctf" target="_blank" rel="noopener" style="color:var(--accent);">gov.br/ibama</a> · CTF/APP · CTF/AIDA</div>
+                  <div><strong>Guatemala MARN</strong><br/><a href="https://marn.gob.gt" target="_blank" rel="noopener" style="color:var(--accent);">marn.gob.gt</a> · Acuerdo Gubernativo 164-2021</div>
+                  <div><strong>Guatemala IGSS</strong><br/><a href="https://www.igssgt.org" target="_blank" rel="noopener" style="color:var(--accent);">igssgt.org</a> · Portal Patronos</div>
+                  <div><strong>Basel Convention</strong><br/><a href="https://basel.int" target="_blank" rel="noopener" style="color:var(--accent);">basel.int</a> · Plastic Waste Amendments · 186 partes</div>
+                </div>
+                <p style="margin:16px 0 0 0; font-size:0.75rem; color:var(--text-secondary); line-height:1.5;">
+                  <span lang="pt"><strong>Nota:</strong> ONG (Foundation off-taker) fica fora do MVP (débito futuro). Portais SAT Guatemala + Registro Mercantil Guatemala requerem revalidação antes de comercialização.</span>
+                  <span lang="en"><strong>Note:</strong> NGO (Foundation off-taker) is out of MVP scope (future debt). Guatemala SAT + Commercial Registry portals need re-validation before commercialisation.</span>
+                </p>
+              </div>
+            </div>
+
+            <script>
+              /* ============ HOMOLOG TAB · getDocumentList mirror ============ */
+              (function () {
+                // Espelho do Cadastro.getDocumentList (docs/specs/onboarding-flow/mockup/assets/cadastro.js)
+                // Fonte-of-truth ainda é aquela; este script existe pra visualização standalone no Blueprint.
+                function getDocumentList(role, juris, modules) {
+                  const M = modules || {};
+                  const list = { onboarding: [], termos: [], licencas: [], certidoes: [], descritivos: [] };
+                  // === Nivel 1 · KYC/KYB universal (todos os 7 perfis) ===
+                  const fiscalMap = {
+                    brazil:   { pt: 'Cartão CNPJ · Cadastro Nacional de Pessoa Jurídica', en: 'CNPJ · National Corporate Taxpayer ID', auth: 'Receita Federal' },
+                    malta:    { pt: 'VAT ID Malta · MTCA (formato MT + 8 dígitos)',      en: 'Malta VAT ID · MTCA (format MT + 8 digits)',  auth: 'MTCA (ex-CFR)' },
+                    eu_other: { pt: 'VAT ID nacional · autoridade tributária do MS',     en: 'National VAT ID · Member State tax authority', auth: 'National tax authority' },
+                    latam_gt: { pt: 'NIT · Número de Identificación Tributaria',         en: 'NIT · Tax Identification Number',              auth: 'SAT (portal.sat.gob.gt)' },
+                    latam:    { pt: 'TIN local · Tax Identification Number',             en: 'Local TIN · Tax Identification Number',        auth: 'Autoridade tributária nacional' }
+                  };
+                  const companyMap = {
+                    brazil:   { pt: 'Contrato Social ou Estatuto · Junta Comercial',                                                  en: 'Articles of Association · State Board of Trade',                                    auth: 'Junta Comercial estadual' },
+                    malta:    { pt: 'Memorandum & Articles of Association + Certificate of Registration · MBR (BAROS)',              en: 'Memorandum & Articles of Association + Certificate of Registration · MBR (BAROS)', auth: 'MBR (mbr.mt)' },
+                    eu_other: { pt: 'Trade Register Extract · registro comercial nacional',                                          en: 'Trade Register Extract · national commercial registry',                             auth: 'National commercial registry' },
+                    latam_gt: { pt: 'Escritura de Constitución + Patente · Registro Mercantil',                                      en: 'Deed of Incorporation + Trade Patent · Commercial Registry',                        auth: 'Registro Mercantil (registromercantil.gob.gt)' },
+                    latam:    { pt: 'Escritura de Constitución · registro mercantil nacional',                                       en: 'Deed of Incorporation · national commercial registry',                              auth: 'Registro mercantil do país' }
+                  };
+                  const fid = fiscalMap[juris] || fiscalMap.latam;
+                  const creg = companyMap[juris] || companyMap.latam;
+                  list.onboarding.push(
+                    { id: 'kyc_declarant', pt: 'KYC do declarante · identidade + selfie biométrica + comprovante residência', en: 'Declarant KYC · ID + biometric selfie + proof of residence', req: true, auth: 'Fluxo próprio Impactrakr (representante.html)' },
+                    { id: 'fiscal_id',  pt: fid.pt,  en: fid.en,  req: true, auth: fid.auth },
+                    { id: 'company_reg', pt: creg.pt, en: creg.en, req: true, auth: creg.auth }
+                  );
+
+                  // === Nivel 2 leve · termos por role ===
+                  if (role === 'producer') {
+                    list.termos.push({ id: 'termo_aceite_producer', pt: 'Termo de Aceite · autoriza uso e exposição dos dados no processo dMRV', en: 'Acceptance Terms · authorises use and exposure of data in the dMRV process', req: true, auth: 'Declarante (assina digitalmente)' });
+                  }
+                  if (role === 'carrier') {
+                    list.termos.push({ id: 'termo_aceite_carrier', pt: 'Termo de Aceite · autoriza uso e exposição dos dados no processo dMRV', en: 'Acceptance Terms · authorises use and exposure of data in the dMRV process', req: true, auth: 'Declarante (assina digitalmente)' });
+                  }
+                  if (role === 'integrator') {
+                    list.termos.push({ id: 'termo_uso_integrator', pt: 'Termo de Uso + Integração com a plataforma Impactrakr', en: 'Terms of Use + Platform Integration Agreement', req: true, auth: 'Representante legal + área comercial' });
+                  }
+                  if (role === 'auditor') {
+                    list.termos.push(
+                      { id: 'iso_accreditation_auditor', pt: 'Acreditação ISO 17020 ou ISO 17065 · via ente signatário IAF/EA MLA', en: 'ISO 17020 or ISO 17065 accreditation · via IAF/EA MLA signatory', req: true, auth: 'INMETRO/Cgcre (BR), NAB Malta, OGA (GT), etc.' },
+                      { id: 'termo_uso_auditor', pt: 'Termo de Uso da plataforma como auditor homologado', en: 'Platform Terms of Use as accredited auditor', req: true, auth: 'Representante legal' },
+                      { id: 'declaracao_independencia', pt: 'Declaração de independência · sem conflito com auditado', en: 'Independence declaration · no conflict with audited party', req: true, auth: 'Declarante (assina digitalmente)' }
+                    );
+                  }
+
+                  // === Nivel 2 pesado · so recycler + processor ===
+                  const isHeavyRole = (role === 'recycler' || role === 'processor');
+                  if (!isHeavyRole) return list;
+                  if (juris === 'brazil') {
+                    list.licencas.push(
+                      { id: 'alvara', pt: 'Alvará de Funcionamento', en: 'Operating Permit', req: true, auth: 'Prefeitura Municipal' },
+                      { id: 'avcb', pt: 'AVCB · Auto de Vistoria do Corpo de Bombeiros', en: 'Fire Safety Certificate (AVCB)', req: true, auth: 'Corpo de Bombeiros estadual' },
+                      { id: 'ibama_cert', pt: 'Certificado de Regularidade do IBAMA · CTF/APP', en: 'IBAMA Regularity Certificate · CTF/APP', req: true, auth: 'IBAMA' },
+                      { id: 'licenca_ambiental', pt: 'Licença Ambiental de Operação · LAO', en: 'Environmental Operating Permit', req: true, auth: 'Órgão ambiental estadual' },
+                      { id: 'calibracao_balanca', pt: 'Certificado de Calibração da Balança (se houver)', en: 'Scale Calibration Certificate (if applicable)', req: false, auth: 'INMETRO/RBC ou laboratório acreditado' }
+                    );
+                    list.certidoes.push(
+                      { id: 'cnd_federal', pt: 'CND Débitos Federais (Receita + PGFN)', en: 'Federal Tax Clearance', req: true, auth: 'Receita Federal / PGFN' },
+                      { id: 'cnd_estadual', pt: 'CND Débitos Estaduais (SEFAZ)', en: 'State Tax Clearance', req: true, auth: 'SEFAZ estadual' },
+                      { id: 'cnd_municipal', pt: 'CND Débitos Municipais', en: 'Municipal Tax Clearance', req: true, auth: 'Fisco municipal' },
+                      { id: 'cnd_fgts', pt: 'CND FGTS (CRF · Caixa)', en: 'FGTS Clearance', req: true, auth: 'Caixa Econômica Federal' },
+                      { id: 'cnd_cndt', pt: 'CNDT · Certidão Negativa de Débitos Trabalhistas', en: 'Labour Court Clearance (CNDT)', req: true, auth: 'TST' },
+                      { id: 'cnd_ibama', pt: 'CND IBAMA · sem autuações ambientais', en: 'IBAMA Sanctions Clearance', req: true, auth: 'IBAMA' }
+                    );
+                  }
+                  if (juris === 'malta' || juris === 'eu_other') {
+                    const isMalta = juris === 'malta';
+                    list.licencas.push(
+                      { id: 'trade_licence', pt: isMalta ? 'Trading Licence · Commerce Department Malta' : 'Trade Licence · Local Council', en: isMalta ? 'Trading Licence · Commerce Dept Malta' : 'Trade Licence · Local Council', req: true, auth: isMalta ? 'Commerce Department Malta' : 'Local Council' },
+                      { id: 'fire_safety', pt: isMalta ? 'Fire Safety Certificate · CPD Malta' : 'Fire Safety Certificate · autoridade nacional', en: isMalta ? 'Fire Safety Certificate · CPD Malta' : 'Fire Safety Certificate', req: true, auth: isMalta ? 'Civil Protection Dept Malta' : 'National fire authority' },
+                      { id: 'env_operator_reg', pt: isMalta ? 'ERA Operator Registration' : 'National Environmental Agency Registration', en: isMalta ? 'ERA Operator Registration' : 'Environmental Agency Registration', req: true, auth: isMalta ? 'ERA (era.org.mt)' : 'National Env Agency' },
+                      { id: 'env_permit', pt: isMalta ? 'Environmental Permit · ERA · classe R3' : 'IPPC Permit · Waste Treatment Permit (Art. 23 WFD)', en: isMalta ? 'Environmental Permit · ERA · R3 class' : 'IPPC / Waste Treatment Permit', req: true, auth: isMalta ? 'ERA' : 'National permit authority (WFD Art. 23)' }
+                    );
+                    if (role === 'carrier' || role === 'recycler' || role === 'processor') {
+                      list.licencas.push({ id: 'eori', pt: 'EORI Number · Economic Operators Registration', en: 'EORI Number', req: true, auth: 'MTCA (Malta) / national customs authority' });
+                    }
+                    if (M.eu) {
+                      list.licencas.push({ id: 'wsr_notif', pt: 'WSR Notification Number · Reg EU 2024/1157 Art. 4 (se cross-border)', en: 'WSR Notification Number · EU Reg 2024/1157 Art. 4 (if cross-border)', req: false, auth: 'National competent authority under WSR' });
+                    }
+                    list.certidoes.push(
+                      { id: 'tax_clearance_nat', pt: isMalta ? 'MTCA Tax Compliance Certificate' : 'National Tax Clearance', en: isMalta ? 'MTCA Tax Compliance Certificate' : 'National Tax Clearance', req: true, auth: isMalta ? 'MTCA (ex-CFR)' : 'National tax authority' },
+                      { id: 'tax_clearance_local', pt: 'Local Council Tax Clearance', en: 'Local Council Tax Clearance', req: true, auth: 'Local Council' },
+                      { id: 'ss_clearance', pt: isMalta ? 'DSS Social Security Clearance' : 'Social Security Clearance', en: isMalta ? 'DSS Social Security Clearance' : 'Social Security Clearance', req: true, auth: isMalta ? 'Department of Social Security Malta' : 'National SS authority' },
+                      { id: 'labour_tribunal', pt: isMalta ? 'Industrial Tribunal Clearance' : 'Labour Tribunal Clearance', en: isMalta ? 'Industrial Tribunal Clearance' : 'Labour Tribunal Clearance', req: true, auth: isMalta ? 'Industrial Tribunal Malta' : 'Labour tribunal' },
+                      { id: 'era_compliance', pt: isMalta ? 'ERA Compliance Certificate · sem multas' : 'Environmental Agency Compliance · sem sanções pendentes', en: isMalta ? 'ERA Compliance Certificate' : 'Environmental Agency Compliance', req: true, auth: isMalta ? 'ERA' : 'National Env Agency' },
+                      { id: 'vat_clearance', pt: 'VAT Clearance (cross-border)', en: 'VAT Clearance (cross-border)', req: false, auth: isMalta ? 'MTCA' : 'National tax authority' }
+                    );
+                  }
+                  if (juris === 'latam_gt') {
+                    list.licencas.push(
+                      { id: 'patente_comercio_gt', pt: 'Patente de Comercio · Registro Mercantil', en: 'Trade Patent · Commercial Registry', req: true, auth: 'Registro Mercantil (registromercantil.gob.gt)' },
+                      { id: 'licencia_ambiental_gt', pt: 'Licencia Ambiental · MARN · Acuerdo Gubernativo 164-2021', en: 'Environmental Licence · MARN', req: true, auth: 'MARN (marn.gob.gt) · Acuerdo 164-2021' },
+                      { id: 'eia_gt', pt: 'Estudio de Impacto Ambiental (EIA) aprobado', en: 'Environmental Impact Study (EIA) approved', req: true, auth: 'MARN' },
+                      { id: 'conred_bomberos_gt', pt: 'Permiso de Bomberos / Conred', en: 'Fire and Emergency Permit (Conred)', req: true, auth: 'Conred / Bomberos Municipales' },
+                      { id: 'calibracao_balanca_gt', pt: 'Certificado de Calibración de Báscula (se houver)', en: 'Scale Calibration Certificate (if applicable)', req: false, auth: 'Laboratório acreditado por OGA' }
+                    );
+                    list.certidoes.push(
+                      { id: 'solvencia_fiscal_gt', pt: 'Solvencia Fiscal · SAT', en: 'Tax Solvency Certificate · SAT', req: true, auth: 'SAT (portal.sat.gob.gt)' },
+                      { id: 'igss_patronal_gt', pt: 'Constancia de Registro Patronal · IGSS', en: 'IGSS Employer Registration Certificate', req: true, auth: 'IGSS (igssgt.org)' },
+                      { id: 'solvencia_municipal_gt', pt: 'Solvencia Municipal', en: 'Municipal Solvency', req: true, auth: 'Municipalidad' }
+                    );
+                  }
+                  if (juris === 'latam') {
+                    list.licencas.push(
+                      { id: 'commercial_perm', pt: 'Permiso Comercial (local)', en: 'Local Commercial Permit', req: true, auth: 'Autoridad municipal local' },
+                      { id: 'env_permit_latam', pt: 'Licencia Ambiental (Ministerio del Ambiente local)', en: 'Environmental Permit (Ministry of Environment)', req: true, auth: 'Ministerio del Ambiente do país' }
+                    );
+                    list.certidoes.push(
+                      { id: 'tax_clear_latam', pt: 'Solvencia Fiscal (autoridad tributaria)', en: 'Tax Solvency Certificate', req: true, auth: 'Autoridade tributária nacional' },
+                      { id: 'ss_clear_latam', pt: 'Solvencia Seguridad Social', en: 'Social Security Clearance', req: true, auth: 'Autoridade de seguridade social nacional' }
+                    );
+                  }
+                  // Descritivos aplicam a recycler + processor em qualquer juris
+                  list.descritivos.push(
+                    { id: 'descritivo_r3', pt: 'Descritivo Operacional da Instalação R3', en: 'R3 Recovery Operation Description', req: true, auth: 'Operador (auto-declarado, validado por auditoria)' },
+                    { id: 'declaracao_unif', pt: 'Declaração Unificada de Conformidade e Procedimentos', en: 'Unified Declaration of Conformity and Procedures', req: true, auth: 'Representante legal (auto-declarado)' },
+                    { id: 'project_boundary', pt: 'Planilha de Limite do Projeto · rotas cross-border (se >200km)', en: 'Project Boundary Worksheet · cross-border routes (if >200km)', req: false, auth: 'Operador (auto-declarado)' }
+                  );
+                  return list;
+                }
+
+                const roleSel = document.getElementById('hm-role');
+                const jurisSel = document.getElementById('hm-juris');
+                const modPure = document.getElementById('hm-mod-pure');
+                const modEu = document.getElementById('hm-mod-eu');
+                const modRc = document.getElementById('hm-mod-recyclass');
+                const resultEl = document.getElementById('hm-result');
+                const viewBtn = document.getElementById('hm-view-btn');
+                let hasRendered = false;
+
+                function currentLang() {
+                  const html = document.documentElement;
+                  if (html.getAttribute('data-lang') === 'en') return 'en';
+                  if (html.classList.contains('lang-en')) return 'en';
+                  const bodyLang = html.getAttribute('lang');
+                  if (bodyLang === 'en') return 'en';
+                  return 'pt';
+                }
+
+                function renderColumn(title, docs, lang) {
+                  const empty = lang === 'pt' ? '<em style="color:var(--text-secondary); font-size:0.85rem;">Nenhum documento nesta família para essa combinação.</em>' : '<em style="color:var(--text-secondary); font-size:0.85rem;">No document in this family for this combination.</em>';
+                  const items = docs.length === 0 ? empty : docs.map((d) => {
+                    const label = lang === 'pt' ? d.pt : d.en;
+                    const reqBadge = d.req
+                      ? '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; background:oklch(85% 0.10 140); color:oklch(30% 0.10 140); font-size:0.7rem; font-weight:600;">' + (lang === 'pt' ? 'obrigatório' : 'required') + '</span>'
+                      : '<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; background:oklch(90% 0.03 80); color:oklch(45% 0.05 80); font-size:0.7rem; font-weight:600;">' + (lang === 'pt' ? 'opcional' : 'optional') + '</span>';
+                    return '<li style="padding:12px 0; border-bottom:1px solid var(--border-default);">'
+                      + '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:4px;">'
+                      + '<div style="font-weight:600; font-size:0.88rem; color:var(--text-primary);">' + label + '</div>'
+                      + reqBadge
+                      + '</div>'
+                      + '<div style="font-size:0.75rem; color:var(--text-secondary); font-family:ui-monospace, monospace;">' + d.id + '</div>'
+                      + '<div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">' + (lang === 'pt' ? 'Autoridade: ' : 'Authority: ') + d.auth + '</div>'
+                      + '</li>';
+                  }).join('');
+                  return '<div style="background:var(--bg-surface); border:1px solid var(--border-default); border-radius:12px; padding:20px;">'
+                    + '<h3 style="margin:0 0 4px 0; font-size:0.95rem;">' + title + '</h3>'
+                    + '<div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:12px;">' + docs.length + ' ' + (lang === 'pt' ? 'documento(s)' : 'document(s)') + '</div>'
+                    + '<ul style="list-style:none; margin:0; padding:0;">' + items + '</ul>'
+                    + '</div>';
+                }
+
+                function applyLangToOptions(sel, lang) {
+                  Array.prototype.forEach.call(sel.options, function (opt) {
+                    const t = opt.getAttribute('data-' + lang);
+                    if (t !== null) opt.textContent = t;
+                  });
+                }
+
+                // Renderiza APENAS as familias que tem documentos. Sem rotulos Nivel 1/2.
+                // Ordem visual: Onboarding, Termos, Licencas, Certidoes, Descritivos.
+                function familyTitle(key, lang) {
+                  const t = {
+                    onboarding:  { pt: 'Onboarding · KYC/KYB', en: 'Onboarding · KYC/KYB' },
+                    termos:      { pt: 'Termos',                en: 'Terms' },
+                    licencas:    { pt: 'Licenças',              en: 'Licences' },
+                    certidoes:   { pt: 'Certidões',             en: 'Clearances' },
+                    descritivos: { pt: 'Descritivos',           en: 'Descriptions' }
+                  };
+                  return (t[key] || {})[lang] || key;
+                }
+
+                function render() {
+                  hasRendered = true;
+                  const role = roleSel.value;
+                  const juris = jurisSel.value;
+                  const modules = { pure: modPure.checked, eu: modEu.checked, recyclass: modRc.checked };
+                  const lang = currentLang();
+                  applyLangToOptions(roleSel, lang);
+                  applyLangToOptions(jurisSel, lang);
+                  const list = getDocumentList(role, juris, modules);
+                  const total = list.onboarding.length + list.termos.length + list.licencas.length + list.certidoes.length + list.descritivos.length;
+                  const reqCount = list.onboarding.filter(d => d.req).length + list.termos.filter(d => d.req).length + list.licencas.filter(d => d.req).length + list.certidoes.filter(d => d.req).length + list.descritivos.filter(d => d.req).length;
+                  const activeMods = Object.entries(modules).filter(([k, v]) => v).map(([k]) => k.toUpperCase()).join(' + ') || (lang === 'pt' ? 'nenhum' : 'none');
+                  const roleLabel = roleSel.options[roleSel.selectedIndex].text;
+                  const jurisLabel = jurisSel.options[jurisSel.selectedIndex].text;
+
+                  const headline = '<div style="padding:16px 20px; background:var(--bg-subtle); border:1px solid var(--border-default); border-radius:12px; margin-bottom:20px;">'
+                    + '<div style="font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-secondary); margin-bottom:6px;">' + (lang === 'pt' ? 'Documentos exigidos' : 'Required documents') + '</div>'
+                    + '<div style="font-size:1.05rem; font-weight:600; color:var(--text-primary);">'
+                    + roleLabel + ' · ' + jurisLabel + ' · '
+                    + (lang === 'pt' ? 'módulos ' : 'modules ') + activeMods
+                    + '</div>'
+                    + '<div style="font-size:0.85rem; color:var(--text-secondary); margin-top:6px;">'
+                    + '<strong>' + total + '</strong> ' + (lang === 'pt' ? 'documentos' : 'documents')
+                    + ' · ' + reqCount + ' ' + (lang === 'pt' ? 'obrigatórios' : 'required')
+                    + '</div>'
+                    + '</div>';
+
+                  // Renderiza apenas as familias que existem para essa combinacao
+                  const families = ['onboarding', 'termos', 'licencas', 'certidoes', 'descritivos'];
+                  const columns = families
+                    .filter(k => list[k] && list[k].length > 0)
+                    .map(k => renderColumn(familyTitle(k, lang), list[k], lang))
+                    .join('');
+
+                  resultEl.style.display = 'grid';
+                  resultEl.style.gridTemplateColumns = 'repeat(auto-fit, minmax(320px, 1fr))';
+                  resultEl.style.gap = '20px';
+                  resultEl.style.marginBottom = '20px';
+                  resultEl.innerHTML = '<div style="grid-column:1/-1;">' + headline + '</div>' + columns;
+
+                  // Rola suavemente até os resultados apos o click
+                  try { resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+                }
+
+                function clearResult() {
+                  hasRendered = false;
+                  resultEl.style.display = 'none';
+                  resultEl.innerHTML = '';
+                }
+
+                // Clique no botao "Ver documentos" dispara render com filtros atuais
+                viewBtn.addEventListener('click', render);
+
+                // Qualquer mudanca nos filtros esconde o resultado ate um novo clique.
+                // Comportamento de painel de filtro: nao aplica ate voce apertar o botao.
+                roleSel.addEventListener('change', clearResult);
+                jurisSel.addEventListener('change', clearResult);
+                modPure.addEventListener('change', clearResult);
+                modEu.addEventListener('change', clearResult);
+                modRc.addEventListener('change', clearResult);
+
+                // Toggle EN/PT so re-renderiza se resultado ja estiver visivel
+                // (nao esconde no toggle, apenas troca idioma)
+                const langObserver = new MutationObserver(() => {
+                  const pane = document.getElementById('pane-homolog');
+                  if (pane && pane.classList.contains('active') && hasRendered) render();
+                });
+                langObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-lang', 'class', 'lang'] });
+
+                // Estado inicial: area de resultados escondida.
+                // Usuario escolhe papel/juris/modulos e clica em "Ver documentos".
+              })();
+            </script>
+          </div>
 
           <!-- ============ FOOTER ============ -->
           <footer class="footer">
