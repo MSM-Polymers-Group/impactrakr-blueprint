@@ -15569,18 +15569,23 @@
           "EU"
         ]
       },
-      "purpose": "Detecta uso incoerente de um WTN digital estruturado: quando o mesmo shipment (identificado no chain-of-custody do MassID) e o WTN divergem sobre as tres partes contratuais (generator, hauler, recycler), esse e sinal forte de que o WTN foi vinculado ao MassID errado, ou que houve erro na ingestao. EU-09 responde apenas a pergunta que so ela pode responder: quando ambos os lados tem valor, eles concordam? Verificacao de 'campo obrigatorio faltando no WTN' e delegada a EU-08 (WTN data completeness), que conhece o schema jurisdicional aplicavel (ADR-062). Cross-check formaliza a obrigacao de rastreabilidade do WFD Art. 35(1).",
-      "logic_human": "SKIP se MassID.domesticTransfer != TRUE. SKIP se nao ha DIGITAL_EQUIVALENT anexado ou se ele nao carrega payload WTN estruturado. Para cada role (generator/hauler/recycler): se ambos os lados (WTN e chain) tem valor -> comparar; se diferem, contribuir mismatch. Se um dos lados e null, contribuir SKIP dessa role (delegado a EU-08 completeness). BLOCK se ha pelo menos um mismatch. PASS se ha pelo menos uma role comparavel e nenhum mismatch. SKIP com mensagem apontando EU-08 se todas as roles nao sao comparaveis.",
-      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-09'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  const wtn = await ctx.db.document.findFirst({ where: {\n    massidId: massid.id,\n    type: { in: ['waste_transfer_note', 'digital_equivalent'] }\n  }});\n  if (!wtn) return ctx.skip({ reason: 'EU-07 covers existence.' });\n  const wtnParties = wtn.payload?.parties || {};\n  const chain = { generatorId: massid.generatorId, haulerId: massid.haulerId, recyclerId: massid.recyclerId };\n  const mismatches = [];\n  for (const role of ['generatorId', 'haulerId', 'recyclerId']) {\n    if (wtnParties[role] && chain[role] && wtnParties[role] !== chain[role]) {\n      mismatches.push({ role, wtn: wtnParties[role], chain: chain[role] });\n    }\n  }\n  if (mismatches.length) {\n    return ctx.fail({ ruleId: 'EU-09', severity: 'BLOCK',\n      message: `WTN parties mismatch MassID chain: ${mismatches.map(m => `${m.role} wtn=${m.wtn} vs chain=${m.chain}`).join('; ')}`,\n      field: 'parties' });\n  }\n  return ctx.pass({ ruleId: 'EU-09' });\n}",
+      "purpose": "Detecta uso incoerente de um WTN digital estruturado: quando o mesmo shipment (identificado no chain-of-custody do MassID) e o WTN divergem sobre as tres partes contratuais (generator, hauler, recycler), esse e sinal forte de que o WTN foi vinculado ao MassID errado, ou que houve erro na ingestao. EU-09 responde apenas a pergunta que so ela pode responder: quando ambos os lados tem valor, eles concordam? Como o DIGITAL_EQUIVALENT e substituto Annex VII sob DIWASS phase-in (EU-10), o WTN carrega identificadores oficiais das partes (Tax ID e/ou Company Registration), NAO UUIDs internos. A comparacao e feita contra os campos oficiais cadastrados do Participant correspondente na plataforma (Participant.fiscalId e Participant.companyRegistration - Nivel 1 KYB universal por juris). Verificacao de 'campo obrigatorio faltando no WTN' e delegada a EU-08 (WTN data completeness), que conhece o schema jurisdicional aplicavel (ADR-062). Cross-check formaliza a obrigacao de rastreabilidade do WFD Art. 35(1).",
+      "logic_human": "SKIP se MassID.domesticTransfer != TRUE. SKIP se nao ha DIGITAL_EQUIVALENT anexado ou se ele nao carrega payload WTN estruturado. Para cada role (generator/hauler/recycler): resolver Participant correspondente (via MassID.generatorId, MassID.haulerId, MassID.recyclerId - UUIDs internos) e obter Participant.fiscalId + Participant.companyRegistration. Ler wtn.parties[role].taxId e wtn.parties[role].companyRegistration. Role e considerada MATCH se pelo menos um dos identificadores (fiscalId OU companyRegistration) bate entre payload e Participant. Role e considerada MISMATCH somente quando AMBOS os identificadores existem nos dois lados E AMBOS divergem. Role e SKIP se nenhum dos dois identificadores existe em ambos os lados (delegado a EU-08 completeness). BLOCK se ha pelo menos um mismatch. PASS se ha pelo menos uma role comparavel e nenhum mismatch. SKIP com mensagem apontando EU-08 se todas as roles nao sao comparaveis.",
+      "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-09'>): Promise<RuleResult> {\n  const massid = await ctx.db.massid.findById(ctx.input.massidId);\n  const wtn = await ctx.db.document.findFirst({ where: {\n    massidId: massid.id,\n    type: { in: ['waste_transfer_note', 'digital_equivalent'] }\n  }});\n  if (!wtn) return ctx.skip({ reason: 'EU-07 covers existence.' });\n  const wtnParties = wtn.payload?.parties || {};\n  const roles = [\n    { key: 'generator', participantId: massid.generatorId },\n    { key: 'hauler',    participantId: massid.haulerId },\n    { key: 'recycler',  participantId: massid.recyclerId }\n  ];\n  const mismatches = [];\n  let comparableRoles = 0;\n  for (const r of roles) {\n    const participant = r.participantId\n      ? await ctx.db.participant.findById(r.participantId)\n      : null;\n    const chainFiscal   = participant?.fiscalId || null;\n    const chainCompany  = participant?.companyRegistration || null;\n    const wtnFiscal     = wtnParties[r.key]?.taxId || null;\n    const wtnCompany    = wtnParties[r.key]?.companyRegistration || null;\n    const fiscalPair    = wtnFiscal  && chainFiscal;\n    const companyPair   = wtnCompany && chainCompany;\n    if (!fiscalPair && !companyPair) continue; // SKIP role (delegated to EU-08)\n    comparableRoles += 1;\n    const fiscalMatch  = fiscalPair  ? wtnFiscal  === chainFiscal  : null;\n    const companyMatch = companyPair ? wtnCompany === chainCompany : null;\n    // MATCH if at least one identifier pair matches; MISMATCH only if BOTH pairs exist and BOTH diverge\n    if (fiscalMatch === true || companyMatch === true) continue;\n    if (fiscalMatch === false && companyMatch === false) {\n      mismatches.push({ role: r.key, wtnFiscal, chainFiscal, wtnCompany, chainCompany });\n    }\n  }\n  if (mismatches.length) {\n    return ctx.fail({ ruleId: 'EU-09', severity: 'BLOCK',\n      message: `WTN parties mismatch Participant chain on ${mismatches.map(m => `${m.role} (wtn taxId=${m.wtnFiscal}/reg=${m.wtnCompany} vs participant taxId=${m.chainFiscal}/reg=${m.chainCompany})`).join('; ')}`,\n      field: 'parties' });\n  }\n  if (comparableRoles === 0) {\n    return ctx.skip({ ruleId: 'EU-09', reason: 'No overlapping identifiers between WTN and chain; delegated to EU-08 for completeness.' });\n  }\n  return ctx.pass({ ruleId: 'EU-09' });\n}",
       "fields": {
         "reads": [
           "MassID.domesticTransfer",
           "MassID.generatorId",
           "MassID.haulerId",
           "MassID.recyclerId",
-          "Attachment[type=DIGITAL_EQUIVALENT].wtn.wtnGeneratorId",
-          "Attachment[type=DIGITAL_EQUIVALENT].wtn.wtnHaulerId",
-          "Attachment[type=DIGITAL_EQUIVALENT].wtn.wtnRecyclerId"
+          "Participant.fiscalId",
+          "Participant.companyRegistration",
+          "Attachment[type=DIGITAL_EQUIVALENT].wtn.parties.generator.taxId",
+          "Attachment[type=DIGITAL_EQUIVALENT].wtn.parties.generator.companyRegistration",
+          "Attachment[type=DIGITAL_EQUIVALENT].wtn.parties.hauler.taxId",
+          "Attachment[type=DIGITAL_EQUIVALENT].wtn.parties.hauler.companyRegistration",
+          "Attachment[type=DIGITAL_EQUIVALENT].wtn.parties.recycler.taxId",
+          "Attachment[type=DIGITAL_EQUIVALENT].wtn.parties.recycler.companyRegistration"
         ],
         "writes": [
           "ValidationResult"
@@ -15593,10 +15598,10 @@
         }
       ],
       "messages": {
-        "block_pt": "As partes do documento de transferencia de residuo (WTN) nao batem com a cadeia registrada. Verifique se o WTN pertence a este envio.",
-        "block_en": "The parties on the waste transfer note do not match the recorded chain. Check that the note belongs to this shipment.",
-        "skip_pt": "Nao aplicavel - o WTN e a cadeia nao tem identificadores de parte sobrepostos para comparar. Campos ausentes no WTN sao verificados pela EU-08.",
-        "skip_en": "Not applicable - the note and the chain have no overlapping party identifiers to compare. Missing fields on the note are checked by EU-08."
+        "block_pt": "Os identificadores fiscais e de registro comercial das partes no documento de transferencia (WTN) nao batem com os dados cadastrados dos Participantes na plataforma. Verifique se o WTN pertence a este envio.",
+        "block_en": "The fiscal and company registration identifiers of parties on the waste transfer note do not match the Participants registered on the platform. Check that the note belongs to this shipment.",
+        "skip_pt": "Nao aplicavel - o WTN e o cadastro dos Participantes nao tem identificadores fiscais ou de registro comercial sobrepostos para comparar. Campos ausentes no WTN sao verificados pela EU-08.",
+        "skip_en": "Not applicable - the note and the Participant registration have no overlapping fiscal or company registration identifiers to compare. Missing fields on the note are checked by EU-08."
       },
       "behavior": {
         "idempotent": true,
@@ -15609,28 +15614,35 @@
       },
       "test_cases": {
         "positive": {
-          "name": "Parties batem com chain",
-          "given": "WTN.parties.{generatorId, haulerId, recyclerId} === MassID chain.",
+          "name": "Fiscal ID e Company Registration batem em todos os roles",
+          "given": "Para cada role, wtn.parties[role].taxId === Participant.fiscalId AND wtn.parties[role].companyRegistration === Participant.companyRegistration.",
           "expected": "PASS."
         },
         "negative": [
           {
-            "name": "Hauler diferente",
-            "given": "WTN.parties.haulerId = 'H-002', MassID.haulerId = 'H-001'.",
-            "expected": "BLOCK 'WTN parties mismatch MassID chain: haulerId wtn=H-002 vs chain=H-001'."
+            "name": "Hauler com taxId e companyRegistration divergentes",
+            "given": "wtn.parties.hauler.taxId='MT99999999' + wtn.parties.hauler.companyRegistration='C 99999'; Participant(haulerId).fiscalId='MT12345678' + Participant(haulerId).companyRegistration='C 55123'.",
+            "expected": "BLOCK. Mensagem cita hauler com ambos os pares divergentes."
           },
           {
-            "name": "Recycler diferente",
-            "given": "WTN.parties.recyclerId ≠ MassID.recyclerId.",
-            "expected": "BLOCK."
+            "name": "Recycler com apenas Tax ID divergente (companyRegistration bate)",
+            "given": "wtn.parties.recycler.taxId='MT99999999'; Participant.fiscalId='MT12345678'; wtn.parties.recycler.companyRegistration='C 55123' === Participant.companyRegistration='C 55123'.",
+            "expected": "PASS na role recycler (pelo menos um identificador bate). Segue avaliando outras roles."
+          },
+          {
+            "name": "Todas as roles sem identificadores sobrepostos",
+            "given": "wtn.parties.{generator,hauler,recycler} sem taxId nem companyRegistration; ou Participants sem fiscalId nem companyRegistration cadastrado.",
+            "expected": "SKIP com mensagem apontando EU-08."
           }
         ]
       },
       "edge_cases": [
-        "Ambos os lados non-null e iguais -> role contribui PASS.",
-        "Ambos non-null e diferentes -> role contribui FAIL (mismatch reportado com nome de role e ambos os valores).",
-        "Um lado null, outro non-null -> role contribui SKIP (delegado a EU-08 para decidir se e mandatorio).",
-        "Ambos null -> role contribui SKIP (nada a comparar; EU-08 decide mandatoriedade pelo standard).",
+        "Ambos os identificadores existem nos dois lados E ambos batem -> role MATCH (contribui PASS).",
+        "Apenas um dos identificadores (fiscalId OU companyRegistration) existe em ambos os lados e bate -> role MATCH.",
+        "Ambos os identificadores existem nos dois lados E ambos divergem -> role MISMATCH (BLOCK).",
+        "Ambos os identificadores existem nos dois lados, um bate e outro diverge -> role MATCH (regra do 'pelo menos um bate' evita falso positivo por dado historico ou renomeacao).",
+        "Nenhum identificador em pares comparaveis -> role SKIP (delegado a EU-08 para decidir se e mandatorio).",
+        "Participant nao encontrado por UUID (MassID.generatorId null) -> role SKIP.",
         "Todas as tres roles resultam em SKIP -> outcome geral SKIP com mensagem apontando EU-08 (nao silent PASS).",
         "String vazia e tratada como null para nao fabricar mismatch quando o pipeline vem com placeholder vazio."
       ],
