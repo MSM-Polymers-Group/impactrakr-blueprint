@@ -17232,7 +17232,7 @@
           "EU"
         ]
       },
-      "purpose": "Garante que os timestamps dos eventos seguem ordem cronológica lógica: pickup ≤ transport_start ≤ delivery ≤ processing ≤ recycling. Datas fora de ordem indicam: (a) backdating fraudulent, (b) erro de input do operador, ou (c) bug de sync entre devices. Em qualquer caso, BV reprova e o credit fica suspect. Sem este gate, o pipeline aceita timelines inconsistentes que invalidam a prova de cadeia.",
+      "purpose": "Garante que os timestamps dos eventos seguem ordem cronológica lógica: pickup ≤ transport_start ≤ reception ≤ processing ≤ recycling (E1/E2/E4/E6/E7). Datas fora de ordem indicam: (a) backdating fraudulent, (b) erro de input do operador, ou (c) bug de sync entre devices. Além da ordem, a cadeia inteira precisa caber num teto de um ano (MAX_CHAIN_SPREAD_DAYS = 365), ancorado no WSR (EU) 2024/1157 Art. 18(6) — recovery não concluído em um ano do dispatch aciona a obrigação de take-back. Com menos de dois estágios datados a regra não tem o que comparar e retorna SKIP (não mais PASS silencioso). Sem este gate, o pipeline aceita timelines inconsistentes ou fora do teto regulatório, que invalidam a prova de cadeia. E3 (BaleSampling) e E5 (BlendComposition) ficam fora do CHAIN_ORDER por ora — E5 em particular consome massa de múltiplos MassIDs (ADR-086/087) e não tem posição única na linha do tempo de um único MassID; extensão fica pra Fase 2, alinhada com o dono do event catalog.",
       "logic_human": "BLOCK se sequência de event_dates do MassID não obedece a regra pickup ≤ transport ≤ delivery ≤ processing ≤ recycling.",
       "logic_pseudocode": "async function evaluate(ctx: RuleContext<'EU-18'>): Promise<RuleResult> {\n  const events = await ctx.db.massidEvent.findMany({\n    where: { massidId: ctx.input.massidId },\n    orderBy: { type: 'asc' }\n  });\n  const ORDER = ['pickup', 'transport_start', 'delivery', 'processing', 'recycling'];\n  const dated = ORDER\n    .map(t => events.find(e => e.type === t))\n    .filter(e => e && e.occurredAt);\n  for (let i = 1; i < dated.length; i++) {\n    if (dated[i].occurredAt < dated[i-1].occurredAt) {\n      return ctx.fail({ ruleId: 'EU-18', severity: 'BLOCK',\n        message: `Date continuity violation: ${dated[i].type} (${dated[i].occurredAt.toISOString()}) before ${dated[i-1].type} (${dated[i-1].occurredAt.toISOString()})`,\n        field: 'occurredAt' });\n    }\n  }\n  return ctx.pass({ ruleId: 'EU-18' });\n}",
       "fields": {
@@ -17246,8 +17246,8 @@
       },
       "evidence": [],
       "messages": {
-        "block_pt": "Datas dos eventos fora de ordem cronológica. Verifique pickup, transporte, entrega, processamento e reciclagem — devem ser ascendentes.",
-        "block_en": "Event dates out of chronological order. Review pickup, transport, delivery, processing and recycling — must be ascending."
+        "block_pt": "Datas dos eventos fora de ordem cronológica, ou cadeia excede o teto de um ano (WSR Art. 18(6)). Verifique pickup, transporte, recepção, processamento e reciclagem — devem ser ascendentes e caber em 365 dias.",
+        "block_en": "Event dates out of chronological order, or the chain exceeds the one-year ceiling (WSR Art. 18(6)). Review pickup, transport, reception, processing and recycling — must be ascending and fit within 365 days."
       },
       "behavior": {
         "idempotent": true,
@@ -17280,8 +17280,12 @@
       "edge_cases": [
         "Pickup e transport_start podem coincidir (mesmo timestamp) — aceito como ≤.",
         "Processing/recycling em batch (vários MassIDs ao mesmo tempo) compartilham mesmo timestamp — aceito.",
-        "Timezone: tudo em UTC para evitar invented gaps por DST.",
-        "Eventos opcionais (sem processor): pular gap sem block."
+        "Timezone: tudo em UTC (.getTime(), epoch ms) para evitar invented gaps por DST.",
+        "Eventos opcionais/intermediários ausentes (ex.: sem processor): estágio é descartado da comparação antes da checagem de ordem, sem gerar block por si só.",
+        "Menos de dois estágios datados no total (0 ou 1): SKIP explícito, não PASS — não há o que comparar.",
+        "Duplicata num mesmo estágio (ex.: dois eventos E1): usa a ocorrência mais antiga como referência; não é bloqueado nem reconciliado silenciosamente — comportamento documentado e testado.",
+        "Cadeia com span > 365 dias entre o primeiro e o último estágio datado: BLOCK citando WSR Art. 18(6), mesmo que a ordem interna esteja correta.",
+        "Quando ordem E violação de teto de 365 dias ocorrem juntas, a mensagem de ordem tem prioridade (sinal de qualidade de dado mais imediato)."
       ],
       "bv_verification": {
         "bv_controls": [
@@ -17304,6 +17308,14 @@
         {
           "source": "WSR_2024_1157",
           "section": "Art. 18 — date of dispatch and arrival"
+        },
+        {
+          "source": "WSR_2024_1157",
+          "section": "Art. 18(6) — one-year recovery ceiling / take-back obligation"
+        },
+        {
+          "source": "ADR",
+          "section": "ADR-071 — EU-18 SKIP semantics, one-year spread ceiling, and Phase 2 event-catalog extension plan"
         }
       ],
       "methodology_quote": "Dates must follow logical order across pickup, transport, delivery and processing.",
@@ -17318,14 +17330,16 @@
       "dmrv_output": "eu_legal_valid",
       "domain": "EU Legal",
       "subdomain": "Chronology",
-      "version": "0.3.0",
-      "last_reviewed": "2026-06-03",
+      "version": "0.4.0",
+      "last_reviewed": "2026-09-18",
       "audit_findings": [],
       "gates_what": "LEGAL_OPERATION",
       "event_ids": [
         "E1",
         "E2",
-        "E4"
+        "E4",
+        "E6",
+        "E7"
       ],
       "geographic_scope": "Territorial",
       "action_on_failure": "Bloqueio",
